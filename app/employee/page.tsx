@@ -9,6 +9,7 @@ import {
   DELIVERY_MODE_LABELS,
   STAFF_STATUSES,
   formatPrice,
+  matchesSearch,
   normalizeDigits,
   type ShipmentRequest,
   formatDate,
@@ -131,11 +132,12 @@ export default function EmployeePanelPage() {
 
       if (filter === "active" && finished) return false;
       if (filter === "done" && !finished) return false;
-      if (!query) return true;
-
-      return [item.full_name, item.phone, item.destination, item.cargo_type]
-        .filter(Boolean)
-        .some((value) => String(value).includes(query));
+      return matchesSearch(query, [
+        item.full_name,
+        item.phone,
+        item.destination,
+        item.cargo_type,
+      ]);
     });
   }, [requests, filter, search]);
 

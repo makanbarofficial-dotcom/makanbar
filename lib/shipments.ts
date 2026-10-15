@@ -200,6 +200,25 @@ export function formatDate(date: string | null | undefined) {
   });
 }
 
+// متن را برای جستجو یکسان می‌کند: ی/ک عربی و فارسی، فاصله و نیم‌فاصله، اعداد فارسی و حروف بزرگ
+export function normalizeSearch(value: string | null | undefined) {
+  return normalizeDigits(String(value ?? ""))
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[ةۀ]/g, "ه")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ً-ٰٟ]/g, "")
+    .replace(/[\s‌‏‎]+/g, "")
+    .toLowerCase();
+}
+
+// آیا یکی از مقدارها شامل عبارت جستجو است؟
+export function matchesSearch(query: string, values: unknown[]) {
+  const needle = normalizeSearch(query);
+  if (!needle) return true;
+  return values.some((value) => value != null && normalizeSearch(String(value)).includes(needle));
+}
+
 export function normalizeDigits(value: string) {
   return value
     .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))

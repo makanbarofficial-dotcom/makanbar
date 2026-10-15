@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { SiteFooter, SiteHeader } from "@/components/site";
+
+export const metadata: Metadata = {
+  title: "ناوگان",
+  description:
+    "ناوگان حمل ماکان بار: تریلی، کامیون، خاور و نیسان برای هر نوع بار.",
+};
 const vehicles = [
   {
     icon: "🚛",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SiteFooter, SiteHeader } from "@/components/site";
+import { ADDRESS, PHONES, SiteFooter, SiteHeader } from "@/components/site";
 
 const steps = [
   {
@@ -70,9 +70,32 @@ const vehicles = [
 const eyebrow = "text-sm font-bold text-brand-2";
 const heading = "mt-2 text-2xl font-black leading-[1.6] sm:text-3xl";
 
+// اطلاعات کسب‌وکار برای گوگل (نام، تلفن، نشانی) تا جستجوی «ماکان بار» به سایت برسد
+const businessJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "MovingCompany",
+  name: "ماکان بار",
+  alternateName: "Makan Bar",
+  url: "https://makanbar.com",
+  logo: "https://makanbar.com/logo.png",
+  telephone: PHONES[0],
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: ADDRESS,
+    addressLocality: "تهران",
+    addressCountry: "IR",
+  },
+  areaServed: "IR",
+  sameAs: ["https://instagram.com/maknbar_com"],
+};
+
 export default function Home() {
   return (
     <div className="min-h-screen overflow-x-clip">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
+      />
       <SiteHeader />
 
       <main>

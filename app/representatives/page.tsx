@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { PHONES, SiteFooter, SiteHeader } from "@/components/site";
 import { ui } from "@/components/ui";
-import { cityFa, provinceFa } from "@/lib/shipments";
+import { cityFa, matchesSearch, provinceFa } from "@/lib/shipments";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,10 +60,9 @@ export default function RepresentativesPage() {
   const query = search.trim();
 
   const results = useMemo(() => {
-    if (!query) return sorted;
     return sorted.filter((rep) => {
       const { city, province } = names(rep);
-      return city.includes(query) || province.includes(query);
+      return matchesSearch(query, [city, province, rep.address]);
     });
   }, [sorted, query]);
 

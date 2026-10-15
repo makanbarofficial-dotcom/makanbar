@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import { SiteFooter, SiteHeader } from "@/components/site";
+
+export const metadata: Metadata = {
+  title: "خدمات",
+  description:
+    "خدمات ماکان بار: حمل بار دربستی، خرده‌بار، بین‌شهری، بار سنگین و اثاثیه، با ثبت آنلاین و پیگیری.",
+};
+
 export default function ServicesPage() {
   const services = [
     {

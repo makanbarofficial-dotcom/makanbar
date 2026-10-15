@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { SiteFooter, SiteHeader } from "@/components/site";
+
+export const metadata: Metadata = {
+  title: "درباره ما",
+  description:
+    "آشنایی با ماکان بار؛ باربری و حمل بار دربستی و خرده‌بار بین تهران و شهرستان‌ها.",
+};
 const features = [
   {
     icon: "🚛",

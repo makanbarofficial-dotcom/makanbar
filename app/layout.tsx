@@ -9,9 +9,32 @@ const vazirmatn = Vazirmatn({
 });
 
 export const metadata: Metadata = {
-  title: "ماکان بار | حمل‌ونقل حرفه‌ای",
+  metadataBase: new URL("https://makanbar.com"),
+  title: {
+    default: "ماکان بار | باربری و حمل بار دربستی و خرده‌بار",
+    template: "%s | ماکان بار",
+  },
   description:
-    "ماکان بار؛ خدمات حرفه‌ای حمل‌ونقل و جابه‌جایی بار در سراسر کشور.",
+    "ماکان بار (Makan Bar)؛ باربری و حمل بار دربستی و خرده‌بار بین تهران و شهرستان‌ها. ثبت آنلاین بار، تعیین کرایه و پیگیری وضعیت تا تحویل.",
+  applicationName: "ماکان بار",
+  keywords: [
+    "ماکان بار",
+    "makanbar",
+    "باربری",
+    "حمل بار",
+    "حمل بار دربستی",
+    "خرده بار",
+    "باربری تهران",
+    "اعلام بار",
+  ],
+  alternates: { canonical: "./" },
+  openGraph: {
+    type: "website",
+    locale: "fa_IR",
+    siteName: "ماکان بار",
+    url: "https://makanbar.com",
+    images: [{ url: "/logo.png", alt: "ماکان بار" }],
+  },
 };
 
 export const viewport: Viewport = {
