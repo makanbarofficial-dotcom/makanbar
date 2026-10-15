@@ -1,3 +1,4 @@
+import { SiteFooter, SiteHeader } from "@/components/site";
 const features = [
   {
     icon: "🚛",
@@ -25,8 +26,9 @@ export default function AboutPage() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen overflow-hidden bg-[#071a33] text-white"
+      className="min-h-screen overflow-hidden bg-ink text-white"
     >
+      <SiteHeader />
       {/* Hero */}
       <section className="relative px-6 py-20 md:px-12 lg:px-20">
         <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-orange-500/20 blur-3xl" />
@@ -134,6 +136,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

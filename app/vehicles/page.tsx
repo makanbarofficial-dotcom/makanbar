@@ -1,3 +1,4 @@
+import { SiteFooter, SiteHeader } from "@/components/site";
 const vehicles = [
   {
     icon: "🚛",
@@ -25,36 +26,10 @@ export default function VehiclesPage() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-[#07111f] text-white"
+      className="min-h-screen bg-ink text-white"
     >
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07111f]/95 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
-          
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-2xl">
-              🚛
-            </div>
-
-            <div>
-              <div className="text-lg font-black">
-                ماکان بار
-              </div>
-
-              <div className="text-[10px] text-slate-400">
-                حمل‌ونقل و جابه‌جایی بار
-              </div>
-            </div>
-          </a>
-
-          <a
-            href="/"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold hover:bg-white/10"
-          >
-            ← بازگشت به خانه
-          </a>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -90,7 +65,7 @@ export default function VehiclesPage() {
             {vehicles.map((vehicle) => (
               <div
                 key={vehicle.title}
-                className="rounded-3xl border border-white/10 bg-[#07111f] p-5 transition hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-xl hover:shadow-orange-500/10"
+                className="rounded-3xl border border-white/10 bg-ink p-5 transition hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-xl hover:shadow-orange-500/10"
               >
 
                 <div className="flex h-40 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1b3048] to-[#0b1422] text-7xl">
@@ -139,7 +114,7 @@ export default function VehiclesPage() {
 
           <a
             href="/request"
-            className="mt-7 inline-block rounded-2xl bg-[#07111f] px-7 py-4 font-black text-white hover:bg-slate-800"
+            className="mt-7 inline-block rounded-2xl bg-ink px-7 py-4 font-black text-white hover:bg-slate-800"
           >
             ثبت درخواست حمل
           </a>
@@ -148,13 +123,7 @@ export default function VehiclesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10">
-
-        <div className="mx-auto max-w-7xl px-5 py-7 text-center text-sm text-slate-500 lg:px-8">
-          © {new Date().getFullYear()} ماکان بار
-        </div>
-
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

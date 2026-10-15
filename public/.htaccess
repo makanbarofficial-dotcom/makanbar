@@ -1,0 +1,20 @@
+# تنظیمات هاست Apache (cPanel / DirectAdmin) برای نسخه‌ی ثابت سایت
+
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+# بعد از فعال شدن SSL روی هاست، سه خط زیر را از حالت کامنت خارج کنید تا همه به https بروند
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+<IfModule mod_headers.c>
+  # فایل‌های _next/static نام یکتا دارند و برای همیشه کش می‌شوند
+  <If "%{REQUEST_URI} =~ m#^/_next/static/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
+  # صفحه‌ها همیشه از نو بررسی می‌شوند تا تغییرات فوری دیده شوند
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local tools
+.claude/settings.local.json
+.vscode/
+
+# packaged build for upload
+*.zip
