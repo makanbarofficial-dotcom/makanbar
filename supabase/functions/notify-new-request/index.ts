@@ -86,14 +86,24 @@ Deno.serve(async (req) => {
 
     const { requestId } = await req.json();
 
-    // فقط صاحب همان بار، فقط یک‌بار، و فقط تا ۱۰ دقیقه بعد از ثبت
-    const { data: request } = await supabase
+    // بار تلفنی را مدیر ثبت می‌کند؛ بقیه بارها را خود صاحب بار
+    const { data: callerAdmin } = await supabase
+      .from("app_admins")
+      .select("auth_user_id")
+      .eq("auth_user_id", userId)
+      .maybeSingle();
+    const byAdmin = !!callerAdmin;
+
+    // فقط صاحب همان بار (یا مدیر)، فقط یک‌بار، و فقط تا ۱۰ دقیقه بعد از ثبت
+    let claim = supabase
       .from("requests")
       .update({ notified_at: new Date().toISOString() })
       .eq("id", requestId)
-      .eq("customer_id", userId)
       .is("notified_at", null)
-      .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString())
+      .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
+    if (!byAdmin) claim = claim.eq("customer_id", userId);
+
+    const { data: request } = await claim
       .select("id, shipment_type, direction, city_province, city, origin, destination")
       .maybeSingle();
 
@@ -101,12 +111,13 @@ Deno.serve(async (req) => {
 
     // مدیر برای همه بارها پیامک می‌گیرد؛ متصدی فقط برای خرده‌بارِ شهر خودش
     const type = request.shipment_type === "full" ? "دربستی" : "خرده‌بار";
-    const outbox = new Map<string, string>([
-      [
-        toSmsNumber(Deno.env.get("ADMIN_NOTIFY_PHONE") || DEFAULT_ADMIN_PHONE),
-        `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`,
-      ],
-    ]);
+    const adminPhone = toSmsNumber(Deno.env.get("ADMIN_NOTIFY_PHONE") || DEFAULT_ADMIN_PHONE);
+    const outbox = new Map<string, string>();
+
+    // بار تلفنی را خود مدیر ثبت کرده؛ پیامک مدیر لازم نیست
+    if (!byAdmin) {
+      outbox.set(adminPhone, `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`);
+    }
 
     if (request.shipment_type === "partial" && request.direction === "from_tehran") {
       const { data: staff } = await supabase
@@ -120,7 +131,7 @@ Deno.serve(async (req) => {
         const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === request.city);
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
-        if (covers && !outbox.has(phone)) {
+        if (covers && !outbox.has(phone) && phone !== adminPhone) {
           outbox.set(phone, `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`);
         }
       }

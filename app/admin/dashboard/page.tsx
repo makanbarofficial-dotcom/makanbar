@@ -21,6 +21,7 @@ import {
   statusTone,
 } from "@/lib/shipments";
 import { Logo } from "@/components/ui";
+import { PhoneOrderForm } from "./phone-order";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -177,6 +178,8 @@ export default function AdminDashboardPage() {
   const [publishedIds, setPublishedIds] = useState<Set<number>>(
     () => new Set()
   );
+
+  const [showPhoneOrder, setShowPhoneOrder] = useState(false);
 
   const [publishingId, setPublishingId] =
     useState<number | null>(null);
@@ -2024,6 +2027,26 @@ ${formatPrice(price)}`)) {
           {activeSection ===
             "requests" && (
             <section>
+              {showPhoneOrder ? (
+                <PhoneOrderForm
+                  supabase={supabase}
+                  onClose={() => setShowPhoneOrder(false)}
+                  onCreated={(row) => {
+                    setRequests((current) => [row, ...current]);
+                    setShowPhoneOrder(false);
+                    alert("بار تلفنی ثبت شد.");
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowPhoneOrder(true)}
+                  className="mb-5 w-full rounded-2xl border border-dashed border-orange-400/40 bg-orange-500/[0.06] py-4 font-bold text-orange-300 transition hover:bg-orange-500/10"
+                >
+                  📞 ثبت بار تلفنی برای مشتری
+                </button>
+              )}
+
               <div className="mb-5 flex flex-wrap gap-2">
                 {(
                   [
