@@ -194,6 +194,9 @@ export default function AdminDashboardPage() {
 
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
 
+  // فقط مدیر اصلی (owner) بخش «مدیران» را می‌بیند و مدیر می‌سازد
+  const [isOwner, setIsOwner] = useState(false);
+
   const [adminForm, setAdminForm] = useState({ name: "", phone: "", password: "" });
 
   const [adminSaving, setAdminSaving] = useState(false);
@@ -738,6 +741,14 @@ export default function AdminDashboardPage() {
         setLoading(false);
         return;
       }
+
+      const { data: myAdmin } = await supabase
+        .from("app_admins")
+        .select("role")
+        .eq("auth_user_id", sessionData.session.user.id)
+        .maybeSingle();
+
+      setIsOwner(myAdmin?.role === "owner");
 
       await Promise.all([
         loadRequests(),
@@ -1724,7 +1735,7 @@ ${formatPrice(price)}`)) {
       label: "تنظیمات",
       icon: "⚙️",
     },
-  ];
+  ].filter((item) => item.id !== "admins" || isOwner);
 
   if (accessDenied) {
     return (
@@ -3294,7 +3305,7 @@ ${formatPrice(price)}`)) {
             </section>
           )}
 
-          {activeSection === "admins" && (
+          {activeSection === "admins" && isOwner && (
             <section className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
                 <h3 className="text-lg font-black">افزودن مدیر</h3>

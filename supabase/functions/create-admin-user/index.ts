@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "jsr:@supabase/server@^1";
 
-// ساخت حساب مدیر جدید با شماره موبایل؛ فقط مدیران فعلی (app_admins) اجازه دارند.
+// ساخت حساب مدیر جدید با شماره موبایل؛ فقط مدیر اصلی (role = owner) اجازه دارد.
 // ورود با موبایل در Supabase خاموش است، پس مدیر با ایمیل ساختگی وارد می‌شود
 // و صفحه /admin شماره را به همین ایمیل تبدیل می‌کند.
 
@@ -41,12 +41,12 @@ export default {
 
         const { data: caller } = await ctx.supabaseAdmin
           .from("app_admins")
-          .select("auth_user_id")
+          .select("role")
           .eq("auth_user_id", ctx.userClaims.sub)
           .maybeSingle();
 
-        if (!caller) {
-          return Response.json({ error: "فقط مدیران می‌توانند مدیر جدید بسازند." }, { status: 403 });
+        if (caller?.role !== "owner") {
+          return Response.json({ error: "فقط مدیر اصلی می‌تواند مدیر جدید بسازد." }, { status: 403 });
         }
 
         const body: ReqPayload = await req.json();
@@ -91,7 +91,7 @@ export default {
 
         const { error: insertError } = await ctx.supabaseAdmin
           .from("app_admins")
-          .insert({ auth_user_id: created.user.id, name, phone });
+          .insert({ auth_user_id: created.user.id, name, phone, role: "manager" });
 
         if (insertError) {
           console.error("Insert admin error:", insertError);
