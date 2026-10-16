@@ -141,9 +141,14 @@ export default function EmployeePanelPage() {
     });
   }, [requests, filter, search]);
 
+  // متن کادر کرایه را به عدد تبدیل می‌کند؛ هم برای ذخیره و هم برای پیش‌نمایش
+  function draftPrice(id: number) {
+    const digits = normalizeDigits(prices[id] ?? "").replace(/\D/g, "");
+    return digits ? Number(digits) : null;
+  }
+
   async function saveRequest(item: ShipmentRequest, status: string) {
-    const digits = normalizeDigits(prices[item.id] ?? "").replace(/\D/g, "");
-    const price = digits ? Number(digits) : null;
+    const price = draftPrice(item.id);
     const staff_note = notes[item.id]?.trim() || null;
 
     setSavingId(item.id);
@@ -485,6 +490,12 @@ export default function EmployeePanelPage() {
                       </button>
                     </div>
                   </div>
+
+                  {draftPrice(item.id) != null && draftPrice(item.id) !== item.price && (
+                    <p className="mt-2 text-xs text-emerald-300">
+                      کرایه‌ی جدید: {formatPrice(draftPrice(item.id))} — برای ثبت «ذخیره» را بزنید.
+                    </p>
+                  )}
                 </article>
               ))}
             </section>

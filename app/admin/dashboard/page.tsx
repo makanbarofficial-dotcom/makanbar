@@ -698,22 +698,44 @@ export default function AdminDashboardPage() {
   }
 
   async function savePrice(item: RequestItem) {
-    setRequestLoading(true);
-
     const price = parsePriceDraft(item);
+
+    if (!confirm(`کرایه این بار ذخیره شود؟
+${formatPrice(price)}`)) {
+      return;
+    }
+
+    setRequestLoading(true);
 
     const { error } = await supabase
       .from("requests")
       .update({ price })
       .eq("id", item.id);
 
-    setRequestLoading(false);
-
     if (error) {
+      setRequestLoading(false);
       console.error(error);
       alert(`ذخیره کرایه انجام نشد: ${error.message}`);
       return;
     }
+
+    // اگر بار قبلاً برای رانندگان ارسال شده، کرایه‌ی پنل رانندگان هم به‌روز شود
+    if (publishedIds.has(item.id)) {
+      const { data: updatedLoads } = await supabase
+        .from("loads")
+        .update({ price })
+        .eq("request_id", item.id)
+        .eq("status", "available")
+        .select("id");
+
+      if (!updatedLoads?.length) {
+        alert(
+          "کرایه برای صاحب بار ذخیره شد، اما راننده این بار را قبلاً پذیرفته است؛ کرایه‌ی جدید را با راننده هماهنگ کنید."
+        );
+      }
+    }
+
+    setRequestLoading(false);
 
     setRequests((current) =>
       current.map((row) =>
@@ -2164,6 +2186,13 @@ export default function AdminDashboardPage() {
                           placeholder="کرایه (تومان)"
                           className="w-48 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm outline-none placeholder:text-white/30 focus:border-orange-500"
                         />
+
+                        {/* مبلغ خوانا کنار کادر تا صفر اضافه یا کم دیده شود */}
+                        <span className="text-xs font-bold text-emerald-300">
+                          {parsePriceDraft(item) != null
+                            ? formatPrice(parsePriceDraft(item))
+                            : ""}
+                        </span>
 
                         <button
                           type="button"
