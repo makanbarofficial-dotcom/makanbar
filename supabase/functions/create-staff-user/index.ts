@@ -48,9 +48,16 @@ export default {
           );
         }
 
-        if (ctx.userClaims.email !== "makanbarofficial@gmail.com") {
+        // هر کسی که در فهرست مدیران (app_admins) باشد، می‌تواند متصدی بسازد
+        const { data: admin } = await ctx.supabaseAdmin
+          .from("app_admins")
+          .select("auth_user_id")
+          .eq("auth_user_id", ctx.userClaims.sub)
+          .maybeSingle();
+
+        if (!admin) {
           return Response.json(
-            { error: "فقط مدیر اصلی می‌تواند حساب متصدی بسازد." },
+            { error: "فقط مدیران می‌توانند حساب متصدی بسازند." },
             { status: 403 }
           );
         }
