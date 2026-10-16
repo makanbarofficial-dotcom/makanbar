@@ -185,7 +185,7 @@ export default function CustomerPanelPage() {
     setSubmitting(true);
 
 
-    const { error: insertError } = await supabase.from("requests").insert({
+    const { data: created, error: insertError } = await supabase.from("requests").insert({
       customer_id: userId,
       full_name: fullName,
       phone,
@@ -205,7 +205,9 @@ export default function CustomerPanelPage() {
       vehicle_type: shipmentType === "full" ? value("vehicle_type") : "",
       description: value("description") || null,
       status: "جدید",
-    });
+    })
+      .select("id")
+      .single();
 
     setSubmitting(false);
 
@@ -214,6 +216,11 @@ export default function CustomerPanelPage() {
       setFormError(`ثبت بار انجام نشد: ${insertError.message}`);
       return;
     }
+
+    // پیامک به متصدی شهر یا مدیر؛ خطای پیامک نباید ثبت بار را خراب کند
+    supabase.functions
+      .invoke("notify-new-request", { body: { requestId: created.id } })
+      .catch((notifyError) => console.error("Notify error:", notifyError));
 
     form.reset();
     setOrigin(emptyPlace);
