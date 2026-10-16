@@ -2,8 +2,9 @@
 
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Brand } from "@/components/ui";
+import { Brand, ui } from "@/components/ui";
 import {
   DELIVERY_MODE_HINTS,
   DELIVERY_MODE_LABELS,
@@ -78,6 +79,8 @@ export default function CustomerPanelPage() {
   const [error, setError] = useState("");
   const [userId, setUserId] = useState("");
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
+  // حساب واردشده صاحب بار نیست (مثلاً مدیر، متصدی یا راننده)
+  const [notCustomer, setNotCustomer] = useState(false);
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
   const [activeTab, setActiveTab] = useState<"list" | "create">("list");
 
@@ -120,6 +123,7 @@ export default function CustomerPanelPage() {
       ]);
 
     if (customer) setProfile(customer as CustomerProfile);
+    setNotCustomer(!customer);
 
     if (requestsError) {
       console.error("Customer requests error:", requestsError);
@@ -261,6 +265,32 @@ export default function CustomerPanelPage() {
         className="flex min-h-screen items-center justify-center bg-ink text-white"
       >
         <p className="font-bold">در حال بارگذاری پنل...</p>
+      </main>
+    );
+  }
+
+  if (notCustomer) {
+    return (
+      <main
+        dir="rtl"
+        className="flex min-h-screen items-center justify-center bg-ink px-4 text-white"
+      >
+        <section className={`${ui.card} max-w-md p-8 text-center`}>
+          <div className="text-4xl">📦</div>
+          <h1 className="mt-4 text-xl font-black">این حساب، حساب صاحب بار نیست</h1>
+          <p className="mt-3 text-sm leading-7 text-white/60">
+            با حساب مدیر، متصدی یا راننده وارد شده‌اید. برای ثبت بار، از این حساب خارج
+            شوید و با حساب صاحب بار وارد شوید یا ثبت‌نام کنید.
+          </p>
+          <div className="mt-6 grid gap-2">
+            <button type="button" onClick={logout} className={ui.btnPrimary}>
+              خروج و ورود با حساب صاحب بار
+            </button>
+            <Link href="/" className={ui.btnSecondary}>
+              بازگشت به صفحه اصلی
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
