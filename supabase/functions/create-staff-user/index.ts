@@ -49,10 +49,14 @@ export default {
         }
 
         // هر کسی که در فهرست مدیران (app_admins) باشد، می‌تواند متصدی بسازد
+        // شناسه کاربر را مستقیم از توکن ورود می‌گیریم
+        const token = (_req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+        const { data: authUser } = await ctx.supabaseAdmin.auth.getUser(token);
+
         const { data: admin } = await ctx.supabaseAdmin
           .from("app_admins")
           .select("auth_user_id")
-          .eq("auth_user_id", ctx.userClaims.sub)
+          .eq("auth_user_id", authUser.user?.id ?? "")
           .maybeSingle();
 
         if (!admin) {

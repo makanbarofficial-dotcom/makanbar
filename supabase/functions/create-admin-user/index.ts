@@ -39,10 +39,14 @@ export default {
           return Response.json({ error: "دسترسی غیرمجاز" }, { status: 401 });
         }
 
+        // شناسه کاربر را مستقیم از توکن ورود می‌گیریم
+        const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+        const { data: authUser } = await ctx.supabaseAdmin.auth.getUser(token);
+
         const { data: caller } = await ctx.supabaseAdmin
           .from("app_admins")
           .select("role")
-          .eq("auth_user_id", ctx.userClaims.sub)
+          .eq("auth_user_id", authUser.user?.id ?? "")
           .maybeSingle();
 
         if (caller?.role !== "owner") {
