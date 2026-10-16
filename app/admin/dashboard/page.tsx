@@ -64,6 +64,13 @@ type StaffLocationForm = {
   city: string;
 };
 
+type AdminAccount = {
+  auth_user_id: string;
+  name: string | null;
+  phone: string | null;
+  created_at: string;
+};
+
 type DriverStatus = "pending" | "approved" | "rejected";
 
 type Driver = {
@@ -184,6 +191,12 @@ export default function AdminDashboardPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
 
   const [customerSearch, setCustomerSearch] = useState("");
+
+  const [admins, setAdmins] = useState<AdminAccount[]>([]);
+
+  const [adminForm, setAdminForm] = useState({ name: "", phone: "", password: "" });
+
+  const [adminSaving, setAdminSaving] = useState(false);
 
   const [drivers, setDrivers] = useState<Driver[]>([]);
 
@@ -554,6 +567,56 @@ export default function AdminDashboardPage() {
     );
   }, [customers, customerSearch]);
 
+  async function loadAdmins() {
+    const { data, error } = await supabase
+      .from("app_admins")
+      .select("auth_user_id, name, phone, created_at")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      setError("خطا در دریافت مدیران");
+      return;
+    }
+
+    setAdmins((data || []) as AdminAccount[]);
+  }
+
+  async function createAdmin() {
+    if (!adminForm.name.trim() || !adminForm.phone.trim() || adminForm.password.length < 8) {
+      alert("نام، شماره موبایل و رمز حداقل ۸ کاراکتری را وارد کنید.");
+      return;
+    }
+
+    setAdminSaving(true);
+
+    const { data, error } = await supabase.functions.invoke("create-admin-user", {
+      body: adminForm,
+    });
+
+    setAdminSaving(false);
+
+    if (error || !data?.success) {
+      // پیام فارسی تابع داخل بدنه‌ی پاسخ خطاست
+      let message = data?.error || "";
+      try {
+        const payload = await (error as { context?: Response } | null)?.context?.json();
+        message = payload?.error || message;
+      } catch {
+        // بدنه قابل خواندن نبود
+      }
+      alert(message || "ساخت حساب مدیر انجام نشد.");
+      return;
+    }
+
+    alert(
+      `حساب مدیر ساخته شد.
+ورود: makanbar.com/admin با شماره ${adminForm.phone} و همین رمز.`
+    );
+    setAdminForm({ name: "", phone: "", password: "" });
+    await loadAdmins();
+  }
+
   async function loadDrivers() {
     setDriverLoading(true);
 
@@ -647,6 +710,10 @@ export default function AdminDashboardPage() {
 
     if (activeSection === "drivers") {
       void loadDrivers();
+    }
+
+    if (activeSection === "admins") {
+      void loadAdmins();
     }
   }, [activeSection]);
 
@@ -1631,6 +1698,11 @@ ${formatPrice(price)}`)) {
       id: "drivers",
       label: "رانندگان",
       icon: "🚚",
+    },
+    {
+      id: "admins",
+      label: "مدیران",
+      icon: "🛡️",
     },
     {
       id: "fleet",
@@ -3218,6 +3290,67 @@ ${formatPrice(price)}`)) {
                     {driverLoading ? "در حال دریافت..." : "راننده‌ای در این بخش نیست."}
                   </div>
                 )}
+              </div>
+            </section>
+          )}
+
+          {activeSection === "admins" && (
+            <section className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <h3 className="text-lg font-black">افزودن مدیر</h3>
+                <p className="mt-1 text-sm leading-7 text-white/50">
+                  مدیر جدید با شماره موبایل و رمز وارد پنل مدیریت می‌شود و همه‌ی دسترسی‌های شما را دارد.
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  <input
+                    value={adminForm.name}
+                    onChange={(e) => setAdminForm({ ...adminForm, name: e.target.value })}
+                    placeholder="نام و نام خانوادگی"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/30 focus:border-orange-500"
+                  />
+                  <input
+                    value={adminForm.phone}
+                    onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })}
+                    placeholder="شماره موبایل، مثلاً 09121234567"
+                    inputMode="tel"
+                    dir="ltr"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right outline-none placeholder:text-white/30 focus:border-orange-500"
+                  />
+                  <input
+                    type="password"
+                    value={adminForm.password}
+                    onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                    placeholder="رمز عبور (حداقل ۸ کاراکتر)"
+                    autoComplete="new-password"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/30 focus:border-orange-500"
+                  />
+                  <button
+                    type="button"
+                    disabled={adminSaving}
+                    onClick={() => void createAdmin()}
+                    className="w-full rounded-2xl bg-orange-500 px-5 py-3 font-bold text-white transition hover:bg-orange-400 disabled:opacity-50"
+                  >
+                    {adminSaving ? "در حال ساخت..." : "ساخت حساب مدیر"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {admins.map((admin) => (
+                  <article
+                    key={admin.auth_user_id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                  >
+                    <div>
+                      <p className="font-black">{admin.name || "مدیر اصلی"}</p>
+                      <p dir="ltr" className="mt-1 text-right text-sm text-white/50">
+                        {admin.phone ? formatCustomerPhone(admin.phone) : "ورود با ایمیل"}
+                      </p>
+                    </div>
+                    <span className="text-xs text-white/40">{formatDate(admin.created_at)}</span>
+                  </article>
+                ))}
               </div>
             </section>
           )}

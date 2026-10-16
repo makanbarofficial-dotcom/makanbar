@@ -4,6 +4,21 @@ import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { Alert, AuthShell, ui } from "@/components/ui";
+import { normalizeDigits } from "@/lib/shipments";
+
+// مدیر با ایمیل یا شماره موبایل وارد می‌شود؛ شماره به ایمیل ساختگی تابع create-admin-user تبدیل می‌شود
+function loginEmail(identifier: string) {
+  const value = normalizeDigits(identifier).trim();
+  if (value.includes("@")) return value;
+
+  let phone = value.replace(/[\s()-]/g, "");
+  if (phone.startsWith("0098")) phone = phone.slice(2);
+  else if (phone.startsWith("+98")) phone = phone.slice(1);
+  else if (phone.startsWith("09")) phone = "98" + phone.slice(1);
+  else if (phone.startsWith("9")) phone = "98" + phone;
+
+  return `${phone}@admins.makanbar.com`;
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,12 +38,12 @@ export default function AdminPage() {
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail(email),
       password,
     });
 
     if (error) {
-      setError("ایمیل یا رمز عبور اشتباه است.");
+      setError("ایمیل/شماره موبایل یا رمز عبور اشتباه است.");
       setLoading(false);
       return;
     }
@@ -47,16 +62,16 @@ export default function AdminPage() {
       >
         <div>
           <label htmlFor="email" className={ui.label}>
-            ایمیل
+            ایمیل یا شماره موبایل
           </label>
           <input
             id="email"
-            type="email"
+            type="text"
             dir="ltr"
-            autoComplete="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@example.com"
+            placeholder="09121234567"
             className={`${ui.input} text-right`}
           />
         </div>
