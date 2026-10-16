@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ADDRESS, PHONES, SiteFooter, SiteHeader } from "@/components/site";
+import { SiteFooter, SiteHeader } from "@/components/site";
+import { ADDRESS, PHONES } from "@/lib/contact";
 
 const steps = [
   {
@@ -70,31 +71,48 @@ const vehicles = [
 const eyebrow = "text-sm font-bold text-brand-2";
 const heading = "mt-2 text-2xl font-black leading-[1.6] sm:text-3xl";
 
-// اطلاعات کسب‌وکار برای گوگل (نام، تلفن، نشانی) تا جستجوی «ماکان بار» به سایت برسد
-const businessJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "MovingCompany",
-  name: "ماکان بار",
-  alternateName: "Makan Bar",
-  url: "https://makanbar.com",
-  logo: "https://makanbar.com/logo.png",
-  telephone: PHONES[0],
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: ADDRESS,
-    addressLocality: "تهران",
-    addressCountry: "IR",
+// اطلاعات کسب‌وکار برای گوگل: نام سایت، لوگو، تلفن‌ها و نشانی
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "ماکان بار",
+    alternateName: ["Makan Bar", "makanbar"],
+    url: "https://makanbar.com/",
   },
-  areaServed: "IR",
-  sameAs: ["https://instagram.com/maknbar_com"],
-};
+  {
+    "@context": "https://schema.org",
+    "@type": "MovingCompany",
+    name: "ماکان بار",
+    alternateName: "Makan Bar",
+    url: "https://makanbar.com/",
+    logo: "https://makanbar.com/icon.png",
+    image: "https://makanbar.com/logo.png",
+    telephone: PHONES[0],
+    contactPoint: PHONES.map((telephone) => ({
+      "@type": "ContactPoint",
+      telephone,
+      contactType: "customer service",
+      availableLanguage: "fa",
+    })),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: ADDRESS,
+      addressLocality: "تهران",
+      addressCountry: "IR",
+    },
+    openingHours: "Mo-Su 07:00-22:00",
+    areaServed: "IR",
+    sameAs: ["https://instagram.com/maknbar_com"],
+  },
+];
 
 export default function Home() {
   return (
     <div className="min-h-screen overflow-x-clip">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <SiteHeader />
 

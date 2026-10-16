@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "@/components/ui";
+import { ADDRESS, PHONES } from "@/lib/contact";
 
 const NAV = [
   { label: "خانه", href: "/" },
@@ -12,15 +13,6 @@ const NAV = [
   { label: "درباره ما", href: "/about" },
 ];
 
-export const PHONES = [
-  "02155355050",
-  "02155355040",
-  "02155355030",
-  "02155355020",
-  "09125573776",
-];
-
-export const ADDRESS = "چهارراه ترمینال جنوب به سمت افسریه، جنب خسارت بیمه ایران";
 
 // سربرگ مشترک همه صفحه‌های عمومی سایت
 export function SiteHeader() {

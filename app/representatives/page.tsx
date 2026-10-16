@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
-import { PHONES, SiteFooter, SiteHeader } from "@/components/site";
+import { SiteFooter, SiteHeader } from "@/components/site";
+import { PHONES } from "@/lib/contact";
 import { ui } from "@/components/ui";
 import { cityFa, matchesSearch, provinceFa } from "@/lib/shipments";
 
