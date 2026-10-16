@@ -4,7 +4,7 @@ import soap from "npm:soap";
 
 // پیامک اطلاع‌رسانی بار جدید:
 //   خرده‌بار «تهران ← شهری که متصدی دارد»  → متصدی‌های آن شهر
-//   بقیه (دربستی، شهر بدون متصدی، مبدأ غیرتهران) → شماره مدیر (ADMIN_NOTIFY_PHONE)
+//   مدیر (ADMIN_NOTIFY_PHONE) برای همه بارها، از جمله دربستی و شهرهای بدون متصدی
 // صاحب بار بعد از ثبت، این تابع را با شناسه بار صدا می‌زند؛ برای هر بار فقط یک‌بار پیامک می‌رود.
 
 // شماره مدیر (همان موبایل عمومی سایت)؛ با متغیر ADMIN_NOTIFY_PHONE قابل تغییر است
@@ -99,8 +99,14 @@ Deno.serve(async (req) => {
 
     if (!request) return json({ success: true, sent: 0 });
 
-    let recipients: string[] = [];
-    let message = "";
+    // مدیر برای همه بارها پیامک می‌گیرد؛ متصدی فقط برای خرده‌بارِ شهر خودش
+    const type = request.shipment_type === "full" ? "دربستی" : "خرده‌بار";
+    const outbox = new Map<string, string>([
+      [
+        toSmsNumber(Deno.env.get("ADMIN_NOTIFY_PHONE") || DEFAULT_ADMIN_PHONE),
+        `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`,
+      ],
+    ]);
 
     if (request.shipment_type === "partial" && request.direction === "from_tehran") {
       const { data: staff } = await supabase
@@ -109,27 +115,19 @@ Deno.serve(async (req) => {
         .eq("panel_enabled", true)
         .eq("staff_locations.province", request.city_province);
 
-      recipients = (staff ?? [])
+      for (const member of staff ?? []) {
         // deno-lint-ignore no-explicit-any
-        .filter((member: any) =>
-          // deno-lint-ignore no-explicit-any
-          member.staff_locations.some((loc: any) => !loc.city || loc.city === request.city)
-        )
-        // deno-lint-ignore no-explicit-any
-        .map((member: any) => member.phone);
-
-      message = `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`;
-    }
-
-    if (recipients.length === 0) {
-      recipients = [Deno.env.get("ADMIN_NOTIFY_PHONE") || DEFAULT_ADMIN_PHONE];
-
-      const type = request.shipment_type === "full" ? "دربستی" : "خرده‌بار";
-      message = `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`;
+        const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === request.city);
+        const phone = toSmsNumber(member.phone);
+        // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
+        if (covers && !outbox.has(phone)) {
+          outbox.set(phone, `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`);
+        }
+      }
     }
 
     let sent = 0;
-    for (const phone of new Set(recipients.map(toSmsNumber))) {
+    for (const [phone, message] of outbox) {
       try {
         if (await sendSms(phone, message)) sent++;
       } catch (smsError) {
