@@ -15,6 +15,7 @@ const supabase = createClient(
 
 type Representative = {
   id: number;
+  name: string | null;
   province: string;
   city: string;
   address: string | null;
@@ -39,7 +40,7 @@ export default function RepresentativesPage() {
   useEffect(() => {
     supabase
       .from("representatives")
-      .select("id, province, city, address, phone, mobile, location_url")
+      .select("id, name, province, city, address, phone, mobile, location_url")
       .then(({ data, error }) => {
         if (error) console.error("خطا در دریافت نمایندگان:", error);
         setRepresentatives((data ?? []) as Representative[]);
@@ -63,7 +64,7 @@ export default function RepresentativesPage() {
   const results = useMemo(() => {
     return sorted.filter((rep) => {
       const { city, province } = names(rep);
-      return matchesSearch(query, [city, province, rep.address]);
+      return matchesSearch(query, [city, province, rep.name, rep.address]);
     });
   }, [sorted, query]);
 
@@ -134,6 +135,9 @@ export default function RepresentativesPage() {
                     <div>
                       <h2 className="text-xl font-black">{city}</h2>
                       <p className="mt-1 text-sm text-white/50">استان {province}</p>
+                      {rep.name && (
+                        <p className="mt-2 text-sm font-bold text-brand-2">{rep.name}</p>
+                      )}
                     </div>
                     {isHeadOffice && (
                       <span className="shrink-0 rounded-full bg-brand px-3 py-1 text-xs font-bold">

@@ -31,6 +31,7 @@ type RequestItem = ShipmentRequest;
 
 type Representative = {
   id: number;
+  name: string | null;
   province: string;
   city: string;
   address: string | null;
@@ -126,6 +127,7 @@ function formatCustomerPhone(phone?: string | null) {
 }
 
 const emptyRepresentative = {
+  name: "",
   province: "",
   city: "",
   address: "",
@@ -941,6 +943,7 @@ ${formatPrice(price)}`)) {
     );
 
     setRepresentativeForm({
+      name: item.name || "",
       province: item.province || "",
       city: item.city || "",
       address: item.address || "",
@@ -974,6 +977,9 @@ ${formatPrice(price)}`)) {
           await supabase
             .from("representatives")
             .update({
+              name:
+                representativeForm.name.trim() ||
+                null,
               province:
                 representativeForm.province,
               city:
@@ -1026,6 +1032,9 @@ ${formatPrice(price)}`)) {
           await supabase
             .from("representatives")
             .insert({
+              name:
+                representativeForm.name.trim() ||
+                null,
               province:
                 representativeForm.province,
               city:
@@ -2422,6 +2431,18 @@ ${formatPrice(price)}`)) {
                     </select>
 
                     <input
+                      value={representativeForm.name}
+                      onChange={(e) =>
+                        setRepresentativeForm((current) => ({
+                          ...current,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder="نام نماینده (مثلاً آقای رضایی یا باربری رضایی)"
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                    />
+
+                    <input
                       value={
                         representativeForm.address
                       }
@@ -2549,6 +2570,12 @@ ${formatPrice(price)}`)) {
                                   )
                                 }
                               </h3>
+
+                              {item.name && (
+                                <p className="mt-1 text-sm font-bold text-orange-300">
+                                  {item.name}
+                                </p>
+                              )}
 
                               {item.address && (
                                 <p className="mt-2 text-sm leading-7 text-white/55">
