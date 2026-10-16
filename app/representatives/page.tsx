@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/site";
-import { PHONES } from "@/lib/contact";
+import { PHONES, formatPhone } from "@/lib/contact";
 import { ui } from "@/components/ui";
 import { cityFa, matchesSearch, provinceFa } from "@/lib/shipments";
 
@@ -210,7 +210,7 @@ export default function RepresentativesPage() {
             <p className="mt-1 text-sm text-white/60">با دفتر مرکزی تماس بگیرید.</p>
           </div>
           <a href={`tel:${PHONES[0]}`} dir="ltr" className="font-black text-brand-2 hover:text-brand">
-            {PHONES[0]}
+            {formatPhone(PHONES[0])}
           </a>
         </section>
       </main>

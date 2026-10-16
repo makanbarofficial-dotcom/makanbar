@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "@/components/ui";
-import { ADDRESS, PHONES } from "@/lib/contact";
+import { ADDRESS, PHONES, formatPhone } from "@/lib/contact";
 
 const NAV = [
   { label: "خانه", href: "/" },
@@ -103,7 +103,8 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div>
+        {/* data-nosnippet: گوگل این فهرست شماره‌ها را به‌عنوان متن نتیجه‌ی جستجو برندارد */}
+        <div data-nosnippet>
           <h2 className="text-sm font-bold text-white/80">تماس با ما</h2>
           <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-1">
             {PHONES.map((phone) => (
@@ -113,7 +114,7 @@ export function SiteFooter() {
                   dir="ltr"
                   className="text-sm text-white/55 transition hover:text-brand-2"
                 >
-                  {phone}
+                  {formatPhone(phone)}
                 </a>
               </li>
             ))}
