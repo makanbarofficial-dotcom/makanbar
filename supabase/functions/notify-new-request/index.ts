@@ -4,11 +4,11 @@ import soap from "npm:soap";
 
 // پیامک اطلاع‌رسانی بار جدید:
 //   خرده‌بار «تهران ← شهری که متصدی دارد»  → متصدی‌های آن شهر
-//   مدیر (ADMIN_NOTIFY_PHONE) برای همه بارها، از جمله دربستی و شهرهای بدون متصدی
+//   مدیران (ADMIN_PHONES و ADMIN_NOTIFY_PHONE) برای همه بارها، از جمله دربستی و شهرهای بدون متصدی
 // صاحب بار بعد از ثبت، این تابع را با شناسه بار صدا می‌زند؛ برای هر بار فقط یک‌بار پیامک می‌رود.
 
-// شماره مدیر (همان موبایل عمومی سایت)؛ با متغیر ADMIN_NOTIFY_PHONE قابل تغییر است
-const DEFAULT_ADMIN_PHONE = "09125573776";
+// شماره‌هایی که برای هر بار جدید پیامک می‌گیرند؛ متغیر ADMIN_NOTIFY_PHONE (با کاما) هم اضافه می‌شود
+const ADMIN_PHONES = ["09125573776", "09056415533"];
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -111,12 +111,19 @@ Deno.serve(async (req) => {
 
     // مدیر برای همه بارها پیامک می‌گیرد؛ متصدی فقط برای خرده‌بارِ شهر خودش
     const type = request.shipment_type === "full" ? "دربستی" : "خرده‌بار";
-    const adminPhone = toSmsNumber(Deno.env.get("ADMIN_NOTIFY_PHONE") || DEFAULT_ADMIN_PHONE);
+    const adminPhones = new Set(
+      [...ADMIN_PHONES, ...(Deno.env.get("ADMIN_NOTIFY_PHONE") ?? "").split(",")]
+        .map((phone) => phone.trim())
+        .filter(Boolean)
+        .map(toSmsNumber),
+    );
     const outbox = new Map<string, string>();
 
     // بار تلفنی را خود مدیر ثبت کرده؛ پیامک مدیر لازم نیست
     if (!byAdmin) {
-      outbox.set(adminPhone, `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`);
+      for (const adminPhone of adminPhones) {
+        outbox.set(adminPhone, `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`);
+      }
     }
 
     if (request.shipment_type === "partial" && request.direction === "from_tehran") {
@@ -131,7 +138,7 @@ Deno.serve(async (req) => {
         const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === request.city);
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
-        if (covers && !outbox.has(phone) && phone !== adminPhone) {
+        if (covers && !outbox.has(phone) && !adminPhones.has(phone)) {
           outbox.set(phone, `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`);
         }
       }

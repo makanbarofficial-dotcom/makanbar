@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brand, ui } from "@/components/ui";
 import { formatPrice } from "@/lib/shipments";
+import { notifyCustomer } from "@/lib/notify";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -190,6 +191,9 @@ export default function DriverPage() {
 
     if (!accepted) {
       alert("این بار همین الان توسط راننده‌ی دیگری پذیرفته شد.");
+    } else {
+      // پیامک مشخصات راننده به صاحب بار
+      notifyCustomer(supabase, load.request_id);
     }
 
     await refresh();
@@ -211,6 +215,8 @@ export default function DriverPage() {
       alert(errorMessage(updateError, "ثبت وضعیت انجام نشد"));
       return;
     }
+
+    if (next.status === "delivered") notifyCustomer(supabase, load.request_id);
 
     await refresh();
   }

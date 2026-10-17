@@ -1,5 +1,6 @@
 "use client";
 
+import { notifyCustomer } from "@/lib/notify";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -172,6 +173,9 @@ export default function EmployeePanelPage() {
       alert("ذخیره انجام نشد؛ این بار در محدوده‌ی شما نیست. صفحه را دوباره بارگذاری کنید.");
       return;
     }
+
+    // پیامک کرایه یا تحویل به صاحب بار
+    notifyCustomer(supabase, item.id);
 
     setRequests((current) =>
       current.map((row) =>

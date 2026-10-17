@@ -24,6 +24,7 @@ import { Logo } from "@/components/ui";
 import { PhoneOrderForm } from "./phone-order";
 import { VehicleRequests } from "../../employee/vehicle-requests";
 import { PHONES } from "@/lib/contact";
+import { notifyCustomer } from "@/lib/notify";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -807,6 +808,8 @@ ${formatPrice(price)}`)) {
       return;
     }
 
+    notifyCustomer(supabase, item.id);
+
     // اگر بار قبلاً برای رانندگان ارسال شده، کرایه‌ی پنل رانندگان هم به‌روز شود
     if (publishedIds.has(item.id)) {
       const { data: updatedLoads } = await supabase
@@ -975,6 +978,8 @@ ${formatPrice(price)}`)) {
       setRequestLoading(false);
       return;
     }
+
+    notifyCustomer(supabase, id);
 
     setRequests((current) =>
       current.map((item) =>
