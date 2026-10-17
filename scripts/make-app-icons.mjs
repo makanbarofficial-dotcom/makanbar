@@ -11,7 +11,8 @@ const truck = await sharp(trimmed.data)
   .extract({ left: 0, top: 0, width: trimmed.info.width, height: 545 })
   .toBuffer();
 
-// خطوط سرعت نارنجی لوگو روی زمینه نارنجی دیده نمی‌شوند؛ سفید می‌شوند
+// خطوط سرعت نارنجی لوگو روی زمینه نارنجی دیده نمی‌شوند؛ سرمه‌ای (هم‌رنگ بدنه) می‌شوند
+const TRAIL = [0x0c, 0x1a, 0x2d];
 const { data, info } = await sharp(truck)
   .resize({ width: WIDTH })
   .ensureAlpha()
@@ -19,7 +20,7 @@ const { data, info } = await sharp(truck)
   .toBuffer({ resolveWithObject: true });
 for (let i = 0; i < data.length; i += 4) {
   const t = Math.max(0, Math.min(1, (data[i] - data[i + 2] - 40) / 140));
-  for (let k = 0; k < 3; k++) data[i + k] = Math.round(data[i + k] * (1 - t) + 255 * t);
+  for (let k = 0; k < 3; k++) data[i + k] = Math.round(data[i + k] * (1 - t) + TRAIL[k] * t);
 }
 const mark = await sharp(data, { raw: info }).png().toBuffer();
 
