@@ -1,10 +1,13 @@
-// ساخت آیکن اپلیکیشن ماکان بار از لوگوی سایت
+// ساخت آیکن اپلیکیشن ماکان بار از لوگوی سایت (فقط تصویر کامیون، بدون نوشته)
 // اجرا: node scripts/make-app-icons.mjs
 import sharp from "sharp";
 import { mkdirSync } from "node:fs";
 
 const S = 512;
-const logo = await sharp("public/logo.png").trim().toBuffer();
+const trimmed = await sharp("public/logo.png").trim().toBuffer({ resolveWithObject: true });
+const logo = await sharp(trimmed.data)
+  .extract({ left: 0, top: 0, width: trimmed.info.width, height: 545 })
+  .toBuffer();
 
 const bg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}">
   <defs>
@@ -24,13 +27,13 @@ const bg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${S}" hei
   <circle cx="470" cy="470" r="120" fill="#fff" opacity=".06"/>
   <circle cx="40" cy="60" r="110" fill="#fff" opacity=".05"/>
   <rect width="${S}" height="${S}" fill="url(#glow)"/>
-  <rect x="48" y="104" width="416" height="340" rx="64" fill="#000" opacity=".28" filter="url(#blur)"/>
-  <rect x="40" y="80" width="432" height="352" rx="64" fill="url(#card)"/>
+  <rect x="46" y="150" width="420" height="240" rx="60" fill="#000" opacity=".28" filter="url(#blur)"/>
+  <rect x="36" y="126" width="440" height="260" rx="60" fill="url(#card)"/>
 </svg>`);
 
-const mark = await sharp(logo).resize({ width: 372 }).toBuffer({ resolveWithObject: true });
+const mark = await sharp(logo).resize({ width: 392 }).toBuffer({ resolveWithObject: true });
 const icon = await sharp(bg)
-  .composite([{ input: mark.data, left: 70, top: Math.round(80 + (352 - mark.info.height) / 2) }])
+  .composite([{ input: mark.data, left: 60, top: Math.round(126 + (260 - mark.info.height) / 2) }])
   .png()
   .toBuffer();
 
