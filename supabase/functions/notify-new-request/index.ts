@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
       for (const member of staff ?? []) {
         // deno-lint-ignore no-explicit-any
-        const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === request.city);
+        const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === "*" || loc.city === request.city);
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
         if (covers && !outbox.has(phone) && !adminPhones.has(phone)) {
@@ -144,10 +144,16 @@ Deno.serve(async (req) => {
       }
     }
 
+    // برای پیدا کردن مشکل در گزارش‌های Supabase: چه کسانی باید پیامک بگیرند
+    console.log("notify-new-request", request.id, request.shipment_type, request.direction,
+      request.city_province, request.city, "recipients:", outbox.size);
+
     let sent = 0;
     for (const [phone, message] of outbox) {
       try {
-        if (await sendSms(phone, message)) sent++;
+        const ok = await sendSms(phone, message);
+        if (!ok) console.error("notify sms not successful for", phone.slice(0, 6) + "…");
+        if (ok) sent++;
       } catch (smsError) {
         console.error("notify sms failed:", smsError instanceof Error ? smsError.message : smsError);
       }
