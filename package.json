@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy:host": "next build && node scripts/deploy-host.mjs"
+    "deploy:host": "node scripts/ensure-pushed.mjs && next build && node scripts/deploy-host.mjs"
   },
   "dependencies": {
     "@code-plate/iran-cities": "^1.0.2",
