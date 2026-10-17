@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
+import { InstallApp } from "@/components/install-app";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
   description:
     "ماکان بار (Makan Bar)؛ باربری و حمل بار دربستی و خرده‌بار بین تهران و شهرستان‌ها. ثبت آنلاین بار، تعیین کرایه و پیگیری وضعیت تا تحویل.",
   applicationName: "ماکان بار",
+  // یک اپلیکیشن برای همه؛ اپ با صفحه ‎/app/ شروع می‌شود و نوع حساب را می‌پرسد
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "ماکان بار", statusBarStyle: "black" },
   keywords: [
     "ماکان بار",
     "makanbar",
@@ -51,6 +55,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body className="min-h-screen bg-ink font-sans text-white antialiased">
+        <InstallApp />
         {children}
       </body>
     </html>

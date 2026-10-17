@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { isStandalone } from "@/lib/app-role";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -9,9 +11,12 @@ type InstallPromptEvent = Event & {
 
 const DISMISS_KEY = "makanbar-install-dismissed";
 
-// نوار «نصب اپلیکیشن» بالای هر پنل؛ در اندروید پنجره نصب مرورگر را باز می‌کند
+const APP_NAME = "ماکان بار";
+
+// نوار «نصب اپلیکیشن» بالای صفحه‌های سایت (به‌جز پنل مدیریت)؛ در اندروید پنجره نصب مرورگر را باز می‌کند
 // و در آیفون (که دکمه نصب ندارد) راهنمای «Add to Home Screen» را نشان می‌دهد.
-export function InstallApp({ appName }: { appName: string }) {
+export function InstallApp() {
+  const pathname = usePathname();
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
   const [isIos, setIsIos] = useState(false);
   const [showIosHelp, setShowIosHelp] = useState(false);
@@ -22,14 +27,11 @@ export function InstallApp({ appName }: { appName: string }) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
 
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    if (standalone) return;
+    if (isStandalone()) return;
 
     let dismissed = false;
     try {
-      dismissed = localStorage.getItem(`${DISMISS_KEY}:${appName}`) === "1";
+      dismissed = localStorage.getItem(DISMISS_KEY) === "1";
     } catch {}
     if (dismissed) return;
 
@@ -58,11 +60,11 @@ export function InstallApp({ appName }: { appName: string }) {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
-  }, [appName]);
+  }, []);
 
   function dismiss() {
     try {
-      localStorage.setItem(`${DISMISS_KEY}:${appName}`, "1");
+      localStorage.setItem(DISMISS_KEY, "1");
     } catch {}
     setHidden(true);
   }
@@ -80,14 +82,14 @@ export function InstallApp({ appName }: { appName: string }) {
     if (choice.outcome === "accepted") setHidden(true);
   }
 
-  if (hidden) return null;
+  if (hidden || pathname.startsWith("/admin")) return null;
 
   return (
     <>
       <div className="flex items-center gap-3 border-b border-white/10 bg-ink-2 px-4 py-2.5 text-sm text-white">
         <span className="text-lg">📲</span>
         <p className="flex-1 leading-6">
-          اپلیکیشن <b>{appName}</b> را روی گوشی نصب کنید
+          اپلیکیشن <b>{APP_NAME}</b> را روی گوشی نصب کنید
         </p>
         <button
           type="button"
@@ -115,7 +117,7 @@ export function InstallApp({ appName }: { appName: string }) {
             className="w-full max-w-sm rounded-3xl bg-ink-2 p-6 text-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 className="text-lg font-black">نصب {appName} روی آیفون</h2>
+            <h2 className="text-lg font-black">نصب {APP_NAME} روی آیفون</h2>
             <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">
               <li>
                 ۱. این صفحه را با مرورگر <b>Safari</b> باز کنید.
