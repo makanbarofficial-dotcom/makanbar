@@ -13,13 +13,17 @@ const DISMISS_KEY = "makanbar-install-dismissed";
 
 const APP_NAME = "ماکان بار";
 
-// نوار «نصب اپلیکیشن» بالای صفحه‌های سایت (به‌جز پنل مدیریت)؛ در اندروید پنجره نصب مرورگر را باز می‌کند
-// و در آیفون (که دکمه نصب ندارد) راهنمای «Add to Home Screen» را نشان می‌دهد.
+// بعد از بستن نوار، تا چند روز دوباره نشان داده نمی‌شود
+const DISMISS_DAYS = 3;
+
+// نوار «نصب اپلیکیشن» بالای صفحه‌های سایت (به‌جز پنل مدیریت). روی گوشی همیشه دیده می‌شود:
+// اگر مرورگر پنجره نصب را آماده کرده باشد همان باز می‌شود، وگرنه راهنمای نصب دستی
+// (آیفون: Add to Home Screen، اندروید: منوی مرورگر) نشان داده می‌شود.
 export function InstallApp() {
   const pathname = usePathname();
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
   const [isIos, setIsIos] = useState(false);
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [help, setHelp] = useState<"ios" | "android" | null>(null);
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
@@ -31,7 +35,8 @@ export function InstallApp() {
 
     let dismissed = false;
     try {
-      dismissed = localStorage.getItem(DISMISS_KEY) === "1";
+      const until = Number(localStorage.getItem(DISMISS_KEY));
+      dismissed = until > Date.now();
     } catch {}
     if (dismissed) return;
 
@@ -39,10 +44,8 @@ export function InstallApp() {
     const ios =
       /iPhone|iPad|iPod/.test(ua) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    if (ios) {
-      setIsIos(true);
-      setHidden(false);
-    }
+    if (ios) setIsIos(true);
+    if (ios || /Android|Mobi/i.test(ua)) setHidden(false);
 
     function onPrompt(event: Event) {
       event.preventDefault();
@@ -64,17 +67,23 @@ export function InstallApp() {
 
   function dismiss() {
     try {
-      localStorage.setItem(DISMISS_KEY, "1");
+      localStorage.setItem(
+        DISMISS_KEY,
+        String(Date.now() + DISMISS_DAYS * 86400000),
+      );
     } catch {}
     setHidden(true);
   }
 
   async function install() {
     if (isIos) {
-      setShowIosHelp(true);
+      setHelp("ios");
       return;
     }
-    if (!prompt) return;
+    if (!prompt) {
+      setHelp("android");
+      return;
+    }
 
     await prompt.prompt();
     const choice = await prompt.userChoice;
@@ -108,36 +117,68 @@ export function InstallApp() {
         </button>
       </div>
 
-      {showIosHelp && (
+      {help && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
-          onClick={() => setShowIosHelp(false)}
+          onClick={() => setHelp(null)}
         >
           <div
             className="w-full max-w-sm rounded-3xl bg-ink-2 p-6 text-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 className="text-lg font-black">نصب {APP_NAME} روی آیفون</h2>
-            <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">
-              <li>
-                ۱. این صفحه را با مرورگر <b>Safari</b> باز کنید.
-              </li>
-              <li>
-                ۲. دکمه <b>اشتراک‌گذاری</b> را بزنید (مربع با فلش رو به بالا{" "}
-                <span className="inline-block rounded bg-white/10 px-1.5">⬆️</span>) پایین یا
-                بالای صفحه.
-              </li>
-              <li>
-                ۳. گزینه <b dir="ltr">Add to Home Screen</b> را بزنید.
-              </li>
-              <li>
-                ۴. در پایان <b dir="ltr">Add</b> را بزنید؛ آیکن اپلیکیشن روی صفحه گوشی
-                ساخته می‌شود.
-              </li>
-            </ol>
+            <h2 className="text-lg font-black">
+              نصب {APP_NAME} روی {help === "ios" ? "آیفون" : "گوشی"}
+            </h2>
+            {help === "android" ? (
+              <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">
+                <li>
+                  ۱. این صفحه را با مرورگر <b>Chrome</b> باز کنید.
+                </li>
+                <li>
+                  ۲. دکمه منو{" "}
+                  <span className="inline-block rounded bg-white/10 px-1.5">
+                    ⋮
+                  </span>{" "}
+                  (سه نقطه بالای صفحه) را بزنید.
+                </li>
+                <li>
+                  ۳. گزینه <b>نصب برنامه</b> (<b dir="ltr">Install app</b>) یا{" "}
+                  <b>افزودن به صفحه اصلی</b> (
+                  <b dir="ltr">Add to Home screen</b>) را بزنید.
+                </li>
+                <li>
+                  ۴. <b>نصب</b> را تأیید کنید؛ آیکن ماکان بار روی صفحه گوشی
+                  ساخته می‌شود.
+                </li>
+                <li className="text-white/55">
+                  در مرورگر سامسونگ: منو <b>☰</b> ←{" "}
+                  <b dir="ltr">Add page to</b> ← <b dir="ltr">Home screen</b>
+                </li>
+              </ol>
+            ) : (
+              <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">
+                <li>
+                  ۱. این صفحه را با مرورگر <b>Safari</b> باز کنید.
+                </li>
+                <li>
+                  ۲. دکمه <b>اشتراک‌گذاری</b> را بزنید (مربع با فلش رو به بالا{" "}
+                  <span className="inline-block rounded bg-white/10 px-1.5">
+                    ⬆️
+                  </span>
+                  ) پایین یا بالای صفحه.
+                </li>
+                <li>
+                  ۳. گزینه <b dir="ltr">Add to Home Screen</b> را بزنید.
+                </li>
+                <li>
+                  ۴. در پایان <b dir="ltr">Add</b> را بزنید؛ آیکن اپلیکیشن روی
+                  صفحه گوشی ساخته می‌شود.
+                </li>
+              </ol>
+            )}
             <button
               type="button"
-              onClick={() => setShowIosHelp(false)}
+              onClick={() => setHelp(null)}
               className="mt-6 w-full rounded-xl bg-brand py-3 font-bold text-white"
             >
               متوجه شدم
