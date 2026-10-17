@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brand, ui } from "@/components/ui";
-import { formatPrice } from "@/lib/shipments";
+import {
+  formatPrice,
+  getProvinceCities,
+  getProvinces,
+  placeMatches,
+  vehicleFits,
+} from "@/lib/shipments";
 import { notifyCustomer } from "@/lib/notify";
 
 const supabase = createClient(
@@ -54,6 +60,30 @@ type DriverProfile = {
 
 type Tab = "available" | "mine" | "profile";
 
+type Place = { province: string; city: string };
+
+// فیلتر بارهای آزاد؛ روی همین گوشی ذخیره می‌شود تا دفعه بعد هم بماند
+type LoadFilter = { origin: Place; destination: Place; myVehicleOnly: boolean };
+
+const FILTER_KEY = "makanbar-driver-filter";
+const EMPTY_PLACE: Place = { province: "", city: "" };
+const DEFAULT_FILTER: LoadFilter = {
+  origin: EMPTY_PLACE,
+  destination: EMPTY_PLACE,
+  myVehicleOnly: true,
+};
+
+function readFilter(): LoadFilter {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FILTER_KEY) ?? "null");
+    if (saved && typeof saved === "object") return { ...DEFAULT_FILTER, ...saved };
+  } catch {}
+  return DEFAULT_FILTER;
+}
+
+const selectClass =
+  "w-full rounded-xl border border-white/10 bg-ink-2 px-3 py-2.5 text-sm outline-none focus:border-brand disabled:opacity-40";
+
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: "available", icon: "📋", label: "بارهای آزاد" },
   { id: "mine", icon: "🚚", label: "بارهای من" },
@@ -101,6 +131,39 @@ export default function DriverPage() {
   const [jobs, setJobs] = useState<Record<number, JobDetails>>({});
   const [activeTab, setActiveTab] = useState<Tab>("available");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<LoadFilter>(DEFAULT_FILTER);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  useEffect(() => {
+    setFilter(readFilter());
+  }, []);
+
+  function updateFilter(next: LoadFilter) {
+    setFilter(next);
+    try {
+      localStorage.setItem(FILTER_KEY, JSON.stringify(next));
+    } catch {}
+  }
+
+  const vehicleLoads = useMemo(
+    () =>
+      filter.myVehicleOnly
+        ? availableLoads.filter((load) => vehicleFits(load.vehicle_type, profile?.vehicle_type))
+        : availableLoads,
+    [availableLoads, filter.myVehicleOnly, profile?.vehicle_type]
+  );
+
+  const filteredLoads = useMemo(
+    () =>
+      vehicleLoads.filter(
+        (load) =>
+          placeMatches(load.origin, filter.origin.province, filter.origin.city) &&
+          placeMatches(load.destination, filter.destination.province, filter.destination.city)
+      ),
+    [vehicleLoads, filter.origin, filter.destination]
+  );
+
+  const placeFilterActive = !!(filter.origin.province || filter.destination.province);
 
   const refresh = useCallback(async () => {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -335,6 +398,106 @@ export default function DriverPage() {
     );
   }
 
+  function placeSelects(title: string, place: Place, onChange: (place: Place) => void) {
+    return (
+      <div>
+        <p className="mb-2 text-xs font-bold text-white/55">{title}</p>
+        <div className="grid grid-cols-2 gap-2">
+          <select
+            aria-label={`استان ${title}`}
+            value={place.province}
+            onChange={(event) => onChange({ province: event.target.value, city: "" })}
+            className={selectClass}
+          >
+            <option value="">همه استان‌ها</option>
+            {getProvinces().map((item) => (
+              <option key={item.en} value={item.en}>
+                {item.fa}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label={`شهر ${title}`}
+            value={place.city}
+            disabled={!place.province}
+            onChange={(event) => onChange({ ...place, city: event.target.value })}
+            className={selectClass}
+          >
+            <option value="">همه شهرها</option>
+            {getProvinceCities(place.province).map((item) => (
+              <option key={item.en} value={item.en}>
+                {item.fa}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    );
+  }
+
+  function filterPanel() {
+    const hiddenByVehicle = availableLoads.length - vehicleLoads.length;
+
+    return (
+      <div className={`${ui.card} p-4`}>
+        <button
+          type="button"
+          onClick={() => setFilterOpen((open) => !open)}
+          className="flex w-full items-center justify-between gap-3 text-right"
+        >
+          <span className="font-black">
+            🔎 فیلتر بارها
+            {placeFilterActive && (
+              <span className="mr-2 rounded-full bg-brand/20 px-2 py-0.5 text-xs text-brand-2">
+                فعال
+              </span>
+            )}
+          </span>
+          <span className="text-sm text-white/50">{filterOpen ? "بستن ▲" : "انتخاب مبدا و مقصد ▼"}</span>
+        </button>
+
+        {filterOpen && (
+          <div className="mt-4 space-y-4">
+            {placeSelects("مبدا", filter.origin, (origin) => updateFilter({ ...filter, origin }))}
+            {placeSelects("مقصد", filter.destination, (destination) =>
+              updateFilter({ ...filter, destination })
+            )}
+            {placeFilterActive && (
+              <button
+                type="button"
+                onClick={() =>
+                  updateFilter({ ...filter, origin: EMPTY_PLACE, destination: EMPTY_PLACE })
+                }
+                className="text-sm font-bold text-brand-2"
+              >
+                پاک کردن مبدا و مقصد
+              </button>
+            )}
+          </div>
+        )}
+
+        {profile?.vehicle_type && (
+          <label className="mt-4 flex items-center gap-3 border-t border-white/10 pt-4 text-sm">
+            <input
+              type="checkbox"
+              checked={filter.myVehicleOnly}
+              onChange={(event) => updateFilter({ ...filter, myVehicleOnly: event.target.checked })}
+              className="h-5 w-5 accent-orange-500"
+            />
+            <span className="flex-1">
+              فقط بارهای مناسب ماشین من (<b>{profile.vehicle_type}</b>)
+            </span>
+            {filter.myVehicleOnly && hiddenByVehicle > 0 && (
+              <span className="text-xs text-white/40">
+                {hiddenByVehicle.toLocaleString("fa-IR")} بار دیگر
+              </span>
+            )}
+          </label>
+        )}
+      </div>
+    );
+  }
+
   function emptyState(text: string) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-10 text-center text-white/50">
@@ -417,7 +580,7 @@ export default function DriverPage() {
               >
                 <p className="text-sm text-white/50">بارهای آزاد</p>
                 <p className="mt-1 text-2xl font-black text-brand sm:text-3xl">
-                  {availableLoads.length.toLocaleString("fa-IR")}
+                  {filteredLoads.length.toLocaleString("fa-IR")}
                 </p>
               </button>
               <button
@@ -457,10 +620,14 @@ export default function DriverPage() {
             </nav>
 
             <section className="mt-5 space-y-3">
+              {activeTab === "available" && filterPanel()}
+
               {activeTab === "available" &&
-                (availableLoads.length === 0
-                  ? emptyState("فعلاً بار آزادی نیست. کمی بعد دوباره سر بزنید.")
-                  : availableLoads.map((load) => loadCard(load, false)))}
+                (filteredLoads.length > 0
+                  ? filteredLoads.map((load) => loadCard(load, false))
+                  : availableLoads.length === 0
+                    ? emptyState("فعلاً بار آزادی نیست. کمی بعد دوباره سر بزنید.")
+                    : emptyState("با این فیلتر باری پیدا نشد. مبدا، مقصد یا فیلتر ماشین را تغییر دهید."))}
 
               {activeTab === "mine" &&
                 (myLoads.length === 0

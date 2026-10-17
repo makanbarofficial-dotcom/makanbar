@@ -131,6 +131,26 @@ export function placeLabel(province: string, city: string) {
   return isTehran(province, city) ? "تهران" : regionLabel(province, city);
 }
 
+// آیا مبدا/مقصد ذخیره‌شده‌ی بار (مثل «مشهد، خراسان رضوی» یا «تهران») در استان/شهر انتخاب‌شده است؟
+// بدون استان یعنی همه جا؛ بدون شهر یعنی کل استان.
+export function placeMatches(label: string, province: string, city: string) {
+  if (!province) return true;
+
+  const value = normalizeSearch(label);
+  if (city) return value === normalizeSearch(placeLabel(province, city));
+
+  const provinceName = normalizeSearch(provinceFa(province));
+  return value === provinceName || value.endsWith("،" + provinceName);
+}
+
+// آیا خودروی راننده برای بار مناسب است؟ بار بدون نوع خودرو برای همه است
+// و «کامیون» یعنی تک یا جفت.
+export function vehicleFits(loadVehicle: string | null | undefined, driverVehicle: string | null | undefined) {
+  if (!loadVehicle || loadVehicle === "فرقی ندارد" || !driverVehicle) return true;
+  if (loadVehicle === driverVehicle) return true;
+  return loadVehicle === "کامیون" && (driverVehicle === "تک" || driverVehicle === "جفت");
+}
+
 export function provinceFa(value: string | null | undefined) {
   if (!value) return "";
 
