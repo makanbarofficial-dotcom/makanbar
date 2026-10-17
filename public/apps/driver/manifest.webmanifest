@@ -1,0 +1,28 @@
+{
+  "id": "/driver/",
+  "name": "ماکان بار | رانندگان",
+  "short_name": "ماکان راننده",
+  "description": "دیدن و پذیرش بارهای ماکان بار",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/driver/",
+  "scope": "/driver/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    {
+      "src": "/apps/driver/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apps/driver/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

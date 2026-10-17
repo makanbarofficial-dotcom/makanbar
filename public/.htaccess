@@ -1,6 +1,7 @@
 # تنظیمات هاست Apache (cPanel / DirectAdmin) برای نسخه‌ی ثابت سایت
 
 DirectoryIndex index.html
+AddType application/manifest+json .webmanifest
 ErrorDocument 404 /404.html
 
 # همه آدرس‌های http به https امن منتقل می‌شوند (گواهی SSL هاست فعال است)
