@@ -8,7 +8,7 @@ import soap from "npm:soap";
 // صاحب بار بعد از ثبت، این تابع را با شناسه بار صدا می‌زند؛ برای هر بار فقط یک‌بار پیامک می‌رود.
 
 // شماره‌هایی که برای هر بار جدید پیامک می‌گیرند؛ متغیر ADMIN_NOTIFY_PHONE (با کاما) هم اضافه می‌شود
-const ADMIN_PHONES = ["09125573776", "09056415533"];
+const ADMIN_PHONES = ["09125573776"];
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
