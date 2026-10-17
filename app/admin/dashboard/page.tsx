@@ -22,6 +22,8 @@ import {
 } from "@/lib/shipments";
 import { Logo } from "@/components/ui";
 import { PhoneOrderForm } from "./phone-order";
+import { VehicleRequests } from "../../employee/vehicle-requests";
+import { PHONES } from "@/lib/contact";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -201,6 +203,8 @@ export default function AdminDashboardPage() {
 
   // فقط مدیر اصلی (owner) بخش «مدیران» را می‌بیند و مدیر می‌سازد
   const [isOwner, setIsOwner] = useState(false);
+
+  const [myAdmin, setMyAdmin] = useState<{ name: string | null; phone: string | null } | null>(null);
 
   const [adminForm, setAdminForm] = useState({ name: "", phone: "", password: "" });
 
@@ -747,13 +751,14 @@ export default function AdminDashboardPage() {
         return;
       }
 
-      const { data: myAdmin } = await supabase
+      const { data: adminRow } = await supabase
         .from("app_admins")
-        .select("role")
+        .select("role, name, phone")
         .eq("auth_user_id", sessionData.session.user.id)
         .maybeSingle();
 
-      setIsOwner(myAdmin?.role === "owner");
+      setIsOwner(adminRow?.role === "owner");
+      setMyAdmin(adminRow ? { name: adminRow.name, phone: adminRow.phone } : null);
 
       await Promise.all([
         loadRequests(),
@@ -891,6 +896,66 @@ ${formatPrice(price)}`)) {
     } finally {
       setPublishingId(null);
     }
+  }
+
+  // حذف کامل بار؛ اگر برای رانندگان ارسال شده، بار پنل راننده هم حذف می‌شود
+  async function deleteRequest(item: RequestItem) {
+    if (
+      !confirm(
+        `بار «${item.origin} ← ${item.destination}» (${item.full_name}) برای همیشه حذف شود؟
+این کار قابل برگشت نیست.`
+      )
+    ) {
+      return;
+    }
+
+    setRequestLoading(true);
+
+    const { data: driverLoads } = await supabase
+      .from("loads")
+      .select("id, status")
+      .eq("request_id", item.id);
+
+    if (
+      driverLoads?.some((load) => ["assigned", "in_transit"].includes(load.status)) &&
+      !confirm("یک راننده این بار را پذیرفته است. با حذف، از پنل راننده هم پاک می‌شود. ادامه می‌دهید؟")
+    ) {
+      setRequestLoading(false);
+      return;
+    }
+
+    if (driverLoads?.length) {
+      const { error: loadsError } = await supabase
+        .from("loads")
+        .delete()
+        .eq("request_id", item.id);
+
+      if (loadsError) {
+        setRequestLoading(false);
+        alert(`حذف بار پنل راننده انجام نشد: ${loadsError.message}`);
+        return;
+      }
+    }
+
+    const { data: deleted, error } = await supabase
+      .from("requests")
+      .delete()
+      .eq("id", item.id)
+      .select("id");
+
+    setRequestLoading(false);
+
+    if (error || !deleted?.length) {
+      alert(`حذف بار انجام نشد${error ? ": " + error.message : "."}`);
+      return;
+    }
+
+    setRequests((current) => current.filter((row) => row.id !== item.id));
+    setPublishedIds((current) => {
+      const next = new Set(current);
+      next.delete(item.id);
+      return next;
+    });
   }
 
   async function updateStatus(
@@ -1723,6 +1788,11 @@ ${formatPrice(price)}`)) {
       icon: "🚚",
     },
     {
+      id: "vehicles",
+      label: "درخواست ماشین",
+      icon: "🛻",
+    },
+    {
       id: "admins",
       label: "مدیران",
       icon: "🛡️",
@@ -2337,6 +2407,15 @@ ${formatPrice(price)}`)) {
                               </button>
                             )
                           ))}
+
+                        <button
+                          type="button"
+                          disabled={requestLoading}
+                          onClick={() => void deleteRequest(item)}
+                          className="ms-auto rounded-xl border border-red-500/30 px-4 py-2 text-sm font-bold text-red-300 transition hover:bg-red-500/15 disabled:opacity-50"
+                        >
+                          🗑 حذف بار
+                        </button>
                       </div>
                     </div>
                   );
@@ -3353,6 +3432,18 @@ ${formatPrice(price)}`)) {
                 )}
               </div>
             </section>
+          )}
+
+          {activeSection === "vehicles" && (
+            <VehicleRequests
+              supabase={supabase}
+              staff={{
+                id: null,
+                name: myAdmin?.name || "مدیریت ماکان بار",
+                phone: myAdmin?.phone || PHONES[0],
+              }}
+              defaultDestination={{ province: "", city: "" }}
+            />
           )}
 
           {activeSection === "admins" && isOwner && (

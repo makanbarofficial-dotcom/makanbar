@@ -31,6 +31,7 @@ type VehicleRequest = {
   description: string | null;
   created_at: string;
   driver_id: string | null;
+  contact_name: string | null;
 };
 
 type Driver = {
@@ -57,15 +58,16 @@ const STATUS_TONES: Record<LoadStatus, string> = {
   cancelled: "bg-red-500/15 text-red-300",
 };
 
-// متصدی برای جابه‌جایی بارهایش از رانندگان ماشین درخواست می‌کند؛
+// متصدی (یا مدیر) برای جابه‌جایی بارها از رانندگان ماشین درخواست می‌کند؛
 // درخواست مستقیم در «بارهای آزاد» پنل رانندگان قرار می‌گیرد.
+// staff.id خالی یعنی مدیر: همه درخواست‌های ماشین را می‌بیند و ثبتش به نام هیچ متصدی‌ای نیست.
 export function VehicleRequests({
   supabase,
   staff,
   defaultDestination,
 }: {
   supabase: SupabaseClient;
-  staff: { id: number; name: string; phone: string };
+  staff: { id: number | null; name: string; phone: string };
   defaultDestination: Place;
 }) {
   const [origin, setOrigin] = useState<Place>({ province: TEHRAN_PROVINCE, city: TEHRAN_CITY });
@@ -78,14 +80,20 @@ export function VehicleRequests({
   const [formError, setFormError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  const isAdmin = staff.id == null;
+
   const load = useCallback(async () => {
-    const { data } = await supabase
+    let query = supabase
       .from("loads")
       .select(
-        "id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, driver_id"
+        "id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, driver_id, contact_name"
       )
-      .eq("handled_by_staff_id", staff.id)
+      .is("request_id", null)
       .order("created_at", { ascending: false });
+
+    if (staff.id != null) query = query.eq("handled_by_staff_id", staff.id);
+
+    const { data } = await query;
 
     const list = (data ?? []) as VehicleRequest[];
     setItems(list);
@@ -314,7 +322,10 @@ export function VehicleRequests({
             <article key={item.id} className={`${ui.card} p-5`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs text-white/40">{formatDate(item.created_at)}</p>
+                  <p className="text-xs text-white/40">
+                    {formatDate(item.created_at)}
+                    {isAdmin && item.contact_name ? ` · ثبت‌کننده: ${item.contact_name}` : ""}
+                  </p>
                   <h3 className="mt-1 text-lg font-black">
                     {item.origin} ← {item.destination}
                   </h3>
