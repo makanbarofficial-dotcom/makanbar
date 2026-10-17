@@ -31,16 +31,16 @@ async function makeIcon(app) {
   <circle cx="470" cy="470" r="120" fill="#fff" opacity=".06"/>
   <circle cx="40" cy="60" r="110" fill="#fff" opacity=".05"/>
   <rect width="${S}" height="${S}" fill="url(#glow)"/>
-  <rect x="78" y="86" width="356" height="236" rx="58" fill="#000" opacity=".28" filter="url(#blur)"/>
-  <rect x="72" y="66" width="368" height="244" rx="58" fill="url(#card)"/>
-  <rect x="120" y="262" width="272" height="6" rx="3" fill="#cbd5e1"/>
-  <rect x="150" y="262" width="34" height="6" fill="#fff"/><rect x="236" y="262" width="34" height="6" fill="#fff"/><rect x="322" y="262" width="34" height="6" fill="#fff"/>
-  <text x="256" y="428" text-anchor="middle" font-family="Tahoma" font-weight="bold" font-size="80" fill="#000" opacity=".25" filter="url(#tblur)">${app.label}</text>
-  <text x="256" y="422" text-anchor="middle" font-family="Tahoma" font-weight="bold" font-size="80" fill="#ffffff">${app.label}</text>
-  <text x="256" y="472" text-anchor="middle" font-family="Tahoma" font-weight="bold" font-size="30" fill="#ffffff" opacity=".8">ماکان بار</text>
+  <rect x="42" y="56" width="428" height="282" rx="62" fill="#000" opacity=".28" filter="url(#blur)"/>
+  <rect x="34" y="34" width="444" height="296" rx="62" fill="url(#card)"/>
+  <rect x="70" y="282" width="372" height="7" rx="3" fill="#cbd5e1"/>
+  <rect x="112" y="282" width="40" height="7" fill="#fff"/><rect x="236" y="282" width="40" height="7" fill="#fff"/><rect x="360" y="282" width="40" height="7" fill="#fff"/>
+  <text x="256" y="432" text-anchor="middle" font-family="Tahoma" font-weight="bold" font-size="74" fill="#000" opacity=".25" filter="url(#tblur)">${app.label}</text>
+  <text x="256" y="426" text-anchor="middle" font-family="Tahoma" font-weight="bold" font-size="74" fill="#ffffff">${app.label}</text>
+  <text x="256" y="478" text-anchor="middle" font-family="Tahoma" font-weight="bold" font-size="30" fill="#ffffff" opacity=".8">ماکان بار</text>
   </svg>`);
-  const t = await sharp(truck).resize({ width: 300 }).toBuffer();
-  return sharp(bg).composite([{ input: t, left: 100, top: 92 }]).png().toBuffer();
+  const t = await sharp(truck).resize({ width: 404 }).toBuffer();
+  return sharp(bg).composite([{ input: t, left: 54, top: 96 }]).png().toBuffer();
 }
 
 for (const app of APPS) {
