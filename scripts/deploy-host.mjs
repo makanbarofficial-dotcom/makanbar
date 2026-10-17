@@ -72,4 +72,39 @@ for (const [dir, names] of byDir) {
   process.stdout.write(`\r${count} فایل بارگذاری شد`);
 }
 
-console.log(`\nانجام شد: ${count} فایل در ${byDir.size} پوشه روی ${HOST_IP}`);
+// گاهی اتصال وسط کار قطع می‌شود و فایل ناقص می‌ماند بدون اینکه curl خطا بدهد؛
+// اندازه هر فایل روی هاست با نسخه محلی مقایسه و فایل‌های ناقص تک‌تک دوباره فرستاده می‌شوند
+function remoteSizes(dir) {
+  const target = dir ? `${REMOTE}/${dir}/` : `${REMOTE}/`;
+  const sizes = new Map();
+  for (const line of curl([target]).split(/\r?\n/)) {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length >= 9) sizes.set(parts.slice(8).join(" "), Number(parts[4]));
+  }
+  return sizes;
+}
+
+for (let attempt = 1; ; attempt++) {
+  const broken = [];
+  for (const [dir, names] of byDir) {
+    const sizes = remoteSizes(dir);
+    for (const name of names) {
+      if (name === ".htaccess") continue;
+      const local = statSync(join(OUT, ...dir.split("/").filter(Boolean), name)).size;
+      if (sizes.get(name) !== local) broken.push(dir ? `${dir}/${name}` : name);
+    }
+  }
+
+  if (broken.length === 0) break;
+  if (attempt > 3) {
+    console.error(`\nاین فایل‌ها کامل بارگذاری نشدند:\n${broken.join("\n")}`);
+    process.exit(1);
+  }
+
+  console.log(`\nبارگذاری دوباره ${broken.length} فایل ناقص...`);
+  for (const file of broken) {
+    curl(["-T", join(OUT, ...file.split("/")), `${REMOTE}/${file}`]);
+  }
+}
+
+console.log(`\nانجام شد: ${count} فایل در ${byDir.size} پوشه روی ${HOST_IP} (اندازه همه فایل‌ها بررسی شد)`);
