@@ -3,10 +3,10 @@
 DirectoryIndex index.html
 ErrorDocument 404 /404.html
 
-# بعد از فعال شدن SSL روی هاست، سه خط زیر را از حالت کامنت خارج کنید تا همه به https بروند
-# RewriteEngine On
-# RewriteCond %{HTTPS} off
-# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# همه آدرس‌های http به https امن منتقل می‌شوند (گواهی SSL هاست فعال است)
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 <IfModule mod_headers.c>
   # فایل‌های _next/static نام یکتا دارند و برای همیشه کش می‌شوند
