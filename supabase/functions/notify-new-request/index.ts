@@ -29,8 +29,12 @@ function json(data: unknown, status = 200) {
   });
 }
 
+// شماره‌ها گاهی با رقم فارسی یا عربی ذخیره شده‌اند (۰۹۱۲…)؛ اول به رقم انگلیسی تبدیل می‌شوند
 function toSmsNumber(phone: string) {
-  const digits = phone.replace(/\D/g, "");
+  const digits = phone
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/\D/g, "");
   if (digits.startsWith("98")) return "+" + digits;
   if (digits.startsWith("0")) return "+98" + digits.slice(1);
   return "+98" + digits;

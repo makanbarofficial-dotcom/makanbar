@@ -29,8 +29,12 @@ function json(data: unknown, status = 200) {
   });
 }
 
+// شماره‌ها گاهی با رقم فارسی یا عربی ذخیره شده‌اند (۰۹۱۲…)؛ اول به رقم انگلیسی تبدیل می‌شوند
 function toSmsNumber(phone: string) {
-  const digits = phone.replace(/\D/g, "");
+  const digits = phone
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/\D/g, "");
   if (digits.startsWith("98")) return "+" + digits;
   if (digits.startsWith("0")) return "+98" + digits.slice(1);
   return "+98" + digits;
@@ -79,9 +83,9 @@ async function sendSms(recipient: string, message: string) {
 }
 
 // هر مرحله اول «ادعا» می‌شود (به‌روزرسانی شرطی)؛ اگر درخواست دیگری زودتر ادعا کرده باشد چیزی برنمی‌گردد
+// deno-lint-ignore no-explicit-any
 async function claim(requestId: number, update: Record<string, unknown>, apply: (q: any) => any) {
-  // deno-lint-ignore no-explicit-any
-  const query: any = supabase.from("requests").update(update).eq("id", requestId);
+  const query = supabase.from("requests").update(update).eq("id", requestId);
   const { data } = await apply(query).select("id").maybeSingle();
   return !!data;
 }
