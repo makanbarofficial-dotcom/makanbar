@@ -31,6 +31,15 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 );
 
+// باربری‌های ماکان بار (همان نمایندگان) که مبدا بار درون‌شهری می‌توانند باشند
+type Terminal = {
+  id: number;
+  name: string | null;
+  province: string;
+  city: string;
+  address: string | null;
+};
+
 type CustomerProfile = {
   full_name: string | null;
   phone: string | null;
@@ -95,6 +104,31 @@ export default function CustomerPanelPage() {
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   const isIntracity = shipmentType === "intracity";
+
+  // مبدا بار درون‌شهری: یکی از باربری‌های ماکان بار در همان شهر (نمایندگان) یا آدرس دلخواه
+  const [pickupMode, setPickupMode] = useState<"terminal" | "custom">("terminal");
+  const [terminals, setTerminals] = useState<Terminal[]>([]);
+  const [terminalId, setTerminalId] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("representatives")
+      .select("id, name, province, city, address")
+      .then(({ data }) => setTerminals((data ?? []) as Terminal[]));
+  }, []);
+
+  const cityTerminals = useMemo(
+    () =>
+      terminals.filter(
+        (terminal) => terminal.province === origin.province && terminal.city === origin.city
+      ),
+    [terminals, origin.province, origin.city]
+  );
+
+  // با عوض شدن شهر، باربری قبلی دیگر معتبر نیست
+  useEffect(() => {
+    setTerminalId("");
+  }, [origin.province, origin.city]);
 
   // خرده‌بار باربری‌به‌باربری آدرس ندارد؛ بقیه حالت‌ها از درِ محل جابه‌جا می‌شوند
   const showAddresses = shipmentType !== "partial" || deliveryMode === "door_to_door";
@@ -189,7 +223,25 @@ export default function CustomerPanelPage() {
       return;
     }
 
-    if (showAddresses && (!value("pickup_address") || !value("delivery_address"))) {
+    // بار درون‌شهری می‌تواند از یکی از باربری‌های ماکان بار در همان شهر بارگیری شود
+    const terminal = isIntracity && pickupMode === "terminal"
+      ? cityTerminals.find((item) => String(item.id) === terminalId)
+      : undefined;
+
+    if (isIntracity && pickupMode === "terminal" && !terminal) {
+      setFormError(
+        cityTerminals.length
+          ? "باربری مبدا را انتخاب کنید."
+          : "در این شهر باربری ماکان بار نیست؛ «آدرس دلخواه» را انتخاب کنید و آدرس مبدا را بنویسید."
+      );
+      return;
+    }
+
+    const pickupAddress = terminal
+      ? `باربری ${terminal.name ?? "ماکان بار"}${terminal.address ? ` — ${terminal.address}` : ""}`
+      : value("pickup_address");
+
+    if (showAddresses && (!pickupAddress || !value("delivery_address"))) {
       setFormError("آدرس بارگیری و آدرس تخلیه را بنویسید.");
       return;
     }
@@ -207,7 +259,7 @@ export default function CustomerPanelPage() {
       city: routing.city,
       origin: placeLabel(origin.province, origin.city),
       destination: placeLabel(target.province, target.city),
-      pickup_address: showAddresses ? value("pickup_address") : null,
+      pickup_address: showAddresses ? pickupAddress : null,
       delivery_address: showAddresses ? value("delivery_address") : null,
       delivery_mode: isPartial ? deliveryMode : "door_to_door",
       cargo_type: cargoType,
@@ -556,22 +608,71 @@ export default function CustomerPanelPage() {
                     ))}
                   </select>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
+                <p className="pt-1 text-sm font-black text-orange-300">مبدا بار *</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      ["terminal", "🏢 از باربری"],
+                      ["custom", "📍 آدرس دلخواه"],
+                    ] as const
+                  ).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setPickupMode(mode)}
+                      aria-pressed={pickupMode === mode}
+                      className={`rounded-2xl border px-3 py-3 text-sm font-bold transition ${
+                        pickupMode === mode
+                          ? "border-orange-400 bg-orange-500/10"
+                          : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/5"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {pickupMode === "terminal" ? (
+                  !origin.city ? (
+                    <p className="text-xs text-white/50">اول شهر را انتخاب کنید.</p>
+                  ) : cityTerminals.length === 0 ? (
+                    <p className="rounded-2xl border border-orange-400/20 bg-orange-500/10 px-4 py-3 text-xs leading-6 text-orange-200">
+                      در این شهر باربری ماکان بار ثبت نشده است؛ «آدرس دلخواه» را انتخاب کنید.
+                    </p>
+                  ) : (
+                    <select
+                      aria-label="باربری مبدا"
+                      value={terminalId}
+                      onChange={(event) => setTerminalId(event.target.value)}
+                      className={selectClass}
+                    >
+                      <option value="">باربری را انتخاب کنید</option>
+                      {cityTerminals.map((terminal) => (
+                        <option key={terminal.id} value={String(terminal.id)}>
+                          {terminal.name}
+                          {terminal.address ? ` — ${terminal.address}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  )
+                ) : (
                   <input
                     name="pickup_address"
                     maxLength={300}
-                    aria-label="آدرس بارگیری"
-                    placeholder="آدرس بارگیری *"
+                    aria-label="آدرس مبدا"
+                    placeholder="آدرس مبدا (محل بارگیری) *"
                     className={inputClass}
                   />
-                  <input
-                    name="delivery_address"
-                    maxLength={300}
-                    aria-label="آدرس تخلیه"
-                    placeholder="آدرس تخلیه *"
-                    className={inputClass}
-                  />
-                </div>
+                )}
+
+                <p className="pt-1 text-sm font-black text-orange-300">مقصد بار *</p>
+                <input
+                  name="delivery_address"
+                  maxLength={300}
+                  aria-label="آدرس مقصد"
+                  placeholder="آدرس مقصد (محل تخلیه) *"
+                  className={inputClass}
+                />
               </fieldset>
             ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
