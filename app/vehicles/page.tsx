@@ -4,7 +4,7 @@ import { SiteFooter, SiteHeader } from "@/components/site";
 export const metadata: Metadata = {
   title: "ناوگان",
   description:
-    "ناوگان حمل ماکان بار: تریلی، کامیون، خاور و نیسان برای هر نوع بار.",
+    "ناوگان حمل ماکان بار: تریلی، کامیون، خاور، نیسان و پیک موتوری برای هر نوع بار.",
 };
 const vehicles = [
   {
@@ -26,6 +26,11 @@ const vehicles = [
     icon: "🛻",
     title: "نیسان",
     text: "مناسب برای بارهای سبک و جابه‌جایی سریع شهری.",
+  },
+  {
+    icon: "🛵",
+    title: "پیک موتوری",
+    text: "ارسال فوری بسته‌ها و مدارک کوچک داخل شهر.",
   },
 ];
 
@@ -67,7 +72,7 @@ export default function VehiclesPage() {
       <section className="border-t border-white/10 bg-white/[0.025]">
         <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
             {vehicles.map((vehicle) => (
               <div

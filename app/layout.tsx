@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { InstallApp } from "@/components/install-app";
+import { UpdateChecker } from "@/components/update-checker";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -56,6 +57,7 @@ export default function RootLayout({
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body className="min-h-screen bg-ink font-sans text-white antialiased">
         <InstallApp />
+        <UpdateChecker />
         {children}
       </body>
     </html>
