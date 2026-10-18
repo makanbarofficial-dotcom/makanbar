@@ -350,14 +350,12 @@ export default function EmployeePanelPage() {
               ))}
             </section>
 
-            <div
-              className={`mt-8 grid gap-2 rounded-2xl bg-white/5 p-1 ${isIntracity ? "grid-cols-3" : "grid-cols-2"}`}
-            >
+            {/* متصدی درون‌شهری درخواست ماشین ندارد؛ بارها را مستقیم برای رانندگان می‌فرستد */}
+            <div className="mt-8 grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
               {(isIntracity
                 ? ([
                     ["loads", "🏙 بارهای شهر"],
                     ["phone", "📞 بار تلفنی"],
-                    ["vehicles", "🚚 درخواست ماشین"],
                   ] as const)
                 : ([
                     ["loads", "📦 خرده‌بارها"],
@@ -398,7 +396,7 @@ export default function EmployeePanelPage() {
                   onClose={() => setView("loads")}
                 />
               </div>
-            ) : view === "vehicles" ? (
+            ) : view === "vehicles" && !isIntracity ? (
               <VehicleRequests
                 supabase={supabase}
                 staff={{ id: profile.id, name: profile.name, phone: profile.phone }}
