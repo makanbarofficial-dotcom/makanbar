@@ -12,6 +12,9 @@ import {
   DIRECTION_LABELS,
   type Direction,
   SHIPMENT_TYPE_LABELS,
+  STAFF_KIND_LABELS,
+  type StaffKind,
+  isDriverShipment,
   type ShipmentRequest,
   type ShipmentType,
   STATUSES,
@@ -54,6 +57,7 @@ type Staff = {
   panel_enabled: boolean | null;
   auth_user_id: string | null;
   created_at: string;
+  kind: StaffKind | null;
 };
 
 type StaffLocation = {
@@ -145,6 +149,7 @@ const emptyStaff = {
   phone: "",
   panel_enabled: false,
   password: "",
+  kind: "intercity" as StaffKind,
 };
 
 export default function AdminDashboardPage() {
@@ -351,18 +356,24 @@ export default function AdminDashboardPage() {
     requestDirectionFilter,
   ]);
 
-  // متصدیانی که خرده‌بار «تهران ← این شهر» را در پنل خود می‌بینند
+  // متصدیانی که این بار را در پنل خود می‌بینند:
+  // خرده‌بار «تهران ← این شهر» برای متصدی بین‌شهری، بار درون‌شهری برای متصدی درون‌شهری همان شهر
   function responsibleStaff(item: RequestItem) {
-    if (
-      item.shipment_type !== "partial" ||
-      item.direction !== "from_tehran"
-    ) {
+    const kind: StaffKind | null =
+      item.shipment_type === "intracity"
+        ? "intracity"
+        : item.shipment_type === "partial" && item.direction === "from_tehran"
+          ? "intercity"
+          : null;
+
+    if (!kind) {
       return [];
     }
 
     return staff.filter(
       (member) =>
         member.panel_enabled &&
+        (member.kind ?? "intercity") === kind &&
         (staffLocations[member.id] || []).some(
           (location) =>
             location.province === item.city_province &&
@@ -841,7 +852,7 @@ ${formatPrice(price)}`)) {
 
     if (
       !confirm(
-        `این بار دربستی برای رانندگان ارسال شود؟\nکرایه: ${formatPrice(price)}`
+        `این بار ${item.shipment_type ? SHIPMENT_TYPE_LABELS[item.shipment_type] : ""} برای رانندگان ارسال شود؟\nکرایه: ${formatPrice(price)}`
       )
     ) {
       return;
@@ -863,6 +874,7 @@ ${formatPrice(price)}`)) {
           status: "available",
           driver_id: null,
           description: item.description || null,
+          load_type: item.shipment_type === "intracity" ? "intracity" : null,
         });
 
       // 23505 یعنی بار این درخواست قبلاً ساخته شده؛ فقط وضعیت را هماهنگ می‌کنیم
@@ -1216,6 +1228,7 @@ ${formatPrice(price)}`)) {
       panel_enabled:
         item.panel_enabled ?? false,
       password: "",
+      kind: item.kind ?? "intercity",
     });
 
     setStaffLocationForms(
@@ -1426,6 +1439,7 @@ ${formatPrice(price)}`)) {
               staffForm.phone.trim(),
             panel_enabled:
               staffForm.panel_enabled,
+            kind: staffForm.kind,
           })
           .eq(
             "id",
@@ -1550,6 +1564,7 @@ ${formatPrice(price)}`)) {
             staffForm.phone.trim(),
           panel_enabled:
             staffForm.panel_enabled,
+          kind: staffForm.kind,
         })
         .select()
         .single();
@@ -2128,6 +2143,7 @@ ${formatPrice(price)}`)) {
                     ["all", "همه بارها"],
                     ["full", "دربستی"],
                     ["partial", "خرده‌بار"],
+                    ["intracity", "درون‌شهری"],
                   ] as const
                 ).map(([id, label]) => (
                   <button
@@ -2188,7 +2204,7 @@ ${formatPrice(price)}`)) {
               <div className="space-y-4">
                 {filteredRequests.map((item) => {
                   const assignees = responsibleStaff(item);
-                  const isFull = item.shipment_type === "full";
+                  const isFull = isDriverShipment(item.shipment_type);
                   const published = publishedIds.has(item.id);
 
                   return (
@@ -2201,7 +2217,9 @@ ${formatPrice(price)}`)) {
                           <div className="flex flex-wrap items-center gap-2">
                             <span
                               className={`rounded-full px-3 py-1 text-xs font-bold ${
-                                isFull
+                                item.shipment_type === "intracity"
+                                  ? "bg-violet-500/15 text-violet-300"
+                                  : isFull
                                   ? "bg-orange-500/15 text-orange-300"
                                   : item.shipment_type === "partial"
                                     ? "bg-sky-500/15 text-sky-300"
@@ -2213,7 +2231,7 @@ ${formatPrice(price)}`)) {
                                 : "نوع نامشخص"}
                             </span>
 
-                            {item.direction && (
+                            {item.direction && item.direction !== "intracity" && (
                               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
                                 {DIRECTION_LABELS[item.direction]}
                               </span>
@@ -2332,10 +2350,10 @@ ${formatPrice(price)}`)) {
                         </div>
                       )}
 
-                      {item.shipment_type === "partial" && (
+                      {(item.shipment_type === "partial" || item.shipment_type === "intracity") && (
                         <div className="mt-3 rounded-2xl bg-black/10 p-4 text-sm">
                           <p className="text-xs text-white/40">متصدی مسئول</p>
-                          {item.direction !== "from_tehran" ? (
+                          {item.shipment_type === "partial" && item.direction !== "from_tehran" ? (
                             <p className="mt-1 text-white/75">
                               {item.direction ? DIRECTION_LABELS[item.direction] : "مسیر نامشخص"} · فقط مدیریت
                             </p>
@@ -2828,6 +2846,32 @@ ${formatPrice(price)}`)) {
                       className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
                     />
 
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/10 p-1">
+                      {(Object.keys(STAFF_KIND_LABELS) as StaffKind[]).map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() =>
+                            setStaffForm((current) => ({ ...current, kind }))
+                          }
+                          className={
+                            "rounded-xl px-3 py-3 text-sm font-bold transition " +
+                            (staffForm.kind === kind
+                              ? "bg-orange-500 text-white"
+                              : "text-white/60 hover:text-white")
+                          }
+                        >
+                          {kind === "intracity" ? "🏙 " : "📦 "}
+                          {STAFF_KIND_LABELS[kind]}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="-mt-2 text-xs leading-6 text-white/40">
+                      {staffForm.kind === "intracity"
+                        ? "بارهای درون‌شهری شهرهای انتخاب‌شده را می‌بیند، بار تلفنی ثبت می‌کند و بار را برای رانندگان می‌فرستد."
+                        : "خرده‌بارهای «تهران ← شهرهای انتخاب‌شده» را می‌بیند و کرایه تعیین می‌کند."}
+                    </p>
+
                     <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
                       <div className="mb-3 flex items-center justify-between">
                         <div>
@@ -3108,6 +3152,10 @@ ${formatPrice(price)}`)) {
                                       item.name
                                     }
                                   </h3>
+
+                                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                                    {STAFF_KIND_LABELS[item.kind ?? "intercity"]}
+                                  </span>
 
                                   {item.panel_enabled && (
                                     <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-bold text-green-300">

@@ -26,25 +26,33 @@ const field =
 const select =
   "w-full rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 outline-none focus:border-orange-500 disabled:opacity-50";
 
-// ثبت بار برای مشتری‌ای که تلفنی تماس گرفته؛ بار به هیچ حساب صاحب باری وصل نیست
+const ALL_TYPES = Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[];
+
+// ثبت بار برای مشتری‌ای که تلفنی تماس گرفته؛ بار به هیچ حساب صاحب باری وصل نیست.
+// مدیر همه نوع بار ثبت می‌کند؛ متصدی درون‌شهری فقط بار درون‌شهری شهر خودش (types و defaultCity).
 export function PhoneOrderForm({
   supabase,
   onCreated,
   onClose,
+  types = ALL_TYPES,
+  defaultCity = empty,
 }: {
   supabase: SupabaseClient;
   onCreated: (row: ShipmentRequest) => void;
   onClose: () => void;
+  types?: ShipmentType[];
+  defaultCity?: Place;
 }) {
-  const [shipmentType, setShipmentType] = useState<ShipmentType>("full");
+  const [shipmentType, setShipmentType] = useState<ShipmentType>(types[0]);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("door_to_door");
-  const [origin, setOrigin] = useState<Place>(empty);
+  const [origin, setOrigin] = useState<Place>(types[0] === "intracity" ? defaultCity : empty);
   const [destination, setDestination] = useState<Place>(empty);
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const isPartial = shipmentType === "partial";
+  const isIntracity = shipmentType === "intracity";
   const showAddresses = !isPartial || deliveryMode === "door_to_door";
   const priceDigits = normalizeDigits(price).replace(/\D/g, "");
   const priceValue = priceDigits ? Number(priceDigits) : null;
@@ -61,13 +69,21 @@ export function PhoneOrderForm({
       return;
     }
 
-    if (!origin.city || !destination.city) {
-      setError("شهر مبدا و مقصد را انتخاب کنید.");
+    // بار درون‌شهری یک شهر دارد که هم مبدا است هم مقصد
+    const target = isIntracity ? origin : destination;
+
+    if (!origin.city || !target.city) {
+      setError(isIntracity ? "شهر را انتخاب کنید." : "شهر مبدا و مقصد را انتخاب کنید.");
       return;
     }
 
-    if (origin.province === destination.province && origin.city === destination.city) {
-      setError("مبدا و مقصد نمی‌توانند یک شهر باشند.");
+    if (!isIntracity && origin.province === destination.province && origin.city === destination.city) {
+      setError("مبدا و مقصد نمی‌توانند یک شهر باشند؛ برای داخل شهر «درون‌شهری» را انتخاب کنید.");
+      return;
+    }
+
+    if (isIntracity && (!value("pickup_address") || !value("delivery_address"))) {
+      setError("برای بار درون‌شهری، آدرس بارگیری و تخلیه را بنویسید.");
       return;
     }
 
@@ -76,7 +92,9 @@ export function PhoneOrderForm({
       return;
     }
 
-    const routing = detectDirection(origin, destination);
+    const routing = isIntracity
+      ? { direction: "intracity" as const, province: origin.province, city: origin.city }
+      : detectDirection(origin, destination);
     const dimensions = ["length", "width", "height"]
       .map((key, i) => (value(key) ? `${["طول", "عرض", "ارتفاع"][i]} ${value(key)}` : ""))
       .filter(Boolean);
@@ -94,7 +112,7 @@ export function PhoneOrderForm({
         city_province: routing.province,
         city: routing.city,
         origin: placeLabel(origin.province, origin.city),
-        destination: placeLabel(destination.province, destination.city),
+        destination: placeLabel(target.province, target.city),
         pickup_address: showAddresses ? value("pickup_address") || null : null,
         delivery_address: showAddresses ? value("delivery_address") || null : null,
         delivery_mode: isPartial ? deliveryMode : "door_to_door",
@@ -117,7 +135,7 @@ export function PhoneOrderForm({
       return;
     }
 
-    // پیامک به متصدی شهر (برای خرده‌بار تهران ← شهرستان)
+    // پیامک به مدیر و متصدی شهر
     supabase.functions
       .invoke("notify-new-request", { body: { requestId: data.id } })
       .catch((notifyError) => console.error("Notify error:", notifyError));
@@ -168,7 +186,9 @@ export function PhoneOrderForm({
       className="mb-6 space-y-5 rounded-3xl border border-orange-400/30 bg-orange-500/[0.04] p-5"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-black">📞 ثبت بار تلفنی</h3>
+        <h3 className="text-lg font-black">
+          📞 ثبت بار تلفنی{types.length === 1 ? ` ${SHIPMENT_TYPE_LABELS[types[0]]}` : ""}
+        </h3>
         <button
           type="button"
           onClick={onClose}
@@ -190,8 +210,9 @@ export function PhoneOrderForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        {(Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[]).map((type) => (
+      {types.length > 1 && (
+      <div className="grid grid-cols-3 gap-2">
+        {types.map((type) => (
           <button
             key={type}
             type="button"
@@ -206,11 +227,16 @@ export function PhoneOrderForm({
           </button>
         ))}
       </div>
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {placePicker("مبدا", origin, setOrigin)}
-        {placePicker("مقصد", destination, setDestination)}
-      </div>
+      {isIntracity ? (
+        placePicker("شهر", origin, setOrigin)
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {placePicker("مبدا", origin, setOrigin)}
+          {placePicker("مقصد", destination, setDestination)}
+        </div>
+      )}
 
       {isPartial && (
         <div className="grid grid-cols-2 gap-2">
@@ -233,8 +259,8 @@ export function PhoneOrderForm({
 
       {showAddresses && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <input name="pickup_address" placeholder="آدرس بارگیری" className={field} />
-          <input name="delivery_address" placeholder="آدرس تخلیه" className={field} />
+          <input name="pickup_address" placeholder={`آدرس بارگیری${isIntracity ? " *" : ""}`} className={field} />
+          <input name="delivery_address" placeholder={`آدرس تخلیه${isIntracity ? " *" : ""}`} className={field} />
         </div>
       )}
 

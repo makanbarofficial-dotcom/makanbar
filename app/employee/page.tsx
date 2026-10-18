@@ -6,9 +6,11 @@ import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { Brand } from "@/components/ui";
 import { VehicleRequests } from "./vehicle-requests";
+import { PhoneOrderForm } from "../admin/dashboard/phone-order";
 import {
   DELIVERY_MODE_LABELS,
   STAFF_STATUSES,
+  type StaffKind,
   formatPrice,
   matchesSearch,
   normalizeDigits,
@@ -28,6 +30,7 @@ type StaffProfile = {
   name: string;
   phone: string;
   panel_enabled: boolean | null;
+  kind: StaffKind | null;
 };
 
 type StaffLocation = {
@@ -48,7 +51,10 @@ export default function EmployeePanelPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
   const [locations, setLocations] = useState<StaffLocation[]>([]);
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
-  const [view, setView] = useState<"loads" | "vehicles">("loads");
+  const [view, setView] = useState<"loads" | "phone" | "vehicles">("loads");
+  // بارهای درون‌شهری که این متصدی برای رانندگان فرستاده است
+  const [publishedIds, setPublishedIds] = useState<Set<number>>(new Set());
+  const [publishingId, setPublishingId] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("active");
   const [search, setSearch] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -67,7 +73,7 @@ export default function EmployeePanelPage() {
 
     const { data: staff, error: staffError } = await supabase
       .from("staff")
-      .select("id, name, phone, panel_enabled")
+      .select("id, name, phone, panel_enabled, kind")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
@@ -85,22 +91,41 @@ export default function EmployeePanelPage() {
       return;
     }
 
-    // دیتابیس فقط خرده‌بارهای «تهران ← شهرهای این متصدی» را برمی‌گرداند
-    const [{ data: locationRows }, { data: rows, error: requestsError }] =
+    // دیتابیس فقط بارهای شهرهای این متصدی را برمی‌گرداند:
+    // متصدی بین‌شهری خرده‌بار «تهران ← شهر او»، متصدی درون‌شهری بار درون‌شهری شهر او
+    const intracity = staff.kind === "intracity";
+    let requestsQuery = supabase
+      .from("requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+    requestsQuery = intracity
+      ? requestsQuery.eq("shipment_type", "intracity")
+      : requestsQuery.eq("shipment_type", "partial").eq("direction", "from_tehran");
+
+    const [{ data: locationRows }, { data: rows, error: requestsError }, { data: published }] =
       await Promise.all([
         supabase
           .from("staff_locations")
           .select("id, province, city")
           .eq("staff_id", staff.id),
-        supabase
-          .from("requests")
-          .select("*")
-          .eq("shipment_type", "partial")
-          .eq("direction", "from_tehran")
-          .order("created_at", { ascending: false }),
+        requestsQuery,
+        intracity
+          ? supabase
+              .from("loads")
+              .select("request_id")
+              .eq("handled_by_staff_id", staff.id)
+              .not("request_id", "is", null)
+          : Promise.resolve({ data: [] as { request_id: number | null }[] }),
       ]);
 
     setLocations((locationRows ?? []) as StaffLocation[]);
+    setPublishedIds(
+      new Set(
+        (published ?? [])
+          .map((row) => row.request_id)
+          .filter((id): id is number => id != null)
+      )
+    );
 
     if (requestsError) {
       console.error("Staff requests error:", requestsError);
@@ -186,6 +211,47 @@ export default function EmployeePanelPage() {
     );
   }
 
+  // متصدی درون‌شهری بار را با کرایه‌ی فعلی برای رانندگان می‌فرستد
+  async function publishToDrivers(item: ShipmentRequest) {
+    if (!profile) return;
+    const price = draftPrice(item.id);
+
+    if (price == null) {
+      alert("اول کرایه را بنویسید.");
+      return;
+    }
+
+    if (!confirm(`این بار برای رانندگان ارسال شود؟\nکرایه: ${formatPrice(price)}`)) return;
+
+    setPublishingId(item.id);
+
+    const { error: loadError } = await supabase.from("loads").insert({
+      request_id: item.id,
+      origin: item.origin,
+      destination: item.destination,
+      cargo_type: item.cargo_type,
+      weight: item.weight || null,
+      vehicle_type: item.vehicle_type || null,
+      price,
+      status: "available",
+      driver_id: null,
+      description: item.description || null,
+      handled_by_staff_id: profile.id,
+      load_type: "intracity",
+    });
+
+    // 23505 یعنی قبلاً برای رانندگان ارسال شده؛ فقط وضعیت هماهنگ می‌شود
+    if (loadError && loadError.code !== "23505") {
+      setPublishingId(null);
+      alert(`ارسال برای رانندگان انجام نشد: ${loadError.message}`);
+      return;
+    }
+
+    setPublishedIds((current) => new Set(current).add(item.id));
+    setPublishingId(null);
+    await saveRequest(item, "ارسال به رانندگان");
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     router.replace("/employee/login");
@@ -202,6 +268,7 @@ export default function EmployeePanelPage() {
     );
   }
 
+  const isIntracity = profile?.kind === "intracity";
   const newCount = requests.filter((item) => (item.status || "جدید") === "جدید").length;
   const activeCount = requests.filter(
     (item) => !FINISHED.includes(item.status || "جدید")
@@ -211,7 +278,7 @@ export default function EmployeePanelPage() {
     <main dir="rtl" className="min-h-screen bg-ink text-white">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 backdrop-blur-xl">
         <div className="mx-auto flex min-h-20 max-w-6xl items-center justify-between gap-4 px-5">
-          <Brand subtitle="پنل متصدیان" />
+          <Brand subtitle={isIntracity ? "پنل متصدی درون‌شهری" : "پنل متصدیان"} />
 
           <div className="flex items-center gap-3">
             {profile?.name && (
@@ -262,7 +329,9 @@ export default function EmployeePanelPage() {
                 ))}
               </div>
               <p className="mt-4 text-xs leading-6 text-white/40">
-                خرده‌بارهایی که از تهران به شهرهای شما ارسال می‌شوند در این پنل نمایش داده می‌شوند.
+                {isIntracity
+                  ? "بارهای درون‌شهری شهرهای شما در این پنل نمایش داده می‌شوند. کرایه را تعیین کنید و بار را برای رانندگان بفرستید."
+                  : "خرده‌بارهایی که از تهران به شهرهای شما ارسال می‌شوند در این پنل نمایش داده می‌شوند."}
               </p>
             </section>
 
@@ -281,12 +350,19 @@ export default function EmployeePanelPage() {
               ))}
             </section>
 
-            <div className="mt-8 grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
-              {(
-                [
-                  ["loads", "📦 خرده‌بارها"],
-                  ["vehicles", "🚚 درخواست ماشین"],
-                ] as const
+            <div
+              className={`mt-8 grid gap-2 rounded-2xl bg-white/5 p-1 ${isIntracity ? "grid-cols-3" : "grid-cols-2"}`}
+            >
+              {(isIntracity
+                ? ([
+                    ["loads", "🏙 بارهای شهر"],
+                    ["phone", "📞 بار تلفنی"],
+                    ["vehicles", "🚚 درخواست ماشین"],
+                  ] as const)
+                : ([
+                    ["loads", "📦 خرده‌بارها"],
+                    ["vehicles", "🚚 درخواست ماشین"],
+                  ] as const)
               ).map(([id, label]) => (
                 <button
                   key={id}
@@ -301,7 +377,28 @@ export default function EmployeePanelPage() {
               ))}
             </div>
 
-            {view === "vehicles" ? (
+            {view === "phone" && isIntracity ? (
+              <div className="mt-5">
+                <PhoneOrderForm
+                  supabase={supabase}
+                  types={["intracity"]}
+                  defaultCity={{
+                    province: locations[0]?.province ?? "",
+                    city: locations[0]?.city && locations[0].city !== "*" ? locations[0].city : "",
+                  }}
+                  onCreated={(row) => {
+                    setRequests((current) => [row, ...current]);
+                    setPrices((current) => ({
+                      ...current,
+                      [row.id]: row.price != null ? String(row.price) : "",
+                    }));
+                    setView("loads");
+                    alert("بار تلفنی ثبت شد. حالا می‌توانید آن را برای رانندگان بفرستید.");
+                  }}
+                  onClose={() => setView("loads")}
+                />
+              </div>
+            ) : view === "vehicles" ? (
               <VehicleRequests
                 supabase={supabase}
                 staff={{ id: profile.id, name: profile.name, phone: profile.phone }}
@@ -414,9 +511,13 @@ export default function EmployeePanelPage() {
                       )}
                     </div>
                     <div className="rounded-2xl bg-black/10 p-3">
-                      <p className="text-xs text-white/40">روش تحویل</p>
+                      <p className="text-xs text-white/40">{isIntracity ? "خودرو" : "روش تحویل"}</p>
                       <p className="mt-1 font-bold">
-                        {item.delivery_mode ? DELIVERY_MODE_LABELS[item.delivery_mode] : "—"}
+                        {isIntracity
+                          ? item.vehicle_type || "فرقی نمی‌کند"
+                          : item.delivery_mode
+                            ? DELIVERY_MODE_LABELS[item.delivery_mode]
+                            : "—"}
                       </p>
                     </div>
                   </div>
@@ -425,7 +526,9 @@ export default function EmployeePanelPage() {
                     <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
                       {item.pickup_address && (
                         <div className="rounded-2xl bg-black/10 p-3">
-                          <p className="text-xs text-white/40">آدرس بارگیری (تهران)</p>
+                          <p className="text-xs text-white/40">
+                            {isIntracity ? "آدرس بارگیری" : "آدرس بارگیری (تهران)"}
+                          </p>
                           <p className="mt-1">{item.pickup_address}</p>
                         </div>
                       )}
@@ -478,7 +581,12 @@ export default function EmployeePanelPage() {
                         onChange={(event) => void saveRequest(item, event.target.value)}
                         className="rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 text-sm outline-none"
                       >
-                        {STAFF_STATUSES.map((status) => (
+                        {[
+                          ...STAFF_STATUSES,
+                          ...((STAFF_STATUSES as readonly string[]).includes(item.status || "جدید")
+                            ? []
+                            : [item.status as string]),
+                        ].map((status) => (
                           <option key={status} value={status}>
                             {status}
                           </option>
@@ -494,6 +602,27 @@ export default function EmployeePanelPage() {
                       </button>
                     </div>
                   </div>
+
+                  {isIntracity && (
+                    <div className="mt-3">
+                      {publishedIds.has(item.id) ? (
+                        <span className="inline-block rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-300">
+                          ✓ برای رانندگان ارسال شده
+                        </span>
+                      ) : (
+                        item.status !== "لغو شد" && (
+                          <button
+                            type="button"
+                            disabled={publishingId === item.id}
+                            onClick={() => void publishToDrivers(item)}
+                            className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-400 disabled:opacity-50"
+                          >
+                            {publishingId === item.id ? "در حال ارسال..." : "🚛 ارسال برای رانندگان"}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
 
                   {draftPrice(item.id) != null && draftPrice(item.id) !== item.price && (
                     <p className="mt-2 text-xs text-emerald-300">

@@ -1,21 +1,36 @@
 import { getCities, getProvincesList } from "@code-plate/iran-cities";
 
-// انواع حمل
-export type ShipmentType = "full" | "partial";
+// انواع حمل؛ درون‌شهری یعنی مبدا و مقصد در یک شهر (فقط مدیر و متصدی درون‌شهری همان شهر می‌بینند)
+export type ShipmentType = "full" | "partial" | "intracity";
 
-// جهت حمل: همه بارها یا از تهران به شهرستان هستند یا از شهرستان به تهران
-export type Direction = "from_tehran" | "to_tehran" | "between_cities";
+// جهت حمل بین‌شهری؛ بار درون‌شهری جهت «intracity» دارد
+export type Direction = "from_tehran" | "to_tehran" | "between_cities" | "intracity";
 
 export const SHIPMENT_TYPE_LABELS: Record<ShipmentType, string> = {
   full: "دربستی",
   partial: "خرده‌بار",
+  intracity: "درون‌شهری",
 };
 
 export const DIRECTION_LABELS: Record<Direction, string> = {
   from_tehran: "از تهران به شهرستان",
   to_tehran: "از شهرستان به تهران",
   between_cities: "بین شهرستان‌ها",
+  intracity: "درون‌شهری",
 };
+
+// نوع متصدی: بین‌شهری (خرده‌بار تهران ← شهر او) یا درون‌شهری (بارهای داخل شهر او)
+export type StaffKind = "intercity" | "intracity";
+
+export const STAFF_KIND_LABELS: Record<StaffKind, string> = {
+  intercity: "متصدی خرده‌بار (بین‌شهری)",
+  intracity: "متصدی درون‌شهری",
+};
+
+// بارهایی که برای رانندگان فرستاده می‌شوند (دربستی و درون‌شهری)
+export function isDriverShipment(type: ShipmentType | null | undefined) {
+  return type === "full" || type === "intracity";
+}
 
 // روش تحویل خرده‌بار
 export type DeliveryMode = "terminal" | "door_to_door";

@@ -4,6 +4,7 @@ import soap from "npm:soap";
 
 // پیامک اطلاع‌رسانی بار جدید:
 //   خرده‌بار «تهران ← شهری که متصدی دارد»  → متصدی‌های آن شهر
+//   بار درون‌شهری → متصدی درون‌شهری همان شهر
 //   مدیران (ADMIN_PHONES و ADMIN_NOTIFY_PHONE) برای همه بارها، از جمله دربستی و شهرهای بدون متصدی
 // صاحب بار بعد از ثبت، این تابع را با شناسه بار صدا می‌زند؛ برای هر بار فقط یک‌بار پیامک می‌رود.
 
@@ -90,22 +91,31 @@ Deno.serve(async (req) => {
 
     const { requestId } = await req.json();
 
-    // بار تلفنی را مدیر ثبت می‌کند؛ بقیه بارها را خود صاحب بار
-    const { data: callerAdmin } = await supabase
-      .from("app_admins")
-      .select("auth_user_id")
-      .eq("auth_user_id", userId)
-      .maybeSingle();
+    // بار تلفنی را مدیر یا متصدی درون‌شهری ثبت می‌کند؛ بقیه بارها را خود صاحب بار
+    const [{ data: callerAdmin }, { data: callerStaff }] = await Promise.all([
+      supabase.from("app_admins").select("auth_user_id").eq("auth_user_id", userId).maybeSingle(),
+      supabase
+        .from("staff")
+        .select("phone")
+        .eq("auth_user_id", userId)
+        .eq("kind", "intracity")
+        .eq("panel_enabled", true)
+        .maybeSingle(),
+    ]);
     const byAdmin = !!callerAdmin;
 
-    // فقط صاحب همان بار (یا مدیر)، فقط یک‌بار، و فقط تا ۱۰ دقیقه بعد از ثبت
+    // فقط صاحب همان بار (یا مدیر، یا متصدی درون‌شهری برای بار تلفنی)، فقط یک‌بار، و فقط تا ۱۰ دقیقه بعد از ثبت
     let claim = supabase
       .from("requests")
       .update({ notified_at: new Date().toISOString() })
       .eq("id", requestId)
       .is("notified_at", null)
       .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
-    if (!byAdmin) claim = claim.eq("customer_id", userId);
+    if (!byAdmin) {
+      claim = callerStaff
+        ? claim.is("customer_id", null).eq("shipment_type", "intracity")
+        : claim.eq("customer_id", userId);
+    }
 
     const { data: request } = await claim
       .select("id, shipment_type, direction, city_province, city, origin, destination")
@@ -113,8 +123,10 @@ Deno.serve(async (req) => {
 
     if (!request) return json({ success: true, sent: 0 });
 
-    // مدیر برای همه بارها پیامک می‌گیرد؛ متصدی فقط برای خرده‌بارِ شهر خودش
-    const type = request.shipment_type === "full" ? "دربستی" : "خرده‌بار";
+    // مدیر برای همه بارها پیامک می‌گیرد؛ متصدی فقط برای بارِ شهر خودش
+    const type = { full: "دربستی", partial: "خرده‌بار", intracity: "درون‌شهری" }[
+      request.shipment_type as string
+    ] ?? "";
     const adminPhones = new Set(
       [...ADMIN_PHONES, ...(Deno.env.get("ADMIN_NOTIFY_PHONE") ?? "").split(",")]
         .map((phone) => phone.trim())
@@ -126,15 +138,29 @@ Deno.serve(async (req) => {
     // بار تلفنی را خود مدیر ثبت کرده؛ پیامک مدیر لازم نیست
     if (!byAdmin) {
       for (const adminPhone of adminPhones) {
-        outbox.set(adminPhone, `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`);
+        outbox.set(
+          adminPhone,
+          request.shipment_type === "intracity"
+            ? `ماکان بار: بار درون‌شهری جدید در ${request.origin}`
+            : `ماکان بار: بار ${type} جدید ${request.origin} ← ${request.destination}`,
+        );
       }
     }
 
-    if (request.shipment_type === "partial" && request.direction === "from_tehran") {
+    // متصدی بین‌شهری: خرده‌بار تهران ← شهر او؛ متصدی درون‌شهری: بار درون‌شهری شهر او
+    const staffKind = request.shipment_type === "intracity"
+      ? "intracity"
+      : request.shipment_type === "partial" && request.direction === "from_tehran"
+        ? "intercity"
+        : null;
+    const callerPhone = callerStaff?.phone ? toSmsNumber(callerStaff.phone) : null;
+
+    if (staffKind) {
       const { data: staff } = await supabase
         .from("staff")
         .select("phone, staff_locations!inner(province, city)")
         .eq("panel_enabled", true)
+        .eq("kind", staffKind)
         .eq("staff_locations.province", request.city_province);
 
       for (const member of staff ?? []) {
@@ -142,8 +168,14 @@ Deno.serve(async (req) => {
         const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === "*" || loc.city === request.city);
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
-        if (covers && !outbox.has(phone) && !adminPhones.has(phone)) {
-          outbox.set(phone, `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`);
+        // کسی که خودش بار تلفنی را ثبت کرده پیامک نمی‌گیرد
+        if (covers && !outbox.has(phone) && !adminPhones.has(phone) && phone !== callerPhone) {
+          outbox.set(
+            phone,
+            staffKind === "intracity"
+              ? `ماکان بار: بار درون‌شهری جدید در ${request.destination} ثبت شد.`
+              : `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`,
+          );
         }
       }
     }

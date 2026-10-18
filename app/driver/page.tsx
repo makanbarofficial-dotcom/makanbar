@@ -37,6 +37,7 @@ type Load = {
   delivery_address: string | null;
   contact_name: string | null;
   contact_phone: string | null;
+  load_type: string | null;
 };
 
 // جزئیات کار که فقط بعد از پذیرش بار به راننده نشان داده می‌شود
@@ -113,7 +114,7 @@ const NEXT_STEP: Partial<Record<LoadStatus, { status: LoadStatus; label: string 
 };
 
 const LOAD_COLUMNS =
-  "id, request_id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, pickup_address, delivery_address, contact_name, contact_phone";
+  "id, request_id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, pickup_address, delivery_address, contact_name, contact_phone, load_type";
 
 function errorMessage(error: unknown, fallback: string) {
   const message = (error as { message?: string })?.message;
@@ -311,7 +312,12 @@ export default function DriverPage() {
       >
         <div className="flex items-start justify-between gap-3">
           <h3 className="min-w-0 text-base font-black leading-7 sm:text-lg">
-            {load.origin} ← {load.destination}
+            {load.load_type === "intracity" && (
+              <span className="ml-2 inline-block rounded-full bg-violet-500/15 px-2.5 py-0.5 align-middle text-xs font-bold text-violet-300">
+                🏙 درون‌شهری
+              </span>
+            )}
+            {load.load_type === "intracity" ? load.origin : `${load.origin} ← ${load.destination}`}
           </h3>
           <span
             className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${STATUS_TONES[load.status]}`}

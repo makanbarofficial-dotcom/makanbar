@@ -46,6 +46,7 @@ const selectClass =
 const TYPE_HINTS: Record<ShipmentType, string> = {
   full: "کل ظرفیت یک خودرو برای بار شما؛ راننده مستقیم بار را جابه‌جا می‌کند.",
   partial: "بار کم‌حجم که همراه بارهای دیگر و از طریق متصدی شهر ارسال می‌شود.",
+  intracity: "جابه‌جایی بار داخل یک شهر؛ مثلاً از انبار تا مغازه یا اسباب‌کشی.",
 };
 
 const DIMENSION_FIELDS = [
@@ -93,8 +94,10 @@ export default function CustomerPanelPage() {
   const [formSuccess, setFormSuccess] = useState("");
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
+  const isIntracity = shipmentType === "intracity";
+
   // خرده‌بار باربری‌به‌باربری آدرس ندارد؛ بقیه حالت‌ها از درِ محل جابه‌جا می‌شوند
-  const showAddresses = shipmentType === "full" || deliveryMode === "door_to_door";
+  const showAddresses = shipmentType !== "partial" || deliveryMode === "door_to_door";
 
   const refresh = useCallback(async () => {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -157,17 +160,22 @@ export default function CustomerPanelPage() {
     const phone = value("phone");
     const cargoType = value("cargo_type");
 
-    if (!origin.city || !destination.city) {
-      setFormError("شهر مبدا و مقصد را انتخاب کنید.");
+    // بار درون‌شهری فقط یک شهر دارد؛ مبدا و مقصد همان شهر است
+    const target = isIntracity ? origin : destination;
+
+    if (isIntracity ? !origin.city : !origin.city || !destination.city) {
+      setFormError(isIntracity ? "شهر را انتخاب کنید." : "شهر مبدا و مقصد را انتخاب کنید.");
       return;
     }
 
-    if (origin.province === destination.province && origin.city === destination.city) {
-      setFormError("مبدا و مقصد نمی‌توانند یک شهر باشند.");
+    if (!isIntracity && origin.province === destination.province && origin.city === destination.city) {
+      setFormError("مبدا و مقصد نمی‌توانند یک شهر باشند. برای جابه‌جایی داخل شهر «درون‌شهری» را انتخاب کنید.");
       return;
     }
 
-    const routing = detectDirection(origin, destination);
+    const routing = isIntracity
+      ? { direction: "intracity" as const, province: origin.province, city: origin.city }
+      : detectDirection(origin, destination);
 
     if (!fullName || !phone || !cargoType) {
       setFormError("نام، شماره تماس و نوع بار الزامی هستند.");
@@ -198,7 +206,7 @@ export default function CustomerPanelPage() {
       city_province: routing.province,
       city: routing.city,
       origin: placeLabel(origin.province, origin.city),
-      destination: placeLabel(destination.province, destination.city),
+      destination: placeLabel(target.province, target.city),
       pickup_address: showAddresses ? value("pickup_address") : null,
       delivery_address: showAddresses ? value("delivery_address") : null,
       delivery_mode: isPartial ? deliveryMode : "door_to_door",
@@ -206,7 +214,7 @@ export default function CustomerPanelPage() {
       weight: value("weight") || null,
       quantity: isPartial ? value("quantity") : null,
       dimensions: isPartial ? formatDimensions(value) : null,
-      vehicle_type: shipmentType === "full" ? value("vehicle_type") : "",
+      vehicle_type: shipmentType === "partial" ? "" : value("vehicle_type"),
       description: value("description") || null,
       status: "جدید",
     })
@@ -221,7 +229,7 @@ export default function CustomerPanelPage() {
       return;
     }
 
-    // پیامک به متصدی شهر یا مدیر؛ خطای پیامک نباید ثبت بار را خراب کند
+    // پیامک به متصدی شهر و مدیر؛ خطای پیامک نباید ثبت بار را خراب کند
     supabase.functions
       .invoke("notify-new-request", { body: { requestId: created.id } })
       .catch((notifyError) => console.error("Notify error:", notifyError));
@@ -492,7 +500,7 @@ export default function CustomerPanelPage() {
             className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 sm:mt-6 sm:rounded-3xl sm:p-6 md:p-8"
           >
             <h2 className="text-lg font-black sm:text-xl">نوع حمل</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {(Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[]).map((type) => (
                 <button
                   key={type}
@@ -512,8 +520,60 @@ export default function CustomerPanelPage() {
               ))}
             </div>
 
-            <h2 className="mt-6 text-lg font-black sm:mt-8 sm:text-xl">مسیر</h2>
+            <h2 className="mt-6 text-lg font-black sm:mt-8 sm:text-xl">
+              {isIntracity ? "شهر و آدرس‌ها" : "مسیر"}
+            </h2>
 
+            {isIntracity ? (
+              <fieldset className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <legend className="px-1 text-sm font-black text-orange-300">شهر *</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    aria-label="استان"
+                    value={origin.province}
+                    onChange={(event) => setOrigin({ province: event.target.value, city: "" })}
+                    className={selectClass}
+                  >
+                    <option value="">استان</option>
+                    {provinces.map((item) => (
+                      <option key={item.en} value={item.en}>
+                        {item.fa}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    aria-label="شهر"
+                    value={origin.city}
+                    disabled={!origin.province}
+                    onChange={(event) => setOrigin({ ...origin, city: event.target.value })}
+                    className={selectClass}
+                  >
+                    <option value="">شهر</option>
+                    {getProvinceCities(origin.province).map((item) => (
+                      <option key={item.en} value={item.en}>
+                        {item.fa}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <input
+                    name="pickup_address"
+                    maxLength={300}
+                    aria-label="آدرس بارگیری"
+                    placeholder="آدرس بارگیری *"
+                    className={inputClass}
+                  />
+                  <input
+                    name="delivery_address"
+                    maxLength={300}
+                    aria-label="آدرس تخلیه"
+                    placeholder="آدرس تخلیه *"
+                    className={inputClass}
+                  />
+                </div>
+              </fieldset>
+            ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {(
                 [
@@ -576,6 +636,7 @@ export default function CustomerPanelPage() {
                 </fieldset>
               ))}
             </div>
+            )}
 
             {shipmentType === "partial" && (
               <>
@@ -638,7 +699,13 @@ export default function CustomerPanelPage() {
                   name="weight"
                   required={shipmentType === "partial"}
                   maxLength={80}
-                  placeholder={shipmentType === "full" ? "مثلاً ۱۰ تن" : "مثلاً ۸۰ کیلو"}
+                  placeholder={
+                    shipmentType === "full"
+                      ? "مثلاً ۱۰ تن"
+                      : isIntracity
+                        ? "مثلاً ۵۰۰ کیلو"
+                        : "مثلاً ۸۰ کیلو"
+                  }
                   className={`${inputClass} mt-2`}
                 />
               </label>
@@ -665,7 +732,7 @@ export default function CustomerPanelPage() {
                 </fieldset>
               )}
 
-              {shipmentType === "full" && (
+              {shipmentType !== "partial" && (
                 <label className="block text-sm text-white/70">
                   نوع خودرو
                   <select name="vehicle_type" defaultValue="" className={`${selectClass} mt-2`}>
@@ -683,7 +750,11 @@ export default function CustomerPanelPage() {
                   name="description"
                   rows={3}
                   maxLength={1000}
-                  placeholder="بسته‌بندی، زمان بارگیری یا نکات دیگر..."
+                  placeholder={
+                    isIntracity
+                      ? "زمان بارگیری، طبقه، نیاز به کارگر یا نکات دیگر..."
+                      : "بسته‌بندی، زمان بارگیری یا نکات دیگر..."
+                  }
                   className={`${inputClass} mt-2 resize-none`}
                 />
               </label>
