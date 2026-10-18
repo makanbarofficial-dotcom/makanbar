@@ -1,6 +1,6 @@
 "use client";
 
-import { type SubmitEvent, useState } from "react";
+import { type SubmitEvent, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   DELIVERY_MODE_LABELS,
@@ -8,6 +8,7 @@ import {
   SHIPMENT_TYPE_LABELS,
   type ShipmentRequest,
   type ShipmentType,
+  type Terminal,
   VEHICLE_TYPES,
   detectDirection,
   formatPrice,
@@ -15,6 +16,7 @@ import {
   getProvinces,
   normalizeDigits,
   placeLabel,
+  terminalAddress,
 } from "@/lib/shipments";
 
 type Place = { province: string; city: string };
@@ -57,6 +59,35 @@ export function PhoneOrderForm({
   const priceDigits = normalizeDigits(price).replace(/\D/g, "");
   const priceValue = priceDigits ? Number(priceDigits) : null;
 
+  // بار درون‌شهری: با تیک «آدرس شرکت»، مبدا یکی از باربری‌های ماکان بار در همان شهر است
+  const [fromCompany, setFromCompany] = useState(false);
+  const [terminals, setTerminals] = useState<Terminal[]>([]);
+  const [terminalId, setTerminalId] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("representatives")
+      .select("id, name, province, city, address")
+      .then(({ data }) => setTerminals((data ?? []) as Terminal[]));
+  }, [supabase]);
+
+  const cityTerminals = useMemo(
+    () =>
+      terminals.filter(
+        (terminal) => terminal.province === origin.province && terminal.city === origin.city
+      ),
+    [terminals, origin.province, origin.city]
+  );
+
+  // شهر عوض شد: اگر فقط یک باربری هست همان انتخاب می‌شود
+  useEffect(() => {
+    setTerminalId(cityTerminals.length === 1 ? String(cityTerminals[0].id) : "");
+  }, [cityTerminals]);
+
+  const terminal = isIntracity && fromCompany
+    ? cityTerminals.find((item) => String(item.id) === terminalId)
+    : undefined;
+
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -82,8 +113,19 @@ export function PhoneOrderForm({
       return;
     }
 
-    if (isIntracity && (!value("pickup_address") || !value("delivery_address"))) {
-      setError("برای بار درون‌شهری، آدرس بارگیری و تخلیه را بنویسید.");
+    if (isIntracity && fromCompany && !terminal) {
+      setError(
+        cityTerminals.length
+          ? "باربری شرکت را انتخاب کنید."
+          : "برای این شهر آدرس شرکت (باربری) ثبت نشده؛ تیک را بردارید و آدرس مبدا را بنویسید."
+      );
+      return;
+    }
+
+    const pickupAddress = terminal ? terminalAddress(terminal) : value("pickup_address");
+
+    if (isIntracity && (!pickupAddress || !value("delivery_address"))) {
+      setError("برای بار درون‌شهری، آدرس مبدا و مقصد را بنویسید.");
       return;
     }
 
@@ -113,7 +155,7 @@ export function PhoneOrderForm({
         city: routing.city,
         origin: placeLabel(origin.province, origin.city),
         destination: placeLabel(target.province, target.city),
-        pickup_address: showAddresses ? value("pickup_address") || null : null,
+        pickup_address: showAddresses ? pickupAddress || null : null,
         delivery_address: showAddresses ? value("delivery_address") || null : null,
         delivery_mode: isPartial ? deliveryMode : "door_to_door",
         cargo_type: value("cargo_type"),
@@ -257,10 +299,60 @@ export function PhoneOrderForm({
         </div>
       )}
 
+      {isIntracity && (
+        <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <label className="flex cursor-pointer items-center gap-3 text-sm font-bold">
+            <input
+              type="checkbox"
+              checked={fromCompany}
+              onChange={(e) => setFromCompany(e.target.checked)}
+              className="h-5 w-5 accent-orange-500"
+            />
+            🏢 مبدا: آدرس شرکت (باربری ماکان بار)
+          </label>
+
+          {fromCompany &&
+            (!origin.city ? (
+              <p className="text-xs text-white/50">اول شهر را انتخاب کنید.</p>
+            ) : cityTerminals.length === 0 ? (
+              <p className="text-xs leading-6 text-orange-200">
+                برای این شهر آدرس شرکت ثبت نشده است (بخش نمایندگان)؛ تیک را بردارید و آدرس مبدا را
+                بنویسید.
+              </p>
+            ) : cityTerminals.length === 1 ? (
+              <p className="text-xs leading-6 text-emerald-300">{terminalAddress(cityTerminals[0])}</p>
+            ) : (
+              <select
+                aria-label="باربری مبدا"
+                value={terminalId}
+                onChange={(e) => setTerminalId(e.target.value)}
+                className={select}
+              >
+                <option value="">باربری را انتخاب کنید</option>
+                {cityTerminals.map((item) => (
+                  <option key={item.id} value={String(item.id)}>
+                    {terminalAddress(item)}
+                  </option>
+                ))}
+              </select>
+            ))}
+        </div>
+      )}
+
       {showAddresses && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <input name="pickup_address" placeholder={`آدرس بارگیری${isIntracity ? " *" : ""}`} className={field} />
-          <input name="delivery_address" placeholder={`آدرس تخلیه${isIntracity ? " *" : ""}`} className={field} />
+          {!(isIntracity && fromCompany) && (
+            <input
+              name="pickup_address"
+              placeholder={isIntracity ? "آدرس مبدا (بارگیری) *" : "آدرس بارگیری"}
+              className={field}
+            />
+          )}
+          <input
+            name="delivery_address"
+            placeholder={isIntracity ? "آدرس مقصد (تخلیه) *" : "آدرس تخلیه"}
+            className={field}
+          />
         </div>
       )}
 

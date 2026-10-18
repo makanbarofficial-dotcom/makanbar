@@ -12,6 +12,7 @@ import {
   SHIPMENT_TYPE_LABELS,
   type ShipmentRequest,
   type ShipmentType,
+  type Terminal,
   VEHICLE_TYPES,
   detectDirection,
   formatDate,
@@ -20,6 +21,7 @@ import {
   getProvinces,
   placeLabel,
   statusTone,
+  terminalAddress,
 } from "@/lib/shipments";
 
 type Place = { province: string; city: string };
@@ -30,15 +32,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 );
-
-// باربری‌های ماکان بار (همان نمایندگان) که مبدا بار درون‌شهری می‌توانند باشند
-type Terminal = {
-  id: number;
-  name: string | null;
-  province: string;
-  city: string;
-  address: string | null;
-};
 
 type CustomerProfile = {
   full_name: string | null;
@@ -237,9 +230,7 @@ export default function CustomerPanelPage() {
       return;
     }
 
-    const pickupAddress = terminal
-      ? `باربری ${terminal.name ?? "ماکان بار"}${terminal.address ? ` — ${terminal.address}` : ""}`
-      : value("pickup_address");
+    const pickupAddress = terminal ? terminalAddress(terminal) : value("pickup_address");
 
     if (showAddresses && (!pickupAddress || !value("delivery_address"))) {
       setFormError("آدرس بارگیری و آدرس تخلیه را بنویسید.");

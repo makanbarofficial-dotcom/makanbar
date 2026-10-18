@@ -147,6 +147,20 @@ export function placeLabel(province: string, city: string) {
   return isTehran(province, city) ? "تهران" : regionLabel(province, city);
 }
 
+// باربری‌های ماکان بار (همان نمایندگان هر شهر) که مبدا بار درون‌شهری می‌توانند باشند
+export type Terminal = {
+  id: number;
+  name: string | null;
+  province: string;
+  city: string;
+  address: string | null;
+};
+
+// متن آدرس بارگیری وقتی مبدا باربری است: «باربری اطلس بار — نبش خیابان …»
+export function terminalAddress(terminal: Terminal) {
+  return `باربری ${terminal.name ?? "ماکان بار"}${terminal.address ? ` — ${terminal.address}` : ""}`;
+}
+
 // آیا مبدا/مقصد ذخیره‌شده‌ی بار (مثل «مشهد، خراسان رضوی» یا «تهران») در استان/شهر انتخاب‌شده است؟
 // بدون استان یعنی همه جا؛ بدون شهر یعنی کل استان.
 export function placeMatches(label: string, province: string, city: string) {
