@@ -690,9 +690,42 @@ export default function AdminDashboardPage() {
     );
   }
 
+  // اگر در تب دیگری از حساب خارج شوید، این صفحه هم به صفحه ورود برمی‌گردد
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") router.replace("/admin");
+    });
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  async function stillAdmin() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: isAdmin } = sessionData.session
+      ? await supabase.rpc("is_admin")
+      : { data: false };
+
+    if (isAdmin) return true;
+
+    alert(
+      "ورود مدیر در این مرورگر دیگر فعال نیست (احتمالاً در تب دیگری از حساب خارج شده‌اید یا با حساب متصدی، راننده یا صاحب بار وارد شده‌اید).\nلطفاً دوباره وارد پنل مدیریت شوید."
+    );
+    await supabase.auth.signOut();
+    router.replace("/admin");
+    return false;
+  }
+
   async function loadCustomers() {
     setCustomerLoading(true);
     setCustomerError("");
+
+    // همه پنل‌ها در یک مرورگر یک ورود مشترک دارند؛ اگر در تب دیگری از حساب خارج شده
+    // یا با حساب دیگری وارد شده باشید، این صفحه دیگر به‌عنوان مدیر شناخته نمی‌شود
+    if (!(await stillAdmin())) {
+      setCustomerLoading(false);
+      return;
+    }
 
     try {
       const { data, error: functionError } = await supabase.functions.invoke(
@@ -700,7 +733,11 @@ export default function AdminDashboardPage() {
       );
 
       if (functionError) {
-        throw new Error(functionError.message || "دریافت مشتریان ناموفق بود.");
+        // پیام فارسی تابع داخل بدنه پاسخ است
+        const body = await (functionError as { context?: Response }).context
+          ?.json()
+          .catch(() => null);
+        throw new Error(body?.error || functionError.message || "دریافت مشتریان ناموفق بود.");
       }
 
       if (data?.error) {
