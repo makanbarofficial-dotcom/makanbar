@@ -31,19 +31,22 @@ const select =
 const ALL_TYPES = Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[];
 
 // ثبت بار برای مشتری‌ای که تلفنی تماس گرفته؛ بار به هیچ حساب صاحب باری وصل نیست.
-// مدیر همه نوع بار ثبت می‌کند؛ متصدی درون‌شهری فقط بار درون‌شهری شهر خودش (types و defaultCity).
+// مدیر همه نوع بار ثبت می‌کند؛ متصدی درون‌شهری فقط بار درون‌شهری شهرهای خودش
+// (types، defaultCity و areas: محدوده‌های او؛ شهر خالی یعنی کل استان).
 export function PhoneOrderForm({
   supabase,
   onCreated,
   onClose,
   types = ALL_TYPES,
   defaultCity = empty,
+  areas,
 }: {
   supabase: SupabaseClient;
   onCreated: (row: ShipmentRequest) => void;
   onClose: () => void;
   types?: ShipmentType[];
   defaultCity?: Place;
+  areas?: Place[];
 }) {
   const [shipmentType, setShipmentType] = useState<ShipmentType>(types[0]);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("door_to_door");
@@ -185,6 +188,19 @@ export function PhoneOrderForm({
     onCreated(data as ShipmentRequest);
   }
 
+  // فقط استان‌ها و شهرهای محدوده‌ی متصدی (اگر areas داده شده باشد)
+  const provinceOptions = areas
+    ? getProvinces().filter((item) => areas.some((area) => area.province === item.en))
+    : getProvinces();
+
+  function cityOptions(province: string) {
+    const cities = getProvinceCities(province);
+    if (!areas) return cities;
+    const inProvince = areas.filter((area) => area.province === province);
+    if (inProvince.some((area) => !area.city)) return cities;
+    return cities.filter((item) => inProvince.some((area) => area.city === item.en));
+  }
+
   function placePicker(title: string, place: Place, setPlace: (p: Place) => void) {
     return (
       <fieldset>
@@ -197,7 +213,7 @@ export function PhoneOrderForm({
             className={select}
           >
             <option value="">استان</option>
-            {getProvinces().map((item) => (
+            {provinceOptions.map((item) => (
               <option key={item.en} value={item.en}>
                 {item.fa}
               </option>
@@ -211,7 +227,7 @@ export function PhoneOrderForm({
             className={select}
           >
             <option value="">شهر</option>
-            {getProvinceCities(place.province).map((item) => (
+            {cityOptions(place.province).map((item) => (
               <option key={item.en} value={item.en}>
                 {item.fa}
               </option>

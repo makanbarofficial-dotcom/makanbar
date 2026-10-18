@@ -408,6 +408,10 @@ export default function EmployeePanelPage() {
                 <PhoneOrderForm
                   supabase={supabase}
                   types={["intracity"]}
+                  areas={locations.map((location) => ({
+                    province: location.province,
+                    city: location.city && location.city !== "*" ? location.city : "",
+                  }))}
                   defaultCity={{
                     province: locations[0]?.province ?? "",
                     city: locations[0]?.city && locations[0].city !== "*" ? locations[0].city : "",
