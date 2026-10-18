@@ -27,7 +27,7 @@ import { Logo } from "@/components/ui";
 import { PhoneOrderForm } from "./phone-order";
 import { VehicleRequests } from "../../employee/vehicle-requests";
 import { PHONES } from "@/lib/contact";
-import { notifyCustomer } from "@/lib/notify";
+import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -922,6 +922,9 @@ ${formatPrice(price)}`)) {
       setPublishedIds(
         (current) => new Set(current).add(item.id)
       );
+
+      // پیامک بار جدید به رانندگانِ با ماشین مناسب
+      if (!loadError) notifyDrivers(supabase);
 
       const status = "ارسال به رانندگان";
 

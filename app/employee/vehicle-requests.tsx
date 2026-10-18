@@ -3,6 +3,7 @@
 import { type SubmitEvent, useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Alert, ui } from "@/components/ui";
+import { notifyDrivers } from "@/lib/notify";
 import {
   TEHRAN_CITY,
   TEHRAN_PROVINCE,
@@ -161,6 +162,9 @@ export function VehicleRequests({
       setFormError(`ثبت درخواست انجام نشد: ${error.message}`);
       return;
     }
+
+    // پیامک بار جدید به رانندگانِ با ماشین مناسب
+    notifyDrivers(supabase);
 
     form.reset();
     setOrigin({ province: TEHRAN_PROVINCE, city: TEHRAN_CITY });

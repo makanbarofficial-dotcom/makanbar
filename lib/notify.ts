@@ -9,3 +9,11 @@ export function notifyCustomer(supabase: SupabaseClient, requestId: number | nul
     .invoke("notify-customer", { body: { requestId } })
     .catch((error) => console.error("Customer notify error:", error));
 }
+
+// بعد از اینکه باری برای رانندگان فرستاده شد صدا زده می‌شود؛ تابع notify-drivers بارهای
+// تازه‌ای را که هنوز پیامک نشده‌اند پیدا می‌کند و به رانندگانِ با ماشین مناسب پیامک می‌دهد.
+export function notifyDrivers(supabase: SupabaseClient) {
+  supabase.functions
+    .invoke("notify-drivers")
+    .catch((error) => console.error("Driver notify error:", error));
+}

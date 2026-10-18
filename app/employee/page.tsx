@@ -1,6 +1,6 @@
 "use client";
 
-import { notifyCustomer } from "@/lib/notify";
+import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -276,6 +276,8 @@ export default function EmployeePanelPage() {
 
     setPublishedIds((current) => new Set(current).add(item.id));
     setPublishingId(null);
+    // پیامک بار جدید به رانندگانِ با ماشین مناسب
+    if (!loadError) notifyDrivers(supabase);
     // کرایه همین الان تأیید شد؛ saveRequest دوباره نپرسد
     await saveRequest({ ...item, price }, "ارسال به رانندگان");
   }
