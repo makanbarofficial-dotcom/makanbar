@@ -64,10 +64,33 @@ for (const file of walk(OUT)) {
   byDir.get(dir).push(rel[rel.length - 1]);
 }
 
+// هاست گاهی وسط بارگذاری پشت‌سرهم خطای موقت (مثل 451) می‌دهد؛ کمی صبر و تلاش دوباره
+function pause(seconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, seconds * 1000);
+}
+
+function uploadOne(file) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      curl(["--ftp-create-dirs", "-T", join(OUT, ...file.split("/")), `${REMOTE}/${file}`]);
+      return;
+    } catch (error) {
+      if (attempt >= 4) throw error;
+      pause(attempt * 3);
+    }
+  }
+}
+
 let count = 0;
 for (const [dir, names] of byDir) {
   const target = dir ? `${REMOTE}/${dir}/` : `${REMOTE}/`;
-  curl(["--ftp-create-dirs", "-T", `{${names.join(",")}}`, target], join(OUT, ...dir.split("/").filter(Boolean)));
+  try {
+    curl(["--ftp-create-dirs", "-T", `{${names.join(",")}}`, target], join(OUT, ...dir.split("/").filter(Boolean)));
+  } catch {
+    // بارگذاری یکجای پوشه نشد؛ فایل‌ها تک‌تک و با مکث فرستاده می‌شوند
+    pause(3);
+    for (const name of names) uploadOne(dir ? `${dir}/${name}` : name);
+  }
   count += names.length;
   process.stdout.write(`\r${count} فایل بارگذاری شد`);
 }
@@ -102,9 +125,7 @@ for (let attempt = 1; ; attempt++) {
   }
 
   console.log(`\nبارگذاری دوباره ${broken.length} فایل ناقص...`);
-  for (const file of broken) {
-    curl(["-T", join(OUT, ...file.split("/")), `${REMOTE}/${file}`]);
-  }
+  for (const file of broken) uploadOne(file);
 }
 
 console.log(`\nانجام شد: ${count} فایل در ${byDir.size} پوشه روی ${HOST_IP} (اندازه همه فایل‌ها بررسی شد)`);
