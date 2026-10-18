@@ -174,8 +174,18 @@ export default function EmployeePanelPage() {
   }
 
   async function saveRequest(item: ShipmentRequest, status: string) {
-    const price = draftPrice(item.id);
+    // کرایه‌ی ثبت‌شده‌ی بار درون‌شهری عوض نمی‌شود
+    const price = isLockedPrice(item) ? item.price : draftPrice(item.id);
     const staff_note = notes[item.id]?.trim() || null;
+
+    if (
+      profile?.kind === "intracity" &&
+      item.price == null &&
+      price != null &&
+      !confirm(`کرایه ${formatPrice(price)} ثبت شود؟\nبعد از ثبت، کرایه دیگر قابل تغییر نیست.`)
+    ) {
+      return;
+    }
 
     setSavingId(item.id);
 
@@ -211,6 +221,15 @@ export default function EmployeePanelPage() {
     );
   }
 
+  // متصدی درون‌شهری: بار پایان‌یافته قفل است و کرایه‌ی ثبت‌شده عوض نمی‌شود (دیتابیس هم همین را کنترل می‌کند)
+  function isFinishedLocked(item: ShipmentRequest) {
+    return profile?.kind === "intracity" && FINISHED.includes(item.status || "جدید");
+  }
+
+  function isLockedPrice(item: ShipmentRequest) {
+    return profile?.kind === "intracity" && item.price != null;
+  }
+
   // متصدی درون‌شهری بار را با کرایه‌ی فعلی برای رانندگان می‌فرستد
   async function publishToDrivers(item: ShipmentRequest) {
     if (!profile) return;
@@ -221,7 +240,15 @@ export default function EmployeePanelPage() {
       return;
     }
 
-    if (!confirm(`این بار برای رانندگان ارسال شود؟\nکرایه: ${formatPrice(price)}`)) return;
+    if (
+      !confirm(
+        `این بار برای رانندگان ارسال شود؟\nکرایه: ${formatPrice(price)}${
+          item.price == null ? "\nبعد از ارسال، کرایه دیگر قابل تغییر نیست." : ""
+        }`
+      )
+    ) {
+      return;
+    }
 
     setPublishingId(item.id);
 
@@ -249,7 +276,8 @@ export default function EmployeePanelPage() {
 
     setPublishedIds((current) => new Set(current).add(item.id));
     setPublishingId(null);
-    await saveRequest(item, "ارسال به رانندگان");
+    // کرایه همین الان تأیید شد؛ saveRequest دوباره نپرسد
+    await saveRequest({ ...item, price }, "ارسال به رانندگان");
   }
 
   async function logout() {
@@ -555,7 +583,9 @@ export default function EmployeePanelPage() {
                         }
                         inputMode="numeric"
                         placeholder="کرایه"
-                        className={`w-full rounded-2xl border bg-white/5 py-3 pl-14 pr-4 text-sm outline-none placeholder:text-white/30 focus:border-orange-500 ${
+                        disabled={isLockedPrice(item) || isFinishedLocked(item)}
+                        title={isLockedPrice(item) ? "کرایه ثبت شده و قابل تغییر نیست" : undefined}
+                        className={`w-full rounded-2xl border bg-white/5 py-3 pl-14 pr-4 text-sm outline-none placeholder:text-white/30 focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60 ${
                           item.price == null ? "border-orange-400/40" : "border-white/10"
                         }`}
                       />
@@ -570,12 +600,13 @@ export default function EmployeePanelPage() {
                       }
                       maxLength={500}
                       placeholder="یادداشت متصدی (اختیاری)"
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-orange-500"
+                      disabled={isFinishedLocked(item)}
+                      className="disabled:opacity-60 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-orange-500"
                     />
                     <div className="flex gap-2">
                       <select
                         value={item.status || "جدید"}
-                        disabled={savingId === item.id}
+                        disabled={savingId === item.id || isFinishedLocked(item)}
                         onChange={(event) => void saveRequest(item, event.target.value)}
                         className="rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 text-sm outline-none"
                       >
@@ -592,7 +623,7 @@ export default function EmployeePanelPage() {
                       </select>
                       <button
                         type="button"
-                        disabled={savingId === item.id}
+                        disabled={savingId === item.id || isFinishedLocked(item)}
                         onClick={() => void saveRequest(item, item.status || "جدید")}
                         className="rounded-2xl bg-orange-500 px-4 py-3 text-sm font-bold transition hover:bg-orange-400 disabled:opacity-50"
                       >
@@ -601,7 +632,19 @@ export default function EmployeePanelPage() {
                     </div>
                   </div>
 
-                  {isIntracity && (
+                  {isFinishedLocked(item) ? (
+                    <p className="mt-3 text-xs font-bold text-white/50">
+                      🔒 این بار پایان یافته و دیگر قابل تغییر نیست.
+                    </p>
+                  ) : (
+                    isLockedPrice(item) && (
+                      <p className="mt-3 text-xs font-bold text-white/50">
+                        🔒 کرایه ثبت شده و قابل تغییر نیست؛ برای تغییر با مدیریت تماس بگیرید.
+                      </p>
+                    )
+                  )}
+
+                  {isIntracity && !isFinishedLocked(item) && (
                     <div className="mt-3">
                       {publishedIds.has(item.id) ? (
                         <span className="inline-block rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-300">
@@ -622,7 +665,7 @@ export default function EmployeePanelPage() {
                     </div>
                   )}
 
-                  {draftPrice(item.id) != null && draftPrice(item.id) !== item.price && (
+                  {!isLockedPrice(item) && draftPrice(item.id) != null && draftPrice(item.id) !== item.price && (
                     <p className="mt-2 text-xs text-emerald-300">
                       کرایه‌ی جدید: {formatPrice(draftPrice(item.id))} — برای ثبت «ذخیره» را بزنید.
                     </p>
