@@ -77,6 +77,7 @@ export const VEHICLE_TYPES = [
   "تک",
   "خاور و کامیونت",
   "وانت و نیسان",
+  "پیک موتوری",
 ];
 
 export type ShipmentRequest = {

@@ -44,7 +44,10 @@ const vehicleOptions: Record<string, string[]> = {
   "تک": ["روباز", "مسقف", "کمپرسی", "یخچالی"],
   "خاور و کامیونت": ["روباز", "مسقف", "کمپرسی", "یخچالی"],
   "وانت و نیسان": ["وانت", "نیسان"],
+  "پیک موتوری": ["موتور با باکس", "موتور بدون باکس"],
 };
+
+const MOTOR = "پیک موتوری";
 
 const plateLetters = [
   "الف", "ب", "پ", "ت", "ث", "ج", "چ", "ح", "خ", "د", "ذ", "ر",
@@ -107,9 +110,15 @@ export default function DriverRegisterPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const vehiclePlate =
-    `${toEnglishDigits(plateFirst)}${plateLetter}` +
-    `${toEnglishDigits(plateMiddle)} ایران ${toEnglishDigits(plateIran)}`;
+  // پلاک موتور: ۳ رقم بالا (کد شهر) و ۵ رقم پایین، بدون حرف
+  const [motorCode, setMotorCode] = useState("");
+  const [motorNumber, setMotorNumber] = useState("");
+  const isMotor = vehicleType === MOTOR;
+
+  const vehiclePlate = isMotor
+    ? `${motorCode}-${motorNumber}`
+    : `${toEnglishDigits(plateFirst)}${plateLetter}` +
+      `${toEnglishDigits(plateMiddle)} ایران ${toEnglishDigits(plateIran)}`;
 
   async function sendOtp() {
     setError("");
@@ -121,10 +130,9 @@ export default function DriverRegisterPage() {
       !password ||
       !vehicleType ||
       !vehicleModel ||
-      !plateFirst ||
-      !plateLetter ||
-      !plateMiddle ||
-      !plateIran
+      (isMotor
+        ? !motorCode || !motorNumber
+        : !plateFirst || !plateLetter || !plateMiddle || !plateIran)
     ) {
       setError("لطفاً تمام فیلدها را کامل کنید.");
       return;
@@ -136,9 +144,11 @@ export default function DriverRegisterPage() {
     }
 
     if (
-      !/^\d{2}$/.test(toEnglishDigits(plateFirst)) ||
-      !/^\d{3}$/.test(toEnglishDigits(plateMiddle)) ||
-      !/^\d{2}$/.test(toEnglishDigits(plateIran))
+      isMotor
+        ? !/^\d{3}$/.test(motorCode) || !/^\d{5}$/.test(motorNumber)
+        : !/^\d{2}$/.test(toEnglishDigits(plateFirst)) ||
+          !/^\d{3}$/.test(toEnglishDigits(plateMiddle)) ||
+          !/^\d{2}$/.test(toEnglishDigits(plateIran))
     ) {
       setError("شماره پلاک را به‌درستی وارد کنید.");
       return;
@@ -341,6 +351,42 @@ export default function DriverRegisterPage() {
                 </select>
               </label>
 
+              {isMotor ? (
+                <div className="text-sm text-white/70">
+                  <p>شماره پلاک موتور</p>
+
+                  <div className="mx-auto mt-2 w-48 overflow-hidden rounded-xl border-2 border-white/30 bg-white text-black">
+                    <input
+                      className="w-full border-b border-gray-300 p-2 text-center text-lg tracking-widest"
+                      value={motorCode}
+                      onChange={(e) =>
+                        setMotorCode(toEnglishDigits(e.target.value).replace(/\D/g, "").slice(0, 3))
+                      }
+                      inputMode="numeric"
+                      maxLength={3}
+                      placeholder="۱۲۳"
+                      aria-label="سه رقم بالای پلاک موتور"
+                      required
+                    />
+                    <input
+                      className="w-full p-2 text-center text-lg tracking-widest"
+                      value={motorNumber}
+                      onChange={(e) =>
+                        setMotorNumber(toEnglishDigits(e.target.value).replace(/\D/g, "").slice(0, 5))
+                      }
+                      inputMode="numeric"
+                      maxLength={5}
+                      placeholder="۴۵۶۷۸"
+                      aria-label="پنج رقم پایین پلاک موتور"
+                      required
+                    />
+                  </div>
+
+                  <p className="mt-2 text-center text-xs text-white/50">
+                    بالا: ۳ رقم · پایین: ۵ رقم
+                  </p>
+                </div>
+              ) : (
               <div className="text-sm text-white/70">
                 <p>شماره پلاک خودرو</p>
 
@@ -422,6 +468,7 @@ export default function DriverRegisterPage() {
                   اعداد را وارد کنید و حرف پلاک را انتخاب کنید.
                 </p>
               </div>
+              )}
 
               <button
                 type="button"
