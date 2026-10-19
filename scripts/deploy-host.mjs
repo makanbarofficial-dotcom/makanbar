@@ -21,12 +21,16 @@ const OUT = "out";
 const REMOTE = `ftp://${HOST_IP}/public_html`;
 const auth = ["--ssl-reqd", "-k", "--user", `${HOST_USER}:${HOST_PASSWORD}`, "-s", "-S", "--retry", "2"];
 
+// اتصال به هاست گاهی قطع می‌شود؛ هر درخواست تا سه بار با مکث تکرار می‌شود
 function curl(args, cwd) {
-  const result = spawnSync("curl", [...auth, ...args], { cwd, encoding: "utf8" });
-  if (result.status !== 0) {
-    throw new Error(`curl failed (${result.status}): ${result.stderr.trim()}`);
+  for (let attempt = 1; ; attempt++) {
+    const result = spawnSync("curl", [...auth, ...args], { cwd, encoding: "utf8" });
+    if (result.status === 0) return result.stdout;
+    if (attempt >= 3) {
+      throw new Error(`curl failed (${result.status}): ${result.stderr.trim()}`);
+    }
+    pause(attempt * 3);
   }
-  return result.stdout;
 }
 
 // تنظیمات PHP که cPanel در .htaccess هاست نوشته حفظ می‌شود
