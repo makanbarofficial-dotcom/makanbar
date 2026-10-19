@@ -1,8 +1,19 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.makanbar.app",
-        "sha256_cert_fingerprints": ["92:37:45:39:73:FF:31:3D:BE:A9:7B:99:62:82:39:9A:AA:B7:C0:83:C7:77:BE:F2:3F:2B:16:C1:24:5A:8B:54"]
-      }
-    }]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.makanbar.app",
+      "sha256_cert_fingerprints": [
+        "92:37:45:39:73:FF:31:3D:BE:A9:7B:99:62:82:39:9A:AA:B7:C0:83:C7:77:BE:F2:3F:2B:16:C1:24:5A:8B:54"
+      ]
+    }
+  },
+  {
+    "relation": ["check_validation"],
+    "target": {
+      "namespace": "cafebazaar_twa",
+      "package_name": "com.makanbar.app"
+    }
+  }
+]
