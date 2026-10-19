@@ -46,3 +46,6 @@ next-env.d.ts
 
 # packaged build for upload
 *.zip
+
+# فایل‌های امضای اپ اندروید (کلید و رمزها؛ هرگز در گیت‌هاب نه)
+android-release/
