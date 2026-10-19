@@ -5,7 +5,8 @@ import soap from "npm:soap";
 // پیامک بار جدید به رانندگان:
 //   هر بار آزادی که تازه برای رانندگان فرستاده شده (و هنوز پیامکش نرفته)، برای همه‌ی
 //   رانندگان تأییدشده‌ای که ماشینشان به بار می‌خورد پیامک می‌شود.
-// مدیر یا متصدی بعد از ارسال بار برای رانندگان این تابع را صدا می‌زنند (بدون پارامتر).
+//   باری که متصدی درون‌شهری مستقیم به یک راننده داده (assigned) فقط برای همان راننده پیامک می‌شود.
+// مدیر یا متصدی بعد از ارسال یا واگذاری بار این تابع را صدا می‌زنند (بدون پارامتر).
 // هر بار با ستون notified_drivers_at فقط یک‌بار «ادعا» می‌شود، پس صدا زدن تکراری بی‌خطر است.
 
 const SITE = "makanbar.com/driver";
@@ -106,15 +107,18 @@ Deno.serve(async (req) => {
       .from("loads")
       .update({ notified_drivers_at: new Date().toISOString() })
       .is("notified_drivers_at", null)
-      .eq("status", "available")
-      .gte("created_at", new Date(Date.now() - MAX_AGE_MINUTES * 60_000).toISOString())
-      .select("id, origin, destination, vehicle_type, price, load_type");
+      .in("status", ["available", "assigned"])
+      // محدودیت زمان فقط برای ارسال عمومی است؛ واگذاری مستقیم همیشه پیامک می‌شود
+      .or(
+        `status.eq.assigned,created_at.gte.${new Date(Date.now() - MAX_AGE_MINUTES * 60_000).toISOString()}`,
+      )
+      .select("id, origin, destination, vehicle_type, price, load_type, status, driver_id");
 
     if (!loads?.length) return json({ success: true, loads: 0, sent: 0 });
 
     const { data: drivers } = await supabase
       .from("driver_profiles")
-      .select("phone, vehicle_type")
+      .select("id, phone, vehicle_type")
       .eq("status", "approved");
 
     const client = await createSmsClient();
@@ -125,11 +129,17 @@ Deno.serve(async (req) => {
         ? `درون‌شهری ${load.origin}`
         : `${load.origin} ← ${load.destination}`;
       const price = load.price ? ` · کرایه ${Number(load.price).toLocaleString("fa-IR")} تومان` : "";
-      const message = `ماکان بار: بار جدید ${route}${price}\nپذیرش: ${SITE}`;
+      const assigned = load.status === "assigned";
+      const message = assigned
+        ? `ماکان بار: بار ${route}${price} به شما واگذار شد.\nجزئیات: ${SITE}`
+        : `ماکان بار: بار جدید ${route}${price}\nپذیرش: ${SITE}`;
 
       const phones = new Set(
         (drivers ?? [])
-          .filter((driver) => driver.phone && vehicleFits(load.vehicle_type, driver.vehicle_type))
+          .filter((driver) =>
+            driver.phone &&
+            (assigned ? driver.id === load.driver_id : vehicleFits(load.vehicle_type, driver.vehicle_type))
+          )
           .map((driver) => toSmsNumber(driver.phone)),
       );
 

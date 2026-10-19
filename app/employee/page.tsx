@@ -11,6 +11,7 @@ import {
   DELIVERY_MODE_LABELS,
   STAFF_STATUSES,
   type StaffKind,
+  vehicleFits,
   formatPrice,
   matchesSearch,
   normalizeDigits,
@@ -41,6 +42,16 @@ type StaffLocation = {
 
 type Filter = "active" | "done" | "all";
 
+// راننده‌ای که متصدی درون‌شهری می‌تواند بار را مستقیم به او بدهد
+type DriverOption = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  vehicle_type: string | null;
+  vehicle_model: string | null;
+  vehicle_plate: string | null;
+};
+
 const FINISHED = ["انجام شد", "لغو شد"];
 
 export default function EmployeePanelPage() {
@@ -55,6 +66,13 @@ export default function EmployeePanelPage() {
   // بارهای درون‌شهری که این متصدی برای رانندگان فرستاده است
   const [publishedIds, setPublishedIds] = useState<Set<number>>(new Set());
   const [publishingId, setPublishingId] = useState<number | null>(null);
+  // انتخاب راننده/پیک برای بار درون‌شهری
+  const [drivers, setDrivers] = useState<DriverOption[]>([]);
+  const [assignedDrivers, setAssignedDrivers] = useState<Record<number, string>>({});
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
+  const [driverSearch, setDriverSearch] = useState("");
+  const [showAllDrivers, setShowAllDrivers] = useState(false);
+  const [assigningId, setAssigningId] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("active");
   const [search, setSearch] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -112,11 +130,26 @@ export default function EmployeePanelPage() {
         intracity
           ? supabase
               .from("loads")
-              .select("request_id")
+              .select("request_id, driver_id")
               .eq("handled_by_staff_id", staff.id)
               .not("request_id", "is", null)
-          : Promise.resolve({ data: [] as { request_id: number | null }[] }),
+          : Promise.resolve({ data: [] as { request_id: number | null; driver_id: string | null }[] }),
       ]);
+
+    if (intracity) {
+      const { data: driverRows } = await supabase.rpc("list_drivers_for_intracity_staff");
+      const driverList = (driverRows ?? []) as DriverOption[];
+      setDrivers(driverList);
+
+      const names = Object.fromEntries(driverList.map((driver) => [driver.id, driver.full_name ?? ""]));
+      setAssignedDrivers(
+        Object.fromEntries(
+          (published ?? [])
+            .filter((row) => row.request_id != null && row.driver_id)
+            .map((row) => [row.request_id as number, names[row.driver_id as string] || "راننده"])
+        )
+      );
+    }
 
     setLocations((locationRows ?? []) as StaffLocation[]);
     setPublishedIds(
@@ -280,6 +313,115 @@ export default function EmployeePanelPage() {
     if (!loadError) notifyDrivers(supabase);
     // کرایه همین الان تأیید شد؛ saveRequest دوباره نپرسد
     await saveRequest({ ...item, price }, "ارسال به رانندگان");
+  }
+
+  // بار درون‌شهری مستقیم به یک راننده/پیک داده می‌شود و به پنل همان راننده می‌رود
+  async function assignDriver(item: ShipmentRequest, driver: DriverOption) {
+    if (
+      !confirm(
+        `بار به «${driver.full_name ?? "راننده"}» (${driver.vehicle_type ?? ""}) داده شود؟\nبرای راننده و صاحب بار پیامک می‌رود.`
+      )
+    ) {
+      return;
+    }
+
+    setAssigningId(item.id);
+    const { error: assignError } = await supabase.rpc("assign_intracity_driver", {
+      p_request_id: item.id,
+      p_driver_id: driver.id,
+    });
+    setAssigningId(null);
+
+    if (assignError) {
+      alert(`تعیین راننده انجام نشد: ${assignError.message}`);
+      return;
+    }
+
+    // پیامک «بار به شما واگذار شد» به راننده و مشخصات راننده به صاحب بار
+    notifyDrivers(supabase);
+    notifyCustomer(supabase, item.id);
+
+    setPickerFor(null);
+    setPublishedIds((current) => new Set(current).add(item.id));
+    setAssignedDrivers((current) => ({ ...current, [item.id]: driver.full_name ?? "راننده" }));
+    setRequests((current) =>
+      current.map((row) => (row.id === item.id ? { ...row, status: "راننده تعیین شد" } : row))
+    );
+  }
+
+  function driverPicker(item: ShipmentRequest) {
+    const query = driverSearch.trim();
+    const list = drivers
+      .filter((driver) => showAllDrivers || vehicleFits(item.vehicle_type, driver.vehicle_type))
+      .filter((driver) =>
+        matchesSearch(query, [driver.full_name, driver.phone, driver.vehicle_type, driver.vehicle_plate])
+      );
+
+    return (
+      <div className="mt-3 space-y-3 rounded-2xl border border-sky-400/25 bg-sky-500/[0.06] p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-black text-sky-200">👤 انتخاب راننده / پیک</p>
+          <button
+            type="button"
+            onClick={() => setPickerFor(null)}
+            className="rounded-lg px-2 py-1 text-white/50 hover:bg-white/10"
+            aria-label="بستن"
+          >
+            ✕
+          </button>
+        </div>
+
+        <input
+          value={driverSearch}
+          onChange={(event) => setDriverSearch(event.target.value)}
+          placeholder="جستجو: نام، موبایل، نوع ماشین یا پلاک"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-white/30 focus:border-sky-400"
+        />
+
+        {item.vehicle_type && (
+          <label className="flex items-center gap-2 text-xs text-white/60">
+            <input
+              type="checkbox"
+              checked={showAllDrivers}
+              onChange={(event) => setShowAllDrivers(event.target.checked)}
+              className="h-4 w-4 accent-sky-500"
+            />
+            نمایش همه‌ی رانندگان (نه فقط «{item.vehicle_type}»)
+          </label>
+        )}
+
+        <div className="max-h-72 space-y-2 overflow-y-auto">
+          {list.length === 0 && (
+            <p className="py-4 text-center text-sm text-white/45">
+              {drivers.length === 0
+                ? "هنوز راننده‌ی تأییدشده‌ای در سایت ثبت‌نام نکرده است."
+                : "راننده‌ای با این مشخصات پیدا نشد."}
+            </p>
+          )}
+          {list.map((driver) => (
+            <button
+              key={driver.id}
+              type="button"
+              disabled={assigningId === item.id}
+              onClick={() => void assignDriver(item, driver)}
+              className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-ink-2 p-3 text-right transition hover:border-sky-400/50 disabled:opacity-50"
+            >
+              <span className="text-2xl">{driver.vehicle_type === "پیک موتوری" ? "🛵" : "🚚"}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold">{driver.full_name || "بدون نام"}</span>
+                <span className="mt-0.5 block text-xs text-white/55">
+                  {[driver.vehicle_type, driver.vehicle_model].filter(Boolean).join(" · ")}
+                  {driver.vehicle_plate ? ` · پلاک ${driver.vehicle_plate}` : ""}
+                </span>
+              </span>
+              <span dir="ltr" className="shrink-0 text-xs text-white/45">
+                {driver.phone}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   async function logout() {
@@ -650,7 +792,38 @@ export default function EmployeePanelPage() {
                     )
                   )}
 
-                  {isIntracity && !isFinishedLocked(item) && (
+                  {isIntracity && assignedDrivers[item.id] && (
+                    <p className="mt-3 rounded-xl bg-sky-500/10 px-4 py-2 text-sm font-bold text-sky-200">
+                      👤 راننده: {assignedDrivers[item.id]}
+                    </p>
+                  )}
+
+                  {isIntracity && !isFinishedLocked(item) && !assignedDrivers[item.id] && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (item.price == null && draftPrice(item.id) == null) {
+                            alert("اول کرایه را بنویسید و ذخیره کنید.");
+                            return;
+                          }
+                          if (item.price == null) {
+                            alert("اول کرایه را با دکمه «ذخیره» ثبت کنید.");
+                            return;
+                          }
+                          setDriverSearch("");
+                          setShowAllDrivers(false);
+                          setPickerFor(pickerFor === item.id ? null : item.id);
+                        }}
+                        className="rounded-xl border border-sky-400/40 px-4 py-2 text-sm font-bold text-sky-200 transition hover:bg-sky-500/10"
+                      >
+                        👤 انتخاب راننده / پیک
+                      </button>
+                      {pickerFor === item.id && driverPicker(item)}
+                    </div>
+                  )}
+
+                  {isIntracity && !isFinishedLocked(item) && !assignedDrivers[item.id] && (
                     <div className="mt-3">
                       {publishedIds.has(item.id) ? (
                         <span className="inline-block rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-300">
