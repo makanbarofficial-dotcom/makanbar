@@ -154,6 +154,12 @@ export function InstallApp() {
                   در مرورگر سامسونگ: منو <b>☰</b> ←{" "}
                   <b dir="ltr">Add page to</b> ← <b dir="ltr">Home screen</b>
                 </li>
+                <li>
+                  یا فایل نصبی اپ اندروید را مستقیم دانلود کنید:{" "}
+                  <a href="/download/" className="font-bold text-orange-300">
+                    صفحه دانلود اپ ←
+                  </a>
+                </li>
               </ol>
             ) : (
               <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">

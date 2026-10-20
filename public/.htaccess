@@ -2,6 +2,7 @@
 
 DirectoryIndex index.html
 AddType application/manifest+json .webmanifest
+AddType application/vnd.android.package-archive .apk
 ErrorDocument 404 /404.html
 
 # همه آدرس‌های http به https امن منتقل می‌شوند (گواهی SSL هاست فعال است)

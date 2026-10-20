@@ -11,6 +11,7 @@ const NAV = [
   { label: "ناوگان", href: "/vehicles" },
   { label: "نمایندگان", href: "/representatives" },
   { label: "درباره ما", href: "/about" },
+  { label: "دانلود اپ", href: "/download" },
 ];
 
 
