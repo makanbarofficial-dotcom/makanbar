@@ -445,7 +445,9 @@ export default function EmployeePanelPage() {
 
   const isIntracity = profile?.kind === "intracity";
   const isOriginRep = profile?.kind === "origin";
-  const canPhoneOrder = isIntracity || isOriginRep;
+  // همه‌ی متصدی‌ها و نماینده‌ها بار تلفنی ثبت می‌کنند (هر کدام فقط در محدوده‌ی خودشان)
+  const canPhoneOrder = !!profile;
+  const TEHRAN = { province: "tehran", city: "tehran" };
   const myAreas = locations.map((location) => ({
     province: location.province,
     city: location.city && location.city !== "*" ? location.city : "",
@@ -537,7 +539,7 @@ export default function EmployeePanelPage() {
 
             {/* متصدی درون‌شهری درخواست ماشین ندارد؛ بارها را مستقیم برای رانندگان می‌فرستد */}
             <div
-              className={`mt-8 grid gap-2 rounded-2xl bg-white/5 p-1 ${isOriginRep ? "grid-cols-3" : "grid-cols-2"}`}
+              className={`mt-8 grid gap-2 rounded-2xl bg-white/5 p-1 ${isIntracity ? "grid-cols-2" : "grid-cols-3"}`}
             >
               {(isIntracity
                 ? ([
@@ -552,6 +554,7 @@ export default function EmployeePanelPage() {
                     ] as const)
                   : ([
                       ["loads", "📦 خرده‌بارها"],
+                      ["phone", "📞 بار تلفنی"],
                       ["vehicles", "🚚 درخواست ماشین"],
                     ] as const)
               ).map(([id, label]) => (
@@ -573,8 +576,12 @@ export default function EmployeePanelPage() {
                 <PhoneOrderForm
                   supabase={supabase}
                   types={isIntracity ? ["intracity"] : ["partial"]}
-                  areas={myAreas}
-                  defaultCity={myAreas[0] ?? { province: "", city: "" }}
+                  areas={isIntracity || isOriginRep ? myAreas : [TEHRAN]}
+                  defaultCity={isIntracity || isOriginRep ? (myAreas[0] ?? { province: "", city: "" }) : TEHRAN}
+                  destinationAreas={isIntracity || isOriginRep ? undefined : myAreas}
+                  defaultDestination={
+                    isIntracity || isOriginRep ? { province: "", city: "" } : (myAreas[0] ?? { province: "", city: "" })
+                  }
                   onCreated={(row) => {
                     setRequests((current) => [row, ...current]);
                     setPrices((current) => ({
@@ -595,10 +602,9 @@ export default function EmployeePanelPage() {
               <VehicleRequests
                 supabase={supabase}
                 staff={{ id: profile.id, name: profile.name, phone: profile.phone }}
-                defaultDestination={{
-                  province: locations[0]?.province ?? "",
-                  city: locations[0]?.city ?? "",
-                }}
+                // نماینده از شهر خودش ماشین می‌خواهد؛ متصدی تهران از تهران به شهر خودش
+                defaultOrigin={isOriginRep ? (myAreas[0] ?? TEHRAN) : TEHRAN}
+                defaultDestination={isOriginRep ? { province: "", city: "" } : (myAreas[0] ?? { province: "", city: "" })}
               />
             ) : (
             <>

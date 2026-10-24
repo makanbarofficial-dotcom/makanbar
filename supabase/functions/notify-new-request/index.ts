@@ -92,14 +92,14 @@ Deno.serve(async (req) => {
 
     const { requestId } = await req.json();
 
-    // بار تلفنی را مدیر، متصدی درون‌شهری یا نماینده ثبت می‌کند؛ بقیه بارها را خود صاحب بار
+    // بار تلفنی را مدیر، متصدی یا نماینده ثبت می‌کند؛ بقیه بارها را خود صاحب بار
     const [{ data: callerAdmin }, { data: callerStaff }] = await Promise.all([
       supabase.from("app_admins").select("auth_user_id").eq("auth_user_id", userId).maybeSingle(),
       supabase
         .from("staff")
         .select("phone, kind")
         .eq("auth_user_id", userId)
-        .in("kind", ["intracity", "origin"])
+        .in("kind", ["intercity", "intracity", "origin"])
         .eq("panel_enabled", true)
         .maybeSingle(),
     ]);
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       claim = callerStaff
         ? claim
             .is("customer_id", null)
-            .eq("shipment_type", callerStaff.kind === "origin" ? "partial" : "intracity")
+            .eq("shipment_type", callerStaff.kind === "intracity" ? "intracity" : "partial")
         : claim.eq("customer_id", userId);
     }
 

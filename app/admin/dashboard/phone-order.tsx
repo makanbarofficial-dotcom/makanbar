@@ -33,6 +33,7 @@ const ALL_TYPES = Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[];
 // ثبت بار برای مشتری‌ای که تلفنی تماس گرفته؛ بار به هیچ حساب صاحب باری وصل نیست.
 // مدیر همه نوع بار ثبت می‌کند؛ متصدی درون‌شهری فقط بار درون‌شهری شهرهای خودش و نماینده
 // فقط خرده‌بار با مبدا شهر خودش (types، defaultCity و areas: محدوده‌ی «مبدا»؛ شهر خالی یعنی کل استان).
+// متصدی خرده‌بار تهران: مبدا تهران و مقصد فقط شهرهای خودش (destinationAreas و defaultDestination).
 export function PhoneOrderForm({
   supabase,
   onCreated,
@@ -40,6 +41,8 @@ export function PhoneOrderForm({
   types = ALL_TYPES,
   defaultCity = empty,
   areas,
+  destinationAreas,
+  defaultDestination = empty,
 }: {
   supabase: SupabaseClient;
   onCreated: (row: ShipmentRequest) => void;
@@ -47,11 +50,13 @@ export function PhoneOrderForm({
   types?: ShipmentType[];
   defaultCity?: Place;
   areas?: Place[];
+  destinationAreas?: Place[];
+  defaultDestination?: Place;
 }) {
   const [shipmentType, setShipmentType] = useState<ShipmentType>(types[0]);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("door_to_door");
   const [origin, setOrigin] = useState<Place>(defaultCity);
-  const [destination, setDestination] = useState<Place>(empty);
+  const [destination, setDestination] = useState<Place>(defaultDestination);
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -191,21 +196,21 @@ export function PhoneOrderForm({
   }
 
   // فقط استان‌ها و شهرهای محدوده‌ی متصدی/نماینده (اگر areas داده شده باشد)؛ فقط برای مبدا
-  function provinceOptions(restricted: boolean) {
-    return restricted && areas
-      ? getProvinces().filter((item) => areas.some((area) => area.province === item.en))
+  function provinceOptions(limit?: Place[]) {
+    return limit
+      ? getProvinces().filter((item) => limit.some((area) => area.province === item.en))
       : getProvinces();
   }
 
-  function cityOptions(province: string, restricted: boolean) {
+  function cityOptions(province: string, limit?: Place[]) {
     const cities = getProvinceCities(province);
-    if (!restricted || !areas) return cities;
-    const inProvince = areas.filter((area) => area.province === province);
+    if (!limit) return cities;
+    const inProvince = limit.filter((area) => area.province === province);
     if (inProvince.some((area) => !area.city)) return cities;
     return cities.filter((item) => inProvince.some((area) => area.city === item.en));
   }
 
-  function placePicker(title: string, place: Place, setPlace: (p: Place) => void, restricted = false) {
+  function placePicker(title: string, place: Place, setPlace: (p: Place) => void, limit?: Place[]) {
     return (
       <fieldset>
         <legend className="mb-2 text-sm font-bold text-orange-300">{title} *</legend>
@@ -217,7 +222,7 @@ export function PhoneOrderForm({
             className={select}
           >
             <option value="">استان</option>
-            {provinceOptions(restricted).map((item) => (
+            {provinceOptions(limit).map((item) => (
               <option key={item.en} value={item.en}>
                 {item.fa}
               </option>
@@ -231,7 +236,7 @@ export function PhoneOrderForm({
             className={select}
           >
             <option value="">شهر</option>
-            {cityOptions(place.province, restricted).map((item) => (
+            {cityOptions(place.province, limit).map((item) => (
               <option key={item.en} value={item.en}>
                 {item.fa}
               </option>
@@ -292,11 +297,11 @@ export function PhoneOrderForm({
       )}
 
       {isIntracity ? (
-        placePicker("شهر", origin, setOrigin, true)
+        placePicker("شهر", origin, setOrigin, areas)
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {placePicker("مبدا", origin, setOrigin, true)}
-          {placePicker("مقصد", destination, setDestination)}
+          {placePicker("مبدا", origin, setOrigin, areas)}
+          {placePicker("مقصد", destination, setDestination, destinationAreas)}
         </div>
       )}
 

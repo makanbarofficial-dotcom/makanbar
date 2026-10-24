@@ -65,13 +65,15 @@ const STATUS_TONES: Record<LoadStatus, string> = {
 export function VehicleRequests({
   supabase,
   staff,
+  defaultOrigin = { province: TEHRAN_PROVINCE, city: TEHRAN_CITY },
   defaultDestination,
 }: {
   supabase: SupabaseClient;
   staff: { id: number | null; name: string; phone: string };
+  defaultOrigin?: Place;
   defaultDestination: Place;
 }) {
-  const [origin, setOrigin] = useState<Place>({ province: TEHRAN_PROVINCE, city: TEHRAN_CITY });
+  const [origin, setOrigin] = useState<Place>(defaultOrigin);
   const [destination, setDestination] = useState<Place>(defaultDestination);
   const [items, setItems] = useState<VehicleRequest[]>([]);
   const [drivers, setDrivers] = useState<Record<string, Driver>>({});
@@ -84,6 +86,7 @@ export function VehicleRequests({
   const isAdmin = staff.id == null;
 
   const load = useCallback(async () => {
+    setLoading(true);
     let query = supabase
       .from("loads")
       .select(
@@ -167,7 +170,7 @@ export function VehicleRequests({
     notifyDrivers(supabase);
 
     form.reset();
-    setOrigin({ province: TEHRAN_PROVINCE, city: TEHRAN_CITY });
+    setOrigin(defaultOrigin);
     setDestination(defaultDestination);
     setShowForm(false);
     await load();
@@ -196,9 +199,19 @@ export function VehicleRequests({
   return (
     <section className="mt-6 space-y-4">
       {!showForm ? (
-        <button type="button" onClick={() => setShowForm(true)} className={ui.btnPrimary}>
-          ＋ درخواست ماشین جدید
-        </button>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setShowForm(true)} className={ui.btnPrimary}>
+            ＋ درخواست ماشین جدید
+          </button>
+          {/* وضعیت (پذیرش راننده، حرکت، تحویل) از پنل راننده عوض می‌شود؛ با این دکمه تازه می‌شود */}
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="shrink-0 rounded-2xl border border-white/10 px-4 text-sm font-bold text-white/70 hover:bg-white/5"
+          >
+            بروزرسانی
+          </button>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className={`${ui.card} space-y-4 p-5`}>
           <div className="flex items-center justify-between">
