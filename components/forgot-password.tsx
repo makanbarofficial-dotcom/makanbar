@@ -289,7 +289,7 @@ export function ForgotPassword({ audience }: { audience: keyof typeof AUDIENCES 
         {step === 4 && (
           <div className="space-y-4 text-center">
             <div className="text-5xl">✓</div>
-            <p className="text-sm text-white/70">
+            <p className="text-sm text-fg/70">
               حالا می‌توانید با رمز جدید وارد حساب خود شوید.
             </p>
             <Link href={config.loginHref} className={ui.btnPrimary}>

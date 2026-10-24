@@ -48,14 +48,14 @@ export default function ServicesPage() {
   ];
 
   return (
-    <main dir="rtl" className="min-h-screen bg-ink text-white">
+    <main dir="rtl" className="min-h-screen bg-surface text-fg">
       <SiteHeader />
 
       <section className="relative overflow-hidden">
         <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-5 py-16 text-center lg:px-8 lg:py-20">
-          <div className="inline-flex rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-300">
+          <div className="inline-flex rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-700">
             خدمات ماکان بار
           </div>
 
@@ -66,7 +66,7 @@ export default function ServicesPage() {
             </span>
           </h1>
 
-          <p className="mx-auto mt-5 max-w-2xl leading-8 text-slate-300">
+          <p className="mx-auto mt-5 max-w-2xl leading-8 text-fg/65">
             ماکان بار با ارائه خدمات متنوع حمل‌ونقل، تلاش می‌کند
             جابه‌جایی بار شما با سرعت، دقت و امنیت انجام شود.
           </p>
@@ -78,7 +78,7 @@ export default function ServicesPage() {
           {services.map((service) => (
             <div
               key={service.title}
-              className="group rounded-3xl border border-white/10 bg-white/5 p-7 transition duration-300 hover:-translate-y-1 hover:border-orange-500/30 hover:bg-white/[0.07]"
+              className="group rounded-3xl border border-fg/10 bg-surface-2 p-7 transition duration-300 hover:-translate-y-1 hover:border-orange-500/30 hover:bg-fg/[0.07]"
             >
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-2xl">
                 {service.icon}
@@ -88,13 +88,13 @@ export default function ServicesPage() {
                 {service.title}
               </h2>
 
-              <p className="mt-4 leading-8 text-slate-400">
+              <p className="mt-4 leading-8 text-fg/65">
                 {service.description}
               </p>
 
               <a
                 href="/request"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-black text-orange-400 transition hover:text-orange-300"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-black text-orange-700 transition hover:text-orange-700"
               >
                 درخواست این خدمت
                 <span>←</span>
@@ -110,7 +110,7 @@ export default function ServicesPage() {
             برای حمل بار آماده‌ایم
           </h2>
 
-          <p className="mx-auto mt-4 max-w-2xl leading-8 text-slate-300">
+          <p className="mx-auto mt-4 max-w-2xl leading-8 text-fg/65">
             اطلاعات بار خود را ثبت کنید تا برای هماهنگی و انتخاب وسیله مناسب
             با شما تماس بگیریم.
           </p>

@@ -1890,13 +1890,13 @@ ${formatPrice(price)}`)) {
     return (
       <main
         dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-ink px-5 text-white"
+        className="flex min-h-screen items-center justify-center bg-surface px-5 text-fg"
       >
-        <div className="max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
+        <div className="max-w-md rounded-3xl border border-fg/10 bg-surface-2 p-8 text-center">
           <p className="text-xl font-black">
             دسترسی مدیریت ندارید
           </p>
-          <p className="mt-3 text-sm leading-7 text-white/60">
+          <p className="mt-3 text-sm leading-7 text-fg/60">
             این حساب در فهرست مدیران (جدول app_admins) ثبت نشده است.
           </p>
           <button
@@ -1915,7 +1915,7 @@ ${formatPrice(price)}`)) {
     return (
       <main
         dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-ink text-white"
+        className="flex min-h-screen items-center justify-center bg-surface text-fg"
       >
         <div className="text-center">
           <div className="mb-4 text-5xl">
@@ -1933,10 +1933,10 @@ ${formatPrice(price)}`)) {
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-ink text-white"
+      className="min-h-screen bg-surface text-fg"
     >
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
-        <aside className="hidden w-72 shrink-0 border-l border-white/10 bg-ink-2 p-5 lg:block">
+        <aside className="hidden w-72 shrink-0 border-l border-fg/10 bg-surface-2 p-5 lg:block">
           <div className="mb-8 flex items-center gap-3">
             <Logo />
 
@@ -1945,7 +1945,7 @@ ${formatPrice(price)}`)) {
                 ماکان بار
               </h1>
 
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-fg/60">
                 پنل مدیریت
               </p>
             </div>
@@ -1966,7 +1966,7 @@ ${formatPrice(price)}`)) {
                     activeSection ===
                     item.id
                       ? "bg-orange-500 text-white"
-                      : "text-white/65 hover:bg-white/5 hover:text-white"
+                      : "text-fg/65 hover:bg-fg/5 hover:text-fg"
                   }`}
                 >
                   <span className="text-xl">
@@ -1984,7 +1984,7 @@ ${formatPrice(price)}`)) {
           <button
             type="button"
             onClick={logout}
-            className="mt-8 flex w-full items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 font-bold text-red-300 transition hover:bg-red-500/20"
+            className="mt-8 flex w-full items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 font-bold text-red-700 transition hover:bg-red-500/20"
           >
             🚪 خروج
           </button>
@@ -1993,7 +1993,7 @@ ${formatPrice(price)}`)) {
         <section className="min-w-0 flex-1 p-5 md:p-8">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="mb-1 text-sm text-orange-400">
+              <p className="mb-1 text-sm text-orange-700">
                 مدیریت ماکان بار
               </p>
 
@@ -2010,7 +2010,7 @@ ${formatPrice(price)}`)) {
             <button
               type="button"
               onClick={logout}
-              className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold transition hover:bg-white/10 lg:hidden"
+              className="rounded-2xl border border-fg/10 bg-surface-2 px-5 py-3 text-sm font-bold transition hover:bg-fg/10 lg:hidden"
             >
               خروج
             </button>
@@ -2028,7 +2028,7 @@ ${formatPrice(price)}`)) {
                 className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
                   activeSection === item.id
                     ? "bg-orange-500 text-white"
-                    : "bg-white/5 text-white/70"
+                    : "bg-surface-2 text-fg/70"
                 }`}
               >
                 {item.icon} {item.label}
@@ -2037,7 +2037,7 @@ ${formatPrice(price)}`)) {
           </nav>
 
           {error && (
-            <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-300">
+            <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-700">
               {error}
             </div>
           )}
@@ -2046,18 +2046,18 @@ ${formatPrice(price)}`)) {
             "dashboard" && (
             <section>
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-white/50">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-6">
+                  <p className="text-sm text-fg/60">
                     کل درخواست‌ها
                   </p>
 
-                  <p className="mt-3 text-4xl font-black text-orange-400">
+                  <p className="mt-3 text-4xl font-black text-orange-700">
                     {requests.length}
                   </p>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-white/50">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-6">
+                  <p className="text-sm text-fg/60">
                     درخواست‌های جدید
                   </p>
 
@@ -2073,8 +2073,8 @@ ${formatPrice(price)}`)) {
                   </p>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-white/50">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-6">
+                  <p className="text-sm text-fg/60">
                     نمایندگان
                   </p>
 
@@ -2085,8 +2085,8 @@ ${formatPrice(price)}`)) {
                   </p>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-white/50">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-6">
+                  <p className="text-sm text-fg/60">
                     متصدیان
                   </p>
 
@@ -2096,7 +2096,7 @@ ${formatPrice(price)}`)) {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
+              <div className="mt-6 rounded-3xl border border-fg/10 bg-surface-2 p-6">
                 <div className="mb-5 flex items-center justify-between gap-4">
                   <h3 className="text-xl font-black">
                     آخرین درخواست‌ها
@@ -2109,7 +2109,7 @@ ${formatPrice(price)}`)) {
                         "requests"
                       )
                     }
-                    className="text-sm font-bold text-orange-400"
+                    className="text-sm font-bold text-orange-700"
                   >
                     مشاهده همه
                   </button>
@@ -2121,7 +2121,7 @@ ${formatPrice(price)}`)) {
                     .map((item) => (
                       <div
                         key={item.id}
-                        className="rounded-2xl border border-white/10 bg-black/10 p-4"
+                        className="rounded-2xl border border-fg/10 bg-surface-3 p-4"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
@@ -2131,7 +2131,7 @@ ${formatPrice(price)}`)) {
                               }
                             </p>
 
-                            <p className="mt-1 text-sm text-white/50">
+                            <p className="mt-1 text-sm text-fg/60">
                               {
                                 item.origin
                               }{" "}
@@ -2142,7 +2142,7 @@ ${formatPrice(price)}`)) {
                             </p>
                           </div>
 
-                          <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
+                          <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-700">
                             {item.status ||
                               "جدید"}
                           </span>
@@ -2152,7 +2152,7 @@ ${formatPrice(price)}`)) {
 
                   {requests.length ===
                     0 && (
-                    <p className="py-8 text-center text-white/40">
+                    <p className="py-8 text-center text-fg/55">
                       هنوز درخواستی ثبت نشده است.
                     </p>
                   )}
@@ -2178,7 +2178,7 @@ ${formatPrice(price)}`)) {
                 <button
                   type="button"
                   onClick={() => setShowPhoneOrder(true)}
-                  className="mb-5 w-full rounded-2xl border border-dashed border-orange-400/40 bg-orange-500/[0.06] py-4 font-bold text-orange-300 transition hover:bg-orange-500/10"
+                  className="mb-5 w-full rounded-2xl border border-dashed border-orange-400/40 bg-orange-500/[0.06] py-4 font-bold text-orange-700 transition hover:bg-orange-500/10"
                 >
                   📞 ثبت بار تلفنی برای مشتری
                 </button>
@@ -2200,7 +2200,7 @@ ${formatPrice(price)}`)) {
                     className={`rounded-2xl px-5 py-3 text-sm font-bold transition ${
                       requestTypeFilter === id
                         ? "bg-orange-500 text-white"
-                        : "bg-white/5 text-white/70 hover:bg-white/10"
+                        : "bg-surface-2 text-fg/70 hover:bg-fg/10"
                     }`}
                   >
                     {label}
@@ -2222,7 +2222,7 @@ ${formatPrice(price)}`)) {
                       e.target.value as Direction | "all"
                     )
                   }
-                  className="rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 text-sm outline-none"
+                  className="rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-sm outline-none"
                 >
                   <option value="all">همه مسیرها</option>
                   <option value="from_tehran">
@@ -2244,7 +2244,7 @@ ${formatPrice(price)}`)) {
                     setRequestSearch(e.target.value)
                   }
                   placeholder="جستجو در بارها..."
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                  className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-5 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                 />
               </div>
 
@@ -2257,7 +2257,7 @@ ${formatPrice(price)}`)) {
                   return (
                     <div
                       key={item.id}
-                      className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                      className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
@@ -2265,12 +2265,12 @@ ${formatPrice(price)}`)) {
                             <span
                               className={`rounded-full px-3 py-1 text-xs font-bold ${
                                 item.shipment_type === "intracity"
-                                  ? "bg-violet-500/15 text-violet-300"
+                                  ? "bg-violet-500/15 text-violet-700"
                                   : isFull
-                                  ? "bg-orange-500/15 text-orange-300"
+                                  ? "bg-orange-500/15 text-orange-700"
                                   : item.shipment_type === "partial"
-                                    ? "bg-sky-500/15 text-sky-300"
-                                    : "bg-white/10 text-white/60"
+                                    ? "bg-sky-500/15 text-sky-700"
+                                    : "bg-fg/10 text-fg/60"
                               }`}
                             >
                               {item.shipment_type
@@ -2279,7 +2279,7 @@ ${formatPrice(price)}`)) {
                             </span>
 
                             {item.direction && item.direction !== "intracity" && (
-                              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                              <span className="rounded-full bg-fg/10 px-3 py-1 text-xs font-bold text-fg/70">
                                 {DIRECTION_LABELS[item.direction]}
                               </span>
                             )}
@@ -2295,12 +2295,12 @@ ${formatPrice(price)}`)) {
                             {item.origin} ← {item.destination}
                           </h3>
 
-                          <p className="mt-1 text-sm text-white/50">
+                          <p className="mt-1 text-sm text-fg/60">
                             {item.full_name} ·{" "}
                             <a
                               href={`tel:${item.phone}`}
                               dir="ltr"
-                              className="text-orange-300"
+                              className="text-orange-700"
                             >
                               {item.phone}
                             </a>
@@ -2317,7 +2317,7 @@ ${formatPrice(price)}`)) {
                               ? void publishToDrivers(item)
                               : updateStatus(item.id, e.target.value)
                           }
-                          className="rounded-xl border border-white/10 bg-ink-2 px-4 py-2 text-sm outline-none"
+                          className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm outline-none"
                         >
                           {STATUSES.map((status) => (
                             <option key={status} value={status}>
@@ -2328,25 +2328,25 @@ ${formatPrice(price)}`)) {
                       </div>
 
                       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">نوع بار</p>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">نوع بار</p>
                           <p className="mt-1 font-bold">{item.cargo_type}</p>
                         </div>
 
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">تعداد / وزن</p>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">تعداد / وزن</p>
                           <p className="mt-1 font-bold">
                             {[item.quantity, item.weight].filter(Boolean).join(" · ") || "—"}
                           </p>
                           {item.dimensions && (
-                            <p className="mt-1 text-xs text-white/55">
+                            <p className="mt-1 text-xs text-fg/55">
                               ابعاد: {item.dimensions}
                             </p>
                           )}
                         </div>
 
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">
                             {isFull ? "خودرو" : "روش تحویل"}
                           </p>
                           <p className="mt-1 font-bold">
@@ -2358,8 +2358,8 @@ ${formatPrice(price)}`)) {
                           </p>
                         </div>
 
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">تاریخ</p>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">تاریخ</p>
                           <p className="mt-1 font-bold">
                             {formatDate(item.created_at)}
                           </p>
@@ -2371,25 +2371,25 @@ ${formatPrice(price)}`)) {
                         item.description) && (
                         <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
                           {item.pickup_address && (
-                            <div className="rounded-2xl bg-black/10 p-4">
-                              <p className="text-xs text-white/40">آدرس بارگیری</p>
-                              <p className="mt-1 leading-7 text-white/75">
+                            <div className="rounded-2xl bg-surface-3 p-4">
+                              <p className="text-xs text-fg/55">آدرس بارگیری</p>
+                              <p className="mt-1 leading-7 text-fg/75">
                                 {item.pickup_address}
                               </p>
                             </div>
                           )}
                           {item.delivery_address && (
-                            <div className="rounded-2xl bg-black/10 p-4">
-                              <p className="text-xs text-white/40">آدرس تخلیه</p>
-                              <p className="mt-1 leading-7 text-white/75">
+                            <div className="rounded-2xl bg-surface-3 p-4">
+                              <p className="text-xs text-fg/55">آدرس تخلیه</p>
+                              <p className="mt-1 leading-7 text-fg/75">
                                 {item.delivery_address}
                               </p>
                             </div>
                           )}
                           {item.description && (
-                            <div className="rounded-2xl bg-black/10 p-4">
-                              <p className="text-xs text-white/40">توضیحات</p>
-                              <p className="mt-1 leading-7 text-white/75">
+                            <div className="rounded-2xl bg-surface-3 p-4">
+                              <p className="text-xs text-fg/55">توضیحات</p>
+                              <p className="mt-1 leading-7 text-fg/75">
                                 {item.description}
                               </p>
                             </div>
@@ -2398,8 +2398,8 @@ ${formatPrice(price)}`)) {
                       )}
 
                       {(item.shipment_type === "partial" || item.shipment_type === "intracity") && (
-                        <div className="mt-3 rounded-2xl bg-black/10 p-4 text-sm">
-                          <p className="text-xs text-white/40">
+                        <div className="mt-3 rounded-2xl bg-surface-3 p-4 text-sm">
+                          <p className="text-xs text-fg/55">
                             {item.shipment_type === "partial" && item.direction !== "from_tehran"
                               ? "نماینده‌ی شهر مبدا"
                               : "متصدی مسئول"}
@@ -2407,17 +2407,17 @@ ${formatPrice(price)}`)) {
                           {item.shipment_type === "partial" &&
                           item.direction !== "from_tehran" &&
                           !item.origin_province ? (
-                            <p className="mt-1 text-white/75">
+                            <p className="mt-1 text-fg/75">
                               {item.direction ? DIRECTION_LABELS[item.direction] : "مسیر نامشخص"} · فقط مدیریت
                             </p>
                           ) : assignees.length > 0 ? (
-                            <p className="mt-1 font-bold text-sky-300">
+                            <p className="mt-1 font-bold text-sky-700">
                               {assignees
                                 .map((member) => member.name)
                                 .join("، ")}
                             </p>
                           ) : (
-                            <p className="mt-1 font-bold text-red-300">
+                            <p className="mt-1 font-bold text-red-700">
                               برای{" "}
                               {item.shipment_type === "partial" && item.direction !== "from_tehran"
                                 ? regionLabel(item.origin_province, item.origin_city)
@@ -2428,7 +2428,7 @@ ${formatPrice(price)}`)) {
                             </p>
                           )}
                           {item.staff_note && (
-                            <p className="mt-2 text-white/60">
+                            <p className="mt-2 text-fg/60">
                               یادداشت متصدی: {item.staff_note}
                             </p>
                           )}
@@ -2449,11 +2449,11 @@ ${formatPrice(price)}`)) {
                           }
                           inputMode="numeric"
                           placeholder="کرایه (تومان)"
-                          className="w-48 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm outline-none placeholder:text-white/30 focus:border-orange-500"
+                          className="w-48 rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm outline-none placeholder:text-fg/45 focus:border-orange-500"
                         />
 
                         {/* مبلغ خوانا کنار کادر تا صفر اضافه یا کم دیده شود */}
-                        <span className="text-xs font-bold text-emerald-300">
+                        <span className="text-xs font-bold text-emerald-700">
                           {parsePriceDraft(item) != null
                             ? formatPrice(parsePriceDraft(item))
                             : ""}
@@ -2463,14 +2463,14 @@ ${formatPrice(price)}`)) {
                           type="button"
                           disabled={requestLoading}
                           onClick={() => void savePrice(item)}
-                          className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-white/80 transition hover:bg-white/10 disabled:opacity-50"
+                          className="rounded-xl border border-fg/10 px-4 py-2 text-sm font-bold text-fg/80 transition hover:bg-fg/10 disabled:opacity-50"
                         >
                           ذخیره کرایه
                         </button>
 
                         {isFull &&
                           (published ? (
-                            <span className="rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-300">
+                            <span className="rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-700">
                               ✓ در پنل رانندگان
                             </span>
                           ) : (
@@ -2492,7 +2492,7 @@ ${formatPrice(price)}`)) {
                           type="button"
                           disabled={requestLoading}
                           onClick={() => void deleteRequest(item)}
-                          className="ms-auto rounded-xl border border-red-500/30 px-4 py-2 text-sm font-bold text-red-300 transition hover:bg-red-500/15 disabled:opacity-50"
+                          className="ms-auto rounded-xl border border-red-500/30 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-500/15 disabled:opacity-50"
                         >
                           🗑 حذف بار
                         </button>
@@ -2502,7 +2502,7 @@ ${formatPrice(price)}`)) {
                 })}
 
                 {filteredRequests.length === 0 && (
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-white/40">
+                  <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
                     موردی پیدا نشد.
                   </div>
                 )}
@@ -2514,7 +2514,7 @@ ${formatPrice(price)}`)) {
             "representatives" && (
             <section>
               <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
                   <div className="mb-5 flex items-center justify-between">
                     <h3 className="text-xl font-black">
                       {editingRepresentativeId
@@ -2528,7 +2528,7 @@ ${formatPrice(price)}`)) {
                         onClick={
                           resetRepresentativeForm
                         }
-                        className="text-sm text-white/50 hover:text-white"
+                        className="text-sm text-fg/60 hover:text-fg"
                       >
                         انصراف
                       </button>
@@ -2550,7 +2550,7 @@ ${formatPrice(price)}`)) {
                           })
                         )
                       }
-                      className="w-full rounded-2xl border border-white/10 bg-ink-2 px-4 py-4 outline-none"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none"
                     >
                       <option value="">
                         انتخاب استان
@@ -2590,7 +2590,7 @@ ${formatPrice(price)}`)) {
                       disabled={
                         !representativeForm.province
                       }
-                      className="w-full rounded-2xl border border-white/10 bg-ink-2 px-4 py-4 outline-none disabled:opacity-40"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none disabled:opacity-40"
                     >
                       <option value="">
                         انتخاب شهر
@@ -2621,7 +2621,7 @@ ${formatPrice(price)}`)) {
                         }))
                       }
                       placeholder="نام نماینده (مثلاً آقای رضایی یا باربری رضایی)"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
                     <input
@@ -2638,7 +2638,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="آدرس"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
                     <input
@@ -2655,7 +2655,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="تلفن ثابت"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
                     <input
@@ -2672,7 +2672,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="شماره موبایل"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
                     <input
@@ -2689,7 +2689,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="لینک موقعیت روی نقشه"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
                     <button
@@ -2723,7 +2723,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="جستجو بین نمایندگان..."
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-5 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
                   </div>
 
@@ -2734,7 +2734,7 @@ ${formatPrice(price)}`)) {
                           key={
                             item.id
                           }
-                          className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                          className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-4">
                             <div>
@@ -2754,13 +2754,13 @@ ${formatPrice(price)}`)) {
                               </h3>
 
                               {item.name && (
-                                <p className="mt-1 text-sm font-bold text-orange-300">
+                                <p className="mt-1 text-sm font-bold text-orange-700">
                                   {item.name}
                                 </p>
                               )}
 
                               {item.address && (
-                                <p className="mt-2 text-sm leading-7 text-white/55">
+                                <p className="mt-2 text-sm leading-7 text-fg/55">
                                   {
                                     item.address
                                   }
@@ -2776,7 +2776,7 @@ ${formatPrice(price)}`)) {
                                     item
                                   )
                                 }
-                                className="rounded-xl bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15"
+                                className="rounded-xl bg-fg/10 px-4 py-2 text-sm font-bold hover:bg-fg/15"
                               >
                                 ویرایش
                               </button>
@@ -2788,7 +2788,7 @@ ${formatPrice(price)}`)) {
                                     item.id
                                   )
                                 }
-                                className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-bold text-red-300 hover:bg-red-500/20"
+                                className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-500/20"
                               >
                                 حذف
                               </button>
@@ -2797,7 +2797,7 @@ ${formatPrice(price)}`)) {
 
                           <div className="mt-4 flex flex-wrap gap-3 text-sm">
                             {item.phone && (
-                              <span className="rounded-xl bg-black/10 px-3 py-2 text-white/70">
+                              <span className="rounded-xl bg-surface-3 px-3 py-2 text-fg/70">
                                 ☎️{" "}
                                 {
                                   item.phone
@@ -2806,7 +2806,7 @@ ${formatPrice(price)}`)) {
                             )}
 
                             {item.mobile && (
-                              <span className="rounded-xl bg-black/10 px-3 py-2 text-white/70">
+                              <span className="rounded-xl bg-surface-3 px-3 py-2 text-fg/70">
                                 📱{" "}
                                 {
                                   item.mobile
@@ -2821,7 +2821,7 @@ ${formatPrice(price)}`)) {
                                 }
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded-xl bg-orange-500/10 px-3 py-2 font-bold text-orange-300 hover:bg-orange-500/20"
+                                className="rounded-xl bg-orange-500/10 px-3 py-2 font-bold text-orange-700 hover:bg-orange-500/20"
                               >
                                 📍 مشاهده موقعیت
                               </a>
@@ -2833,7 +2833,7 @@ ${formatPrice(price)}`)) {
 
                     {filteredRepresentatives.length ===
                       0 && (
-                      <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-white/40">
+                      <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
                         نماینده‌ای ثبت نشده است.
                       </div>
                     )}
@@ -2847,7 +2847,7 @@ ${formatPrice(price)}`)) {
             "staff" && (
             <section>
               <div className="grid gap-6 xl:grid-cols-[400px_1fr]">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
                   <div className="mb-5 flex items-center justify-between">
                     <h3 className="text-xl font-black">
                       {editingStaffId
@@ -2861,7 +2861,7 @@ ${formatPrice(price)}`)) {
                         onClick={
                           resetStaffForm
                         }
-                        className="text-sm text-white/50 hover:text-white"
+                        className="text-sm text-fg/60 hover:text-fg"
                       >
                         انصراف
                       </button>
@@ -2883,7 +2883,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="نام و نام خانوادگی"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
                     <input
@@ -2900,10 +2900,10 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="شماره موبایل"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
-                    <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/10 p-1">
+                    <div className="grid grid-cols-3 gap-2 rounded-2xl border border-fg/10 bg-surface-3 p-1">
                       {(Object.keys(STAFF_KIND_LABELS) as StaffKind[]).map((kind) => (
                         <button
                           key={kind}
@@ -2915,7 +2915,7 @@ ${formatPrice(price)}`)) {
                             "rounded-xl px-3 py-3 text-sm font-bold transition " +
                             (staffForm.kind === kind
                               ? "bg-orange-500 text-white"
-                              : "text-white/60 hover:text-white")
+                              : "text-fg/60 hover:text-fg")
                           }
                         >
                           {kind === "intracity" ? "🏙 " : kind === "origin" ? "🏢 " : "📦 "}
@@ -2923,7 +2923,7 @@ ${formatPrice(price)}`)) {
                         </button>
                       ))}
                     </div>
-                    <p className="-mt-2 text-xs leading-6 text-white/40">
+                    <p className="-mt-2 text-xs leading-6 text-fg/55">
                       {staffForm.kind === "intracity"
                         ? "بارهای درون‌شهری شهرهای انتخاب‌شده را می‌بیند، بار تلفنی ثبت می‌کند و بار را برای رانندگان می‌فرستد."
                         : staffForm.kind === "origin"
@@ -2931,14 +2931,14 @@ ${formatPrice(price)}`)) {
                           : "خرده‌بارهای «تهران ← شهرهای انتخاب‌شده» را می‌بیند و کرایه تعیین می‌کند."}
                     </p>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
+                    <div className="rounded-2xl border border-fg/10 bg-surface-3 p-4">
                       <div className="mb-3 flex items-center justify-between">
                         <div>
                           <p className="font-black">
                             محدوده فعالیت
                           </p>
 
-                          <p className="mt-1 text-xs text-white/40">
+                          <p className="mt-1 text-xs text-fg/55">
                             می‌توانید چند استان و شهر اضافه کنید.
                           </p>
                         </div>
@@ -2956,7 +2956,7 @@ ${formatPrice(price)}`)) {
 
                       {staffLocationForms.length ===
                         0 && (
-                        <p className="py-4 text-center text-sm text-white/35">
+                        <p className="py-4 text-center text-sm text-fg/55">
                           هنوز محدوده‌ای اضافه نشده است.
                         </p>
                       )}
@@ -2979,7 +2979,7 @@ ${formatPrice(price)}`)) {
                                 key={
                                   index
                                 }
-                                className="rounded-2xl border border-white/10 bg-white/5 p-3"
+                                className="rounded-2xl border border-fg/10 bg-surface-2 p-3"
                               >
                                 <div className="grid gap-3 sm:grid-cols-2">
                                   <select
@@ -2996,7 +2996,7 @@ ${formatPrice(price)}`)) {
                                           .value
                                       )
                                     }
-                                    className="w-full rounded-xl border border-white/10 bg-ink-2 px-3 py-3 text-sm outline-none"
+                                    className="w-full rounded-xl border border-fg/10 bg-surface-2 px-3 py-3 text-sm outline-none"
                                   >
                                     <option value="">
                                       انتخاب استان
@@ -3039,7 +3039,7 @@ ${formatPrice(price)}`)) {
                                     disabled={
                                       !location.province
                                     }
-                                    className="w-full rounded-xl border border-white/10 bg-ink-2 px-3 py-3 text-sm outline-none disabled:opacity-40"
+                                    className="w-full rounded-xl border border-fg/10 bg-surface-2 px-3 py-3 text-sm outline-none disabled:opacity-40"
                                   >
                                     <option value="*">
                                       کل استان
@@ -3073,7 +3073,7 @@ ${formatPrice(price)}`)) {
                                       index
                                     )
                                   }
-                                  className="mt-3 text-xs font-bold text-red-300"
+                                  className="mt-3 text-xs font-bold text-red-700"
                                 >
                                   حذف این محدوده
                                 </button>
@@ -3084,7 +3084,7 @@ ${formatPrice(price)}`)) {
                       </div>
                     </div>
 
-                    <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-fg/10 bg-surface-2 p-4">
                       <input
                         type="checkbox"
                         checked={
@@ -3108,7 +3108,7 @@ ${formatPrice(price)}`)) {
                           فعال بودن پنل متصدی
                         </p>
 
-                        <p className="mt-1 text-xs text-white/40">
+                        <p className="mt-1 text-xs text-fg/55">
                           متصدی می‌تواند با شماره موبایل خود وارد پنل شود.
                         </p>
                       </div>
@@ -3138,7 +3138,7 @@ ${formatPrice(price)}`)) {
                         )
                           ?.auth_user_id
                       }
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-40"
                     />
 
                     {editingStaffId &&
@@ -3148,7 +3148,7 @@ ${formatPrice(price)}`)) {
                           editingStaffId
                       )
                         ?.auth_user_id && (
-                        <p className="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-xs leading-6 text-orange-200">
+                        <p className="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-xs leading-6 text-orange-700">
                           این متصدی قبلاً حساب پنل دارد؛ تغییر رمز عبور در مرحله بعد اضافه می‌شود.
                         </p>
                       )}
@@ -3184,7 +3184,7 @@ ${formatPrice(price)}`)) {
                         )
                       }
                       placeholder="جستجو بین متصدیان..."
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-5 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
                   </div>
 
@@ -3201,7 +3201,7 @@ ${formatPrice(price)}`)) {
                             key={
                               item.id
                             }
-                            className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                            className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                           >
                             <div className="flex flex-wrap items-start justify-between gap-4">
                               <div>
@@ -3212,24 +3212,24 @@ ${formatPrice(price)}`)) {
                                     }
                                   </h3>
 
-                                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                                  <span className="rounded-full bg-fg/10 px-3 py-1 text-xs font-bold text-fg/70">
                                     {STAFF_KIND_LABELS[item.kind ?? "intercity"]}
                                   </span>
 
                                   {item.panel_enabled && (
-                                    <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-bold text-green-300">
+                                    <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-bold text-green-700">
                                       پنل فعال
                                     </span>
                                   )}
 
                                   {!item.panel_enabled && (
-                                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/40">
+                                    <span className="rounded-full bg-fg/10 px-3 py-1 text-xs font-bold text-fg/55">
                                       پنل غیرفعال
                                     </span>
                                   )}
                                 </div>
 
-                                <p className="mt-2 text-sm text-white/50">
+                                <p className="mt-2 text-sm text-fg/60">
                                   📱{" "}
                                   {
                                     item.phone
@@ -3245,7 +3245,7 @@ ${formatPrice(price)}`)) {
                                       item
                                     )
                                   }
-                                  className="rounded-xl bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15"
+                                  className="rounded-xl bg-fg/10 px-4 py-2 text-sm font-bold hover:bg-fg/15"
                                 >
                                   ویرایش
                                 </button>
@@ -3260,15 +3260,15 @@ ${formatPrice(price)}`)) {
                                   disabled={
                                     staffLoading
                                   }
-                                  className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-bold text-red-300 hover:bg-red-500/20 disabled:opacity-40"
+                                  className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-500/20 disabled:opacity-40"
                                 >
                                   حذف کامل
                                 </button>
                               </div>
                             </div>
 
-                            <div className="mt-5 rounded-2xl bg-black/10 p-4">
-                              <p className="mb-3 text-xs font-bold text-white/40">
+                            <div className="mt-5 rounded-2xl bg-surface-3 p-4">
+                              <p className="mb-3 text-xs font-bold text-fg/55">
                                 محدوده فعالیت
                               </p>
 
@@ -3281,7 +3281,7 @@ ${formatPrice(price)}`)) {
                                       key={
                                         location.id
                                       }
-                                      className="rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-bold text-orange-200"
+                                      className="rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-bold text-orange-700"
                                     >
                                       {
                                         getProvinceFa(
@@ -3302,7 +3302,7 @@ ${formatPrice(price)}`)) {
                                 {locations.length ===
                                   0 &&
                                   item.province && (
-                                    <span className="rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-bold text-orange-200">
+                                    <span className="rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-bold text-orange-700">
                                       {
                                         getProvinceFa(
                                           item.province
@@ -3321,7 +3321,7 @@ ${formatPrice(price)}`)) {
                                 {locations.length ===
                                   0 &&
                                   !item.province && (
-                                    <span className="text-sm text-white/35">
+                                    <span className="text-sm text-fg/55">
                                       محدوده‌ای ثبت نشده است.
                                     </span>
                                   )}
@@ -3334,7 +3334,7 @@ ${formatPrice(price)}`)) {
 
                     {filteredStaff.length ===
                       0 && (
-                      <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-white/40">
+                      <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
                         هنوز متصدی ثبت نشده است.
                       </div>
                     )}
@@ -3349,7 +3349,7 @@ ${formatPrice(price)}`)) {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h3 className="text-2xl font-black">مدیریت مشتریان</h3>
-                  <p className="mt-2 text-sm text-white/45">
+                  <p className="mt-2 text-sm text-fg/45">
                     مشاهده و جستجوی مشتریان ثبت‌شده در سامانه ماکان بار
                   </p>
                 </div>
@@ -3364,12 +3364,12 @@ ${formatPrice(price)}`)) {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <p className="text-sm text-white/45">کل مشتریان دریافت‌شده</p>
-                  <p className="mt-3 text-3xl font-black text-orange-400">{customers.length.toLocaleString("fa-IR")}</p>
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
+                  <p className="text-sm text-fg/45">کل مشتریان دریافت‌شده</p>
+                  <p className="mt-3 text-3xl font-black text-orange-700">{customers.length.toLocaleString("fa-IR")}</p>
                 </div>
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <p className="text-sm text-white/45">نتیجه جستجو</p>
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
+                  <p className="text-sm text-fg/45">نتیجه جستجو</p>
                   <p className="mt-3 text-3xl font-black">{filteredCustomers.length.toLocaleString("fa-IR")}</p>
                 </div>
               </div>
@@ -3378,28 +3378,28 @@ ${formatPrice(price)}`)) {
                 value={customerSearch}
                 onChange={(event) => setCustomerSearch(event.target.value)}
                 placeholder="جستجو بر اساس نام، موبایل، شرکت یا آدرس..."
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
+                className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-5 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
               />
 
               {customerError && (
-                <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm leading-7 text-red-200">
+                <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm leading-7 text-red-700">
                   <p className="font-black">دریافت فهرست مشتریان ناموفق بود.</p>
                   <p className="mt-1">{customerError}</p>
-                  <p className="mt-2 text-red-200/70">
+                  <p className="mt-2 text-red-700/70">
                     برای نمایش امن همه مشتریان، تابع Edge Function با نام admin-list-customers باید در Supabase منتشر شده باشد و دسترسی مدیر را بررسی کند.
                   </p>
                 </div>
               )}
 
               {customerLoading && customers.length === 0 ? (
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-white/60">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/60">
                   در حال بارگذاری فهرست مشتریان...
                 </div>
               ) : filteredCustomers.length > 0 ? (
-                <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+                <div className="overflow-hidden rounded-3xl border border-fg/10 bg-surface-2">
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[760px] text-right text-sm">
-                      <thead className="bg-white/5 text-white/50">
+                      <thead className="bg-surface-2 text-fg/60">
                         <tr>
                           <th className="px-5 py-4 font-bold">نام مشتری</th>
                           <th className="px-5 py-4 font-bold">شماره موبایل</th>
@@ -3408,14 +3408,14 @@ ${formatPrice(price)}`)) {
                           <th className="px-5 py-4 font-bold">تاریخ ثبت</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-fg/5">
                         {filteredCustomers.map((customer) => (
-                          <tr key={customer.id} className="transition hover:bg-white/[0.03]">
+                          <tr key={customer.id} className="transition hover:bg-fg/[0.03]">
                             <td className="px-5 py-4 font-bold">{customer.full_name || "—"}</td>
-                            <td className="px-5 py-4 text-white/70" dir="ltr">{formatCustomerPhone(customer.phone)}</td>
-                            <td className="px-5 py-4 text-white/70">{customer.company_name || "—"}</td>
-                            <td className="max-w-xs px-5 py-4 text-white/60">{customer.address || "—"}</td>
-                            <td className="px-5 py-4 text-white/50">
+                            <td className="px-5 py-4 text-fg/70" dir="ltr">{formatCustomerPhone(customer.phone)}</td>
+                            <td className="px-5 py-4 text-fg/70">{customer.company_name || "—"}</td>
+                            <td className="max-w-xs px-5 py-4 text-fg/60">{customer.address || "—"}</td>
+                            <td className="px-5 py-4 text-fg/60">
                               {customer.created_at
                                 ? new Date(customer.created_at).toLocaleDateString("fa-IR", {
                                     year: "numeric",
@@ -3431,10 +3431,10 @@ ${formatPrice(price)}`)) {
                   </div>
                 </div>
               ) : !customerError ? (
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center">
                   <div className="mb-3 text-4xl">👥</div>
                   <p className="font-black">{customerSearch ? "مشتری‌ای با این مشخصات پیدا نشد." : "هنوز مشتری‌ای برای نمایش وجود ندارد."}</p>
-                  <p className="mt-2 text-sm text-white/40">برای دریافت دوباره اطلاعات، دکمه به‌روزرسانی را بزنید.</p>
+                  <p className="mt-2 text-sm text-fg/55">برای دریافت دوباره اطلاعات، دکمه به‌روزرسانی را بزنید.</p>
                 </div>
               ) : null}
             </section>
@@ -3451,7 +3451,7 @@ ${formatPrice(price)}`)) {
                     className={`rounded-2xl px-5 py-3 text-sm font-bold transition ${
                       driverFilter === status
                         ? "bg-orange-500 text-white"
-                        : "bg-white/5 text-white/70 hover:bg-white/10"
+                        : "bg-surface-2 text-fg/70 hover:bg-fg/10"
                     }`}
                   >
                     {DRIVER_STATUS_LABELS[status]}
@@ -3467,7 +3467,7 @@ ${formatPrice(price)}`)) {
                   type="button"
                   onClick={() => void loadDrivers()}
                   disabled={driverLoading}
-                  className="mr-auto rounded-2xl border border-white/10 px-4 py-3 text-sm font-bold text-white/70 hover:bg-white/5 disabled:opacity-50"
+                  className="mr-auto rounded-2xl border border-fg/10 px-4 py-3 text-sm font-bold text-fg/70 hover:bg-fg/5 disabled:opacity-50"
                 >
                   {driverLoading ? "..." : "بروزرسانی"}
                 </button>
@@ -3479,7 +3479,7 @@ ${formatPrice(price)}`)) {
                   .map((driver) => (
                     <article
                       key={driver.id}
-                      className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                      className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -3487,27 +3487,27 @@ ${formatPrice(price)}`)) {
                           <a
                             href={`tel:${driver.phone}`}
                             dir="ltr"
-                            className="mt-1 inline-block text-sm text-orange-300"
+                            className="mt-1 inline-block text-sm text-orange-700"
                           >
                             {formatCustomerPhone(driver.phone)}
                           </a>
                         </div>
-                        <span className="text-xs text-white/40">
+                        <span className="text-xs text-fg/55">
                           ثبت‌نام: {formatDate(driver.created_at)}
                         </span>
                       </div>
 
                       <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">نوع خودرو</p>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">نوع خودرو</p>
                           <p className="mt-1 font-bold">{driver.vehicle_type || "—"}</p>
                         </div>
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">بارگیر</p>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">بارگیر</p>
                           <p className="mt-1 font-bold">{driver.vehicle_model || "—"}</p>
                         </div>
-                        <div className="rounded-2xl bg-black/10 p-4">
-                          <p className="text-xs text-white/40">پلاک</p>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">پلاک</p>
                           <p className="mt-1 font-bold">{driver.vehicle_plate || "—"}</p>
                         </div>
                       </div>
@@ -3528,7 +3528,7 @@ ${formatPrice(price)}`)) {
                             type="button"
                             disabled={driverLoading}
                             onClick={() => void setDriverStatus(driver, "rejected")}
-                            className="rounded-xl border border-red-400/30 px-5 py-2.5 text-sm font-bold text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                            className="rounded-xl border border-red-400/30 px-5 py-2.5 text-sm font-bold text-red-700 transition hover:bg-red-500/10 disabled:opacity-50"
                           >
                             غیرفعال کردن
                           </button>
@@ -3538,7 +3538,7 @@ ${formatPrice(price)}`)) {
                   ))}
 
                 {drivers.filter((driver) => driver.status === driverFilter).length === 0 && (
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-white/40">
+                  <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
                     {driverLoading ? "در حال دریافت..." : "راننده‌ای در این بخش نیست."}
                   </div>
                 )}
@@ -3560,9 +3560,9 @@ ${formatPrice(price)}`)) {
 
           {activeSection === "admins" && isOwner && (
             <section className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+              <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
                 <h3 className="text-lg font-black">افزودن مدیر</h3>
-                <p className="mt-1 text-sm leading-7 text-white/50">
+                <p className="mt-1 text-sm leading-7 text-fg/60">
                   مدیر جدید با شماره موبایل و رمز وارد پنل مدیریت می‌شود و همه‌ی دسترسی‌های شما را دارد.
                 </p>
 
@@ -3571,7 +3571,7 @@ ${formatPrice(price)}`)) {
                     value={adminForm.name}
                     onChange={(e) => setAdminForm({ ...adminForm, name: e.target.value })}
                     placeholder="نام و نام خانوادگی"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/30 focus:border-orange-500"
+                    className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 outline-none placeholder:text-fg/45 focus:border-orange-500"
                   />
                   <input
                     value={adminForm.phone}
@@ -3579,7 +3579,7 @@ ${formatPrice(price)}`)) {
                     placeholder="شماره موبایل، مثلاً 09121234567"
                     inputMode="tel"
                     dir="ltr"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right outline-none placeholder:text-white/30 focus:border-orange-500"
+                    className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-right outline-none placeholder:text-fg/45 focus:border-orange-500"
                   />
                   <input
                     type="password"
@@ -3587,7 +3587,7 @@ ${formatPrice(price)}`)) {
                     onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
                     placeholder="رمز عبور (حداقل ۸ کاراکتر)"
                     autoComplete="new-password"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/30 focus:border-orange-500"
+                    className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 outline-none placeholder:text-fg/45 focus:border-orange-500"
                   />
                   <button
                     type="button"
@@ -3604,15 +3604,15 @@ ${formatPrice(price)}`)) {
                 {admins.map((admin) => (
                   <article
                     key={admin.auth_user_id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-fg/10 bg-surface-2 p-4"
                   >
                     <div>
                       <p className="font-black">{admin.name || "مدیر اصلی"}</p>
-                      <p dir="ltr" className="mt-1 text-right text-sm text-white/50">
+                      <p dir="ltr" className="mt-1 text-right text-sm text-fg/60">
                         {admin.phone ? formatCustomerPhone(admin.phone) : "ورود با ایمیل"}
                       </p>
                     </div>
-                    <span className="text-xs text-white/40">{formatDate(admin.created_at)}</span>
+                    <span className="text-xs text-fg/55">{formatDate(admin.created_at)}</span>
                   </article>
                 ))}
               </div>
@@ -3620,14 +3620,14 @@ ${formatPrice(price)}`)) {
           )}
 
           {["fleet", "services", "reports", "settings"].includes(activeSection) && (
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+            <section className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center">
               <div className="mb-4 text-5xl">
                 {menuItems.find((item) => item.id === activeSection)?.icon}
               </div>
               <h3 className="text-2xl font-black">
                 {menuItems.find((item) => item.id === activeSection)?.label}
               </h3>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/45">
+              <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-fg/45">
                 این بخش در نسخه بعدی تکمیل می‌شود.
               </p>
             </section>

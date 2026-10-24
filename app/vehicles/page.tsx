@@ -38,7 +38,7 @@ export default function VehiclesPage() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-ink text-white"
+      className="min-h-screen bg-surface text-fg"
     >
       {/* Header */}
       <SiteHeader />
@@ -49,7 +49,7 @@ export default function VehiclesPage() {
 
         <div className="relative mx-auto max-w-7xl px-5 py-20 text-center lg:px-8 lg:py-24">
 
-          <div className="inline-flex rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-300">
+          <div className="inline-flex rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-700">
             ناوگان ماکان بار
           </div>
 
@@ -60,7 +60,7 @@ export default function VehiclesPage() {
             </span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-fg/65 sm:text-lg">
             با توجه به نوع، حجم و شرایط بار، وسیله مناسب برای حمل
             بار شما انتخاب و هماهنگ می‌شود.
           </p>
@@ -69,7 +69,7 @@ export default function VehiclesPage() {
       </section>
 
       {/* Vehicles */}
-      <section className="border-t border-white/10 bg-white/[0.025]">
+      <section className="border-t border-fg/10 bg-surface-2">
         <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -77,10 +77,10 @@ export default function VehiclesPage() {
             {vehicles.map((vehicle) => (
               <div
                 key={vehicle.title}
-                className="rounded-3xl border border-white/10 bg-ink p-5 transition hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-xl hover:shadow-orange-500/10"
+                className="rounded-3xl border border-fg/10 bg-surface p-5 transition hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-xl hover:shadow-orange-500/10"
               >
 
-                <div className="flex h-40 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1b3048] to-[#0b1422] text-7xl">
+                <div className="flex h-40 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-50 to-slate-100 text-7xl">
                   {vehicle.icon}
                 </div>
 
@@ -88,7 +88,7 @@ export default function VehiclesPage() {
                   {vehicle.title}
                 </h2>
 
-                <p className="mt-3 min-h-20 leading-7 text-slate-400">
+                <p className="mt-3 min-h-20 leading-7 text-fg/65">
                   {vehicle.text}
                 </p>
 
@@ -126,7 +126,7 @@ export default function VehiclesPage() {
 
           <a
             href="/request"
-            className="mt-7 inline-block rounded-2xl bg-ink px-7 py-4 font-black text-white hover:bg-slate-800"
+            className="mt-7 inline-block rounded-2xl bg-surface px-7 py-4 font-black text-fg hover:bg-slate-800"
           >
             ثبت درخواست حمل
           </a>

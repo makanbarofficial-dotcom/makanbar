@@ -6,15 +6,18 @@
 @theme inline {
   --font-sans: var(--font-vazirmatn), Tahoma, sans-serif;
 
-  --color-ink: #07111f;
-  --color-ink-2: #0c1a2d;
-  --color-ink-3: #12233a;
+  /* تم روشن و شرکتی: زمینه‌ی خاکستری‌آبی خیلی روشن، کارت سفید، نوشته‌ی سرمه‌ای، تأکید نارنجی */
+  --color-surface: #f4f6fa; /* زمینه‌ی صفحه */
+  --color-surface-2: #ffffff; /* کارت‌ها، فیلدها، هدر */
+  --color-surface-3: #eef2f7; /* کادرهای داخلی کارت */
+  --color-fg: #0f1d33; /* رنگ نوشته (سرمه‌ای) */
+  --color-navy: #0f2547; /* بخش‌های تیره‌ی تأکیدی (فوتر، هیرو) */
   --color-brand: #f97316;
-  --color-brand-2: #fb923c;
+  --color-brand-2: #ea580c;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -23,8 +26,8 @@ html {
 }
 
 body {
-  background: var(--color-ink);
-  color: #fff;
+  background: var(--color-surface);
+  color: var(--color-fg);
   font-family: var(--font-sans);
   font-feature-settings: "ss01";
   -webkit-font-smoothing: antialiased;
@@ -38,8 +41,8 @@ li {
 }
 
 ::selection {
-  background: rgb(249 115 22 / 0.35);
-  color: #fff;
+  background: rgb(249 115 22 / 0.25);
+  color: var(--color-fg);
 }
 
 /* حلقه‌ی فوکوس یکسان برای کیبورد */
@@ -62,16 +65,15 @@ textarea {
   font-size: max(16px, 1em);
 }
 
-/* منوی بازشوی select در تم تیره */
 select option {
-  background: var(--color-ink-2);
-  color: #fff;
+  background: #fff;
+  color: var(--color-fg);
 }
 
 /* اسکرول‌بار ظریف */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+  scrollbar-color: rgb(15 29 51 / 0.2) transparent;
 }
 
 /* دکمه‌ی غیرفعال */

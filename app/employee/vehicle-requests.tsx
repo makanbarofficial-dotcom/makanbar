@@ -52,11 +52,11 @@ const STATUS_LABELS: Record<LoadStatus, string> = {
 };
 
 const STATUS_TONES: Record<LoadStatus, string> = {
-  available: "bg-amber-500/15 text-amber-300",
-  assigned: "bg-sky-500/15 text-sky-300",
-  in_transit: "bg-orange-500/15 text-orange-300",
-  delivered: "bg-emerald-500/15 text-emerald-300",
-  cancelled: "bg-red-500/15 text-red-300",
+  available: "bg-amber-500/15 text-amber-700",
+  assigned: "bg-sky-500/15 text-sky-700",
+  in_transit: "bg-orange-500/15 text-orange-700",
+  delivered: "bg-emerald-500/15 text-emerald-700",
+  cancelled: "bg-red-500/15 text-red-700",
 };
 
 // متصدی (یا مدیر) برای جابه‌جایی بارها از رانندگان ماشین درخواست می‌کند؛
@@ -207,7 +207,7 @@ export function VehicleRequests({
           <button
             type="button"
             onClick={() => void load()}
-            className="shrink-0 rounded-2xl border border-white/10 px-4 text-sm font-bold text-white/70 hover:bg-white/5"
+            className="shrink-0 rounded-2xl border border-fg/10 px-4 text-sm font-bold text-fg/70 hover:bg-fg/5"
           >
             بروزرسانی
           </button>
@@ -219,13 +219,13 @@ export function VehicleRequests({
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="rounded-lg px-3 py-1 text-white/50 hover:bg-white/10"
+              className="rounded-lg px-3 py-1 text-fg/60 hover:bg-fg/10"
               aria-label="بستن"
             >
               ✕
             </button>
           </div>
-          <p className="text-xs leading-6 text-white/50">
+          <p className="text-xs leading-6 text-fg/60">
             این درخواست در «بارهای آزاد» پنل رانندگان نمایش داده می‌شود و اولین راننده‌ای که
             بپذیرد، با شما تماس می‌گیرد.
           </p>
@@ -238,7 +238,7 @@ export function VehicleRequests({
               ] as const
             ).map(([title, place, setPlace]) => (
               <fieldset key={title}>
-                <legend className="text-sm text-white/70">{title} *</legend>
+                <legend className="text-sm text-fg/70">{title} *</legend>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <select
                     aria-label={`استان ${title}`}
@@ -270,7 +270,7 @@ export function VehicleRequests({
                 </div>
               </fieldset>
             ))}
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-fg/70">
               نوع خودرو
               <select name="vehicle_type" defaultValue="" className={`${ui.select} mt-2`}>
                 <option value="">فرقی نمی‌کند</option>
@@ -279,7 +279,7 @@ export function VehicleRequests({
                 ))}
               </select>
             </label>
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-fg/70">
               نوع بار *
               <input
                 name="cargo_type"
@@ -289,23 +289,23 @@ export function VehicleRequests({
                 className={`${ui.input} mt-2`}
               />
             </label>
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-fg/70">
               وزن تقریبی
               <input name="weight" maxLength={80} placeholder="مثلاً ۸ تن" className={`${ui.input} mt-2`} />
             </label>
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-fg/70">
               کرایه (تومان)
               <input name="price" inputMode="numeric" placeholder="کرایه پیشنهادی" className={`${ui.input} mt-2`} />
             </label>
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-fg/70">
               آدرس بارگیری
               <input name="pickup_address" maxLength={300} className={`${ui.input} mt-2`} />
             </label>
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-fg/70">
               آدرس تخلیه
               <input name="delivery_address" maxLength={300} className={`${ui.input} mt-2`} />
             </label>
-            <label className="block text-sm text-white/70 sm:col-span-2">
+            <label className="block text-sm text-fg/70 sm:col-span-2">
               توضیحات
               <textarea
                 name="description"
@@ -326,9 +326,9 @@ export function VehicleRequests({
       )}
 
       {loading ? (
-        <p className="p-6 text-center text-white/50">در حال دریافت...</p>
+        <p className="p-6 text-center text-fg/60">در حال دریافت...</p>
       ) : items.length === 0 ? (
-        <div className={`${ui.card} p-10 text-center text-white/40`}>
+        <div className={`${ui.card} p-10 text-center text-fg/55`}>
           هنوز درخواست ماشینی ثبت نکرده‌اید.
         </div>
       ) : (
@@ -339,14 +339,14 @@ export function VehicleRequests({
             <article key={item.id} className={`${ui.card} p-5`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs text-white/40">
+                  <p className="text-xs text-fg/55">
                     {formatDate(item.created_at)}
                     {isAdmin && item.contact_name ? ` · ثبت‌کننده: ${item.contact_name}` : ""}
                   </p>
                   <h3 className="mt-1 text-lg font-black">
                     {item.origin} ← {item.destination}
                   </h3>
-                  <p className="mt-1 text-sm text-white/60">
+                  <p className="mt-1 text-sm text-fg/60">
                     {[item.vehicle_type || "هر خودرویی", item.cargo_type, item.weight]
                       .filter(Boolean)
                       .join(" · ")}
@@ -363,13 +363,13 @@ export function VehicleRequests({
 
               {driver && (
                 <div className="mt-3 rounded-xl border border-sky-400/20 bg-sky-500/10 p-3 text-sm">
-                  <span className="text-white/50">راننده: </span>
+                  <span className="text-fg/60">راننده: </span>
                   <span className="font-bold">{driver.full_name}</span>{" "}
                   <a href={`tel:${driver.phone}`} dir="ltr" className="font-bold text-brand-2">
                     {driver.phone}
                   </a>
                   {(driver.vehicle_type || driver.vehicle_plate) && (
-                    <span className="block text-xs text-white/50">
+                    <span className="block text-xs text-fg/60">
                       {[driver.vehicle_type, driver.vehicle_plate].filter(Boolean).join(" · ")}
                     </span>
                   )}
@@ -381,7 +381,7 @@ export function VehicleRequests({
                   type="button"
                   disabled={busyId === item.id}
                   onClick={() => void cancelRequest(item)}
-                  className="mt-3 rounded-xl border border-red-400/25 px-4 py-2 text-sm font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                  className="mt-3 rounded-xl border border-red-400/25 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-500/10 disabled:opacity-50"
                 >
                   لغو درخواست
                 </button>

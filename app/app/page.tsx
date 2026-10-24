@@ -43,7 +43,7 @@ function AppStart() {
       </div>
 
       <h1 className="mt-8 text-center text-2xl font-black">به ماکان بار خوش آمدید</h1>
-      <p className="mt-2 text-center text-sm text-white/55">
+      <p className="mt-2 text-center text-sm text-fg/55">
         برای ادامه، نوع حساب خود را انتخاب کنید
       </p>
 
@@ -53,21 +53,21 @@ function AppStart() {
             key={role.id}
             type="button"
             onClick={() => choose(role.id)}
-            className="flex w-full items-center gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 text-right transition hover:border-brand/60 hover:bg-white/10 active:scale-[0.99]"
+            className="flex w-full items-center gap-4 rounded-3xl border border-fg/10 bg-surface-2 p-5 text-right transition hover:border-brand/60 hover:bg-fg/10 active:scale-[0.99]"
           >
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand/15 text-3xl">
               {role.icon}
             </span>
             <span className="flex-1">
               <span className="block text-lg font-black">{role.label}</span>
-              <span className="mt-1 block text-sm text-white/55">{role.hint}</span>
+              <span className="mt-1 block text-sm text-fg/55">{role.hint}</span>
             </span>
-            <span className="text-xl text-white/30">‹</span>
+            <span className="text-xl text-fg/45">‹</span>
           </button>
         ))}
       </div>
 
-      <p className="mt-8 text-center text-xs text-white/35">
+      <p className="mt-8 text-center text-xs text-fg/55">
         انتخاب شما ذخیره می‌شود و دفعه بعد مستقیم وارد پنل خود می‌شوید.
       </p>
     </main>

@@ -363,11 +363,11 @@ export default function EmployeePanelPage() {
     return (
       <div className="mt-3 space-y-3 rounded-2xl border border-sky-400/25 bg-sky-500/[0.06] p-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-black text-sky-200">👤 انتخاب راننده / پیک</p>
+          <p className="text-sm font-black text-sky-700">👤 انتخاب راننده / پیک</p>
           <button
             type="button"
             onClick={() => setPickerFor(null)}
-            className="rounded-lg px-2 py-1 text-white/50 hover:bg-white/10"
+            className="rounded-lg px-2 py-1 text-fg/60 hover:bg-fg/10"
             aria-label="بستن"
           >
             ✕
@@ -378,11 +378,11 @@ export default function EmployeePanelPage() {
           value={driverSearch}
           onChange={(event) => setDriverSearch(event.target.value)}
           placeholder="جستجو: نام، موبایل، نوع ماشین یا پلاک"
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-white/30 focus:border-sky-400"
+          className="w-full rounded-xl border border-fg/10 bg-surface-2 px-4 py-2.5 text-sm outline-none placeholder:text-fg/45 focus:border-sky-400"
         />
 
         {item.vehicle_type && (
-          <label className="flex items-center gap-2 text-xs text-white/60">
+          <label className="flex items-center gap-2 text-xs text-fg/60">
             <input
               type="checkbox"
               checked={showAllDrivers}
@@ -395,7 +395,7 @@ export default function EmployeePanelPage() {
 
         <div className="max-h-72 space-y-2 overflow-y-auto">
           {list.length === 0 && (
-            <p className="py-4 text-center text-sm text-white/45">
+            <p className="py-4 text-center text-sm text-fg/45">
               {drivers.length === 0
                 ? "هنوز راننده‌ی تأییدشده‌ای در سایت ثبت‌نام نکرده است."
                 : "راننده‌ای با این مشخصات پیدا نشد."}
@@ -407,17 +407,17 @@ export default function EmployeePanelPage() {
               type="button"
               disabled={assigningId === item.id}
               onClick={() => void assignDriver(item, driver)}
-              className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-ink-2 p-3 text-right transition hover:border-sky-400/50 disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded-xl border border-fg/10 bg-surface-2 p-3 text-right transition hover:border-sky-400/50 disabled:opacity-50"
             >
               <span className="text-2xl">{driver.vehicle_type === "پیک موتوری" ? "🛵" : "🚚"}</span>
               <span className="min-w-0 flex-1">
                 <span className="block font-bold">{driver.full_name || "بدون نام"}</span>
-                <span className="mt-0.5 block text-xs text-white/55">
+                <span className="mt-0.5 block text-xs text-fg/55">
                   {[driver.vehicle_type, driver.vehicle_model].filter(Boolean).join(" · ")}
                   {driver.vehicle_plate ? ` · پلاک ${driver.vehicle_plate}` : ""}
                 </span>
               </span>
-              <span dir="ltr" className="shrink-0 text-xs text-white/45">
+              <span dir="ltr" className="shrink-0 text-xs text-fg/45">
                 {driver.phone}
               </span>
             </button>
@@ -436,7 +436,7 @@ export default function EmployeePanelPage() {
     return (
       <main
         dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-ink text-white"
+        className="flex min-h-screen items-center justify-center bg-surface text-fg"
       >
         <p className="font-bold">در حال بارگذاری پنل...</p>
       </main>
@@ -458,8 +458,8 @@ export default function EmployeePanelPage() {
   ).length;
 
   return (
-    <main dir="rtl" className="min-h-screen bg-ink text-white">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 backdrop-blur-xl">
+    <main dir="rtl" className="min-h-screen bg-surface text-fg">
+      <header className="sticky top-0 z-40 border-b border-fg/10 bg-surface/95 backdrop-blur-xl">
         <div className="mx-auto flex min-h-20 max-w-6xl items-center justify-between gap-4 px-5">
           <Brand
             subtitle={isIntracity ? "پنل متصدی درون‌شهری" : isOriginRep ? "پنل نمایندگان" : "پنل متصدیان"}
@@ -467,12 +467,12 @@ export default function EmployeePanelPage() {
 
           <div className="flex items-center gap-3">
             {profile?.name && (
-              <span className="hidden text-sm text-white/70 sm:block">{profile.name}</span>
+              <span className="hidden text-sm text-fg/70 sm:block">{profile.name}</span>
             )}
             <button
               type="button"
               onClick={logout}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold transition hover:bg-white/10"
+              className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
             >
               خروج
             </button>
@@ -482,38 +482,38 @@ export default function EmployeePanelPage() {
 
       <div className="mx-auto max-w-6xl px-5 py-8">
         {error && (
-          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {!profile || !profile.panel_enabled ? (
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-8">
+          <section className="rounded-3xl border border-fg/10 bg-surface-2 p-8">
             <h2 className="text-xl font-black">دسترسی پنل فعال نیست</h2>
-            <p className="mt-3 leading-7 text-white/60">
+            <p className="mt-3 leading-7 text-fg/60">
               این حساب به‌عنوان متصدی فعال نشده است. لطفاً با مدیریت ماکان بار تماس بگیرید.
             </p>
           </section>
         ) : (
           <>
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p className="text-sm text-white/50">شهرهای تحت پوشش شما</p>
+            <section className="rounded-3xl border border-fg/10 bg-surface-2 p-6">
+              <p className="text-sm text-fg/60">شهرهای تحت پوشش شما</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {locations.length === 0 && (
-                  <span className="text-sm text-white/40">
+                  <span className="text-sm text-fg/55">
                     هنوز شهری برای شما تعیین نشده است.
                   </span>
                 )}
                 {locations.map((location) => (
                   <span
                     key={location.id}
-                    className="rounded-full bg-orange-500/15 px-4 py-2 text-sm font-bold text-orange-300"
+                    className="rounded-full bg-orange-500/15 px-4 py-2 text-sm font-bold text-orange-700"
                   >
                     {regionLabel(location.province, location.city)}
                   </span>
                 ))}
               </div>
-              <p className="mt-4 text-xs leading-6 text-white/40">
+              <p className="mt-4 text-xs leading-6 text-fg/55">
                 {isIntracity
                   ? "بارهای درون‌شهری شهرهای شما در این پنل نمایش داده می‌شوند. کرایه را تعیین کنید و بار را برای رانندگان بفرستید."
                   : isOriginRep
@@ -528,9 +528,9 @@ export default function EmployeePanelPage() {
                 ["بارهای جاری", activeCount],
                 ["همه بارها", requests.length],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <p className="text-sm text-white/50">{label}</p>
-                  <p className="mt-2 text-3xl font-black text-orange-400">
+                <div key={label} className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
+                  <p className="text-sm text-fg/60">{label}</p>
+                  <p className="mt-2 text-3xl font-black text-orange-700">
                     {Number(value).toLocaleString("fa-IR")}
                   </p>
                 </div>
@@ -539,7 +539,7 @@ export default function EmployeePanelPage() {
 
             {/* متصدی درون‌شهری درخواست ماشین ندارد؛ بارها را مستقیم برای رانندگان می‌فرستد */}
             <div
-              className={`mt-8 grid gap-2 rounded-2xl bg-white/5 p-1 ${isIntracity ? "grid-cols-2" : "grid-cols-3"}`}
+              className={`mt-8 grid gap-2 rounded-2xl bg-surface-2 p-1 ${isIntracity ? "grid-cols-2" : "grid-cols-3"}`}
             >
               {(isIntracity
                 ? ([
@@ -563,7 +563,7 @@ export default function EmployeePanelPage() {
                   type="button"
                   onClick={() => setView(id)}
                   className={`rounded-xl py-3 text-sm font-bold transition ${
-                    view === id ? "bg-orange-500 text-white" : "text-white/60 hover:text-white"
+                    view === id ? "bg-orange-500 text-white" : "text-fg/60 hover:text-fg"
                   }`}
                 >
                   {label}
@@ -622,8 +622,8 @@ export default function EmployeePanelPage() {
                   onClick={() => setFilter(id)}
                   className={`rounded-2xl px-5 py-3 text-sm font-bold transition ${
                     filter === id
-                      ? "bg-white text-[#07111f]"
-                      : "bg-white/5 text-white/70 hover:bg-white/10"
+                      ? "bg-fg text-white"
+                      : "bg-surface-2 text-fg/70 hover:bg-fg/10"
                   }`}
                 >
                   {label}
@@ -634,13 +634,13 @@ export default function EmployeePanelPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="جستجو: نام، تلفن، شهر..."
-                className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-orange-500"
+                className="min-w-0 flex-1 rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-sm outline-none placeholder:text-fg/45 focus:border-orange-500"
               />
 
               <button
                 type="button"
                 onClick={() => void refresh()}
-                className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-bold text-white/70 hover:bg-white/5"
+                className="rounded-2xl border border-fg/10 px-4 py-3 text-sm font-bold text-fg/70 hover:bg-fg/5"
               >
                 بروزرسانی
               </button>
@@ -648,7 +648,7 @@ export default function EmployeePanelPage() {
 
             <section className="mt-6 space-y-4">
               {filtered.length === 0 && (
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-white/40">
+                <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
                   باری برای نمایش وجود ندارد.
                 </div>
               )}
@@ -656,11 +656,11 @@ export default function EmployeePanelPage() {
               {filtered.map((item) => (
                 <article
                   key={item.id}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-5"
+                  className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs text-white/40">
+                      <p className="text-xs text-fg/55">
                         کد {item.id.toLocaleString("fa-IR", { useGrouping: false })} ·{" "}
                         {formatDate(item.created_at)}
                       </p>
@@ -669,7 +669,7 @@ export default function EmployeePanelPage() {
                       </h3>
                       <p
                         className={`mt-1 text-sm font-bold ${
-                          item.price != null ? "text-emerald-300" : "text-orange-300"
+                          item.price != null ? "text-emerald-700" : "text-orange-700"
                         }`}
                       >
                         {item.price != null
@@ -685,32 +685,32 @@ export default function EmployeePanelPage() {
                   </div>
 
                   <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="rounded-2xl bg-black/10 p-3">
-                      <p className="text-xs text-white/40">صاحب بار</p>
+                    <div className="rounded-2xl bg-surface-3 p-3">
+                      <p className="text-xs text-fg/55">صاحب بار</p>
                       <p className="mt-1 font-bold">{item.full_name}</p>
                       <a
                         href={`tel:${item.phone}`}
                         dir="ltr"
-                        className="mt-1 block text-right text-orange-300"
+                        className="mt-1 block text-right text-orange-700"
                       >
                         {item.phone}
                       </a>
                     </div>
-                    <div className="rounded-2xl bg-black/10 p-3">
-                      <p className="text-xs text-white/40">نوع بار</p>
+                    <div className="rounded-2xl bg-surface-3 p-3">
+                      <p className="text-xs text-fg/55">نوع بار</p>
                       <p className="mt-1 font-bold">{item.cargo_type}</p>
                     </div>
-                    <div className="rounded-2xl bg-black/10 p-3">
-                      <p className="text-xs text-white/40">تعداد / وزن</p>
+                    <div className="rounded-2xl bg-surface-3 p-3">
+                      <p className="text-xs text-fg/55">تعداد / وزن</p>
                       <p className="mt-1 font-bold">
                         {[item.quantity, item.weight].filter(Boolean).join(" · ") || "—"}
                       </p>
                       {item.dimensions && (
-                        <p className="mt-1 text-xs text-white/55">ابعاد: {item.dimensions}</p>
+                        <p className="mt-1 text-xs text-fg/55">ابعاد: {item.dimensions}</p>
                       )}
                     </div>
-                    <div className="rounded-2xl bg-black/10 p-3">
-                      <p className="text-xs text-white/40">{isIntracity ? "خودرو" : "روش تحویل"}</p>
+                    <div className="rounded-2xl bg-surface-3 p-3">
+                      <p className="text-xs text-fg/55">{isIntracity ? "خودرو" : "روش تحویل"}</p>
                       <p className="mt-1 font-bold">
                         {isIntracity
                           ? item.vehicle_type || "فرقی نمی‌کند"
@@ -724,22 +724,22 @@ export default function EmployeePanelPage() {
                   {(item.pickup_address || item.delivery_address || item.description) && (
                     <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
                       {item.pickup_address && (
-                        <div className="rounded-2xl bg-black/10 p-3">
-                          <p className="text-xs text-white/40">
+                        <div className="rounded-2xl bg-surface-3 p-3">
+                          <p className="text-xs text-fg/55">
                             {isIntracity ? "آدرس بارگیری" : "آدرس بارگیری (تهران)"}
                           </p>
                           <p className="mt-1">{item.pickup_address}</p>
                         </div>
                       )}
                       {item.delivery_address && (
-                        <div className="rounded-2xl bg-black/10 p-3">
-                          <p className="text-xs text-white/40">آدرس تخلیه</p>
+                        <div className="rounded-2xl bg-surface-3 p-3">
+                          <p className="text-xs text-fg/55">آدرس تخلیه</p>
                           <p className="mt-1">{item.delivery_address}</p>
                         </div>
                       )}
                       {item.description && (
-                        <div className="rounded-2xl bg-black/10 p-3">
-                          <p className="text-xs text-white/40">توضیحات صاحب بار</p>
+                        <div className="rounded-2xl bg-surface-3 p-3">
+                          <p className="text-xs text-fg/55">توضیحات صاحب بار</p>
                           <p className="mt-1 leading-7">{item.description}</p>
                         </div>
                       )}
@@ -758,11 +758,11 @@ export default function EmployeePanelPage() {
                         placeholder="کرایه"
                         disabled={isLockedPrice(item) || isFinishedLocked(item)}
                         title={isLockedPrice(item) ? "کرایه ثبت شده و قابل تغییر نیست" : undefined}
-                        className={`w-full rounded-2xl border bg-white/5 py-3 pl-14 pr-4 text-sm outline-none placeholder:text-white/30 focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60 ${
-                          item.price == null ? "border-orange-400/40" : "border-white/10"
+                        className={`w-full rounded-2xl border bg-surface-2 py-3 pl-14 pr-4 text-sm outline-none placeholder:text-fg/45 focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60 ${
+                          item.price == null ? "border-orange-400/40" : "border-fg/10"
                         }`}
                       />
-                      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xs text-white/40">
+                      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xs text-fg/55">
                         تومان
                       </span>
                     </label>
@@ -774,14 +774,14 @@ export default function EmployeePanelPage() {
                       maxLength={500}
                       placeholder="یادداشت متصدی (اختیاری)"
                       disabled={isFinishedLocked(item)}
-                      className="disabled:opacity-60 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-orange-500"
+                      className="disabled:opacity-60 rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-sm outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
                     <div className="flex gap-2">
                       <select
                         value={item.status || "جدید"}
                         disabled={savingId === item.id || isFinishedLocked(item)}
                         onChange={(event) => void saveRequest(item, event.target.value)}
-                        className="rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 text-sm outline-none"
+                        className="rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-sm outline-none"
                       >
                         {[
                           ...STAFF_STATUSES,
@@ -806,19 +806,19 @@ export default function EmployeePanelPage() {
                   </div>
 
                   {isFinishedLocked(item) ? (
-                    <p className="mt-3 text-xs font-bold text-white/50">
+                    <p className="mt-3 text-xs font-bold text-fg/60">
                       🔒 این بار پایان یافته و دیگر قابل تغییر نیست.
                     </p>
                   ) : (
                     isLockedPrice(item) && (
-                      <p className="mt-3 text-xs font-bold text-white/50">
+                      <p className="mt-3 text-xs font-bold text-fg/60">
                         🔒 کرایه ثبت شده و قابل تغییر نیست؛ برای تغییر با مدیریت تماس بگیرید.
                       </p>
                     )
                   )}
 
                   {isIntracity && assignedDrivers[item.id] && (
-                    <p className="mt-3 rounded-xl bg-sky-500/10 px-4 py-2 text-sm font-bold text-sky-200">
+                    <p className="mt-3 rounded-xl bg-sky-500/10 px-4 py-2 text-sm font-bold text-sky-700">
                       👤 راننده: {assignedDrivers[item.id]}
                     </p>
                   )}
@@ -840,7 +840,7 @@ export default function EmployeePanelPage() {
                           setShowAllDrivers(false);
                           setPickerFor(pickerFor === item.id ? null : item.id);
                         }}
-                        className="rounded-xl border border-sky-400/40 px-4 py-2 text-sm font-bold text-sky-200 transition hover:bg-sky-500/10"
+                        className="rounded-xl border border-sky-400/40 px-4 py-2 text-sm font-bold text-sky-700 transition hover:bg-sky-500/10"
                       >
                         👤 انتخاب راننده / پیک
                       </button>
@@ -851,7 +851,7 @@ export default function EmployeePanelPage() {
                   {isIntracity && !isFinishedLocked(item) && !assignedDrivers[item.id] && (
                     <div className="mt-3">
                       {publishedIds.has(item.id) ? (
-                        <span className="inline-block rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-300">
+                        <span className="inline-block rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-700">
                           ✓ برای رانندگان ارسال شده
                         </span>
                       ) : (
@@ -870,7 +870,7 @@ export default function EmployeePanelPage() {
                   )}
 
                   {!isLockedPrice(item) && draftPrice(item.id) != null && draftPrice(item.id) !== item.price && (
-                    <p className="mt-2 text-xs text-emerald-300">
+                    <p className="mt-2 text-xs text-emerald-700">
                       کرایه‌ی جدید: {formatPrice(draftPrice(item.id))} — برای ثبت «ذخیره» را بزنید.
                     </p>
                   )}

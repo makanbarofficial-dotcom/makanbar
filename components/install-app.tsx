@@ -95,7 +95,7 @@ export function InstallApp() {
 
   return (
     <>
-      <div className="flex items-center gap-3 border-b border-white/10 bg-ink-2 px-4 py-2.5 text-sm text-white">
+      <div className="flex items-center gap-3 border-b border-fg/10 bg-surface-2 px-4 py-2.5 text-sm text-fg">
         <span className="text-lg">📲</span>
         <p className="flex-1 leading-6">
           اپلیکیشن <b>{APP_NAME}</b> را روی گوشی نصب کنید
@@ -111,7 +111,7 @@ export function InstallApp() {
           type="button"
           onClick={dismiss}
           aria-label="بستن"
-          className="rounded-lg px-2 py-1 text-white/50 transition hover:bg-white/10 hover:text-white"
+          className="rounded-lg px-2 py-1 text-fg/60 transition hover:bg-fg/10 hover:text-fg"
         >
           ✕
         </button>
@@ -123,20 +123,20 @@ export function InstallApp() {
           onClick={() => setHelp(null)}
         >
           <div
-            className="w-full max-w-sm rounded-3xl bg-ink-2 p-6 text-white shadow-2xl"
+            className="w-full max-w-sm rounded-3xl bg-surface-2 p-6 text-fg shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <h2 className="text-lg font-black">
               نصب {APP_NAME} روی {help === "ios" ? "آیفون" : "گوشی"}
             </h2>
             {help === "android" ? (
-              <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">
+              <ol className="mt-4 space-y-3 text-sm leading-7 text-fg/80">
                 <li>
                   ۱. این صفحه را با مرورگر <b>Chrome</b> باز کنید.
                 </li>
                 <li>
                   ۲. دکمه منو{" "}
-                  <span className="inline-block rounded bg-white/10 px-1.5">
+                  <span className="inline-block rounded bg-fg/10 px-1.5">
                     ⋮
                   </span>{" "}
                   (سه نقطه بالای صفحه) را بزنید.
@@ -150,25 +150,25 @@ export function InstallApp() {
                   ۴. <b>نصب</b> را تأیید کنید؛ آیکن ماکان بار روی صفحه گوشی
                   ساخته می‌شود.
                 </li>
-                <li className="text-white/55">
+                <li className="text-fg/55">
                   در مرورگر سامسونگ: منو <b>☰</b> ←{" "}
                   <b dir="ltr">Add page to</b> ← <b dir="ltr">Home screen</b>
                 </li>
                 <li>
                   یا فایل نصبی اپ اندروید را مستقیم دانلود کنید:{" "}
-                  <a href="/download/" className="font-bold text-orange-300">
+                  <a href="/download/" className="font-bold text-orange-700">
                     صفحه دانلود اپ ←
                   </a>
                 </li>
               </ol>
             ) : (
-              <ol className="mt-4 space-y-3 text-sm leading-7 text-white/80">
+              <ol className="mt-4 space-y-3 text-sm leading-7 text-fg/80">
                 <li>
                   ۱. این صفحه را با مرورگر <b>Safari</b> باز کنید.
                 </li>
                 <li>
                   ۲. دکمه <b>اشتراک‌گذاری</b> را بزنید (مربع با فلش رو به بالا{" "}
-                  <span className="inline-block rounded bg-white/10 px-1.5">
+                  <span className="inline-block rounded bg-fg/10 px-1.5">
                     ⬆️
                   </span>
                   ) پایین یا بالای صفحه.

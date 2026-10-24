@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Brand } from "@/components/ui";
+import { Brand, Logo } from "@/components/ui";
 import { ADDRESS, PHONES, formatPhone } from "@/lib/contact";
 
 const NAV = [
@@ -20,7 +20,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-ink/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-fg/10 bg-white/90 shadow-sm shadow-fg/[0.03] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[72px] sm:px-6">
         <Brand subtitle="حمل‌ونقل و جابه‌جایی بار" />
 
@@ -29,7 +29,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm font-bold text-fg/65 transition hover:bg-surface-3 hover:text-fg"
             >
               {item.label}
             </Link>
@@ -39,7 +39,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <Link
             href="/customer"
-            className="hidden rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-2 sm:inline-flex"
+            className="hidden rounded-xl bg-brand px-5 py-2.5 text-sm font-black text-white shadow-md shadow-brand/20 transition hover:bg-brand-2 sm:inline-flex"
           >
             ثبت بار
           </Link>
@@ -48,7 +48,7 @@ export function SiteHeader() {
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label={open ? "بستن منو" : "باز کردن منو"}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-xl lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-fg/10 bg-surface-2 text-xl lg:hidden"
           >
             {open ? "✕" : "☰"}
           </button>
@@ -58,14 +58,14 @@ export function SiteHeader() {
       {open && (
         <nav
           aria-label="ناوبری موبایل"
-          className="border-t border-white/10 bg-ink px-4 pb-5 pt-2 lg:hidden"
+          className="border-t border-fg/10 bg-white px-4 pb-5 pt-2 shadow-lg lg:hidden"
         >
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-3 py-3.5 text-base text-white/80 transition hover:bg-white/5"
+              className="block rounded-xl px-3 py-3.5 text-base font-bold text-fg/80 transition hover:bg-surface-3"
             >
               {item.label}
             </Link>
@@ -80,7 +80,7 @@ export function SiteHeader() {
             <Link
               href="/#portals"
               onClick={() => setOpen(false)}
-              className="rounded-xl border border-white/15 py-3 text-center font-bold text-white"
+              className="rounded-xl border border-fg/15 py-3 text-center font-bold text-fg"
             >
               ورود کاربران
             </Link>
@@ -91,29 +91,51 @@ export function SiteHeader() {
   );
 }
 
-// پاورقی مشترک همه صفحه‌های عمومی سایت
+// پاورقی مشترک همه صفحه‌های عمومی سایت (سرمه‌ای)
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/10 bg-ink-2/60">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
+    <footer className="bg-navy text-white">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
         <div>
-          <Brand subtitle="حمل‌ونقل و جابه‌جایی بار" />
-          <p className="mt-4 max-w-xs text-sm leading-7 text-white/50">
-            حمل بار دربستی و خرده‌بار بین تهران و شهرستان‌ها. هر روز از ۷ صبح تا ۱۰ شب
+          <Link href="/" className="flex items-center gap-3">
+            <Logo size="sm" />
+            <span className="leading-tight">
+              <span className="block text-base font-black">ماکان بار</span>
+              <span className="block text-[11px] text-white/55">حمل‌ونقل و جابه‌جایی بار</span>
+            </span>
+          </Link>
+          <p className="mt-4 max-w-xs text-sm leading-7 text-white/65">
+            حمل دربستی، خرده‌بار، درون‌شهری و پیک موتوری در سراسر ایران. هر روز از ۷ صبح تا ۱۰ شب
             پاسخگوی شما هستیم.
           </p>
         </div>
 
+        <div>
+          <h2 className="text-sm font-black text-white">دسترسی سریع</h2>
+          <ul className="mt-4 space-y-2.5 text-sm">
+            {[
+              ...NAV.filter((item) => item.href !== "/"),
+              { label: "ثبت بار", href: "/customer" },
+            ].map((item) => (
+              <li key={item.href}>
+                <Link href={item.href} className="text-white/65 transition hover:text-orange-300">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {/* data-nosnippet: گوگل این فهرست شماره‌ها را به‌عنوان متن نتیجه‌ی جستجو برندارد */}
         <div data-nosnippet>
-          <h2 className="text-sm font-bold text-white/80">تماس با ما</h2>
-          <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-1">
+          <h2 className="text-sm font-black text-white">تماس با ما</h2>
+          <ul className="mt-4 space-y-2.5">
             {PHONES.map((phone) => (
               <li key={phone}>
                 <a
                   href={`tel:${phone}`}
                   dir="ltr"
-                  className="text-sm text-white/55 transition hover:text-brand-2"
+                  className="text-sm text-white/65 transition hover:text-orange-300"
                 >
                   {formatPhone(phone)}
                 </a>
@@ -123,14 +145,14 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-white/80">نشانی</h2>
-          <p className="mt-3 text-sm leading-7 text-white/55">{ADDRESS}</p>
+          <h2 className="text-sm font-black text-white">نشانی</h2>
+          <p className="mt-4 text-sm leading-7 text-white/65">{ADDRESS}</p>
           <a
             href="https://instagram.com/maknbar_com"
             target="_blank"
             rel="noopener noreferrer"
             dir="ltr"
-            className="mt-3 inline-block text-sm font-bold text-brand-2 hover:text-brand"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
           >
             @maknbar_com ↗
           </a>
@@ -138,7 +160,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-5 text-xs text-white/40 sm:flex-row sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-5 text-xs text-white/50 sm:flex-row sm:justify-between sm:px-6">
           <span>© {new Date().getFullYear()} ماکان بار — تمامی حقوق محفوظ است.</span>
           <span>طراحی شده توسط مهندس فراهانی</span>
         </div>

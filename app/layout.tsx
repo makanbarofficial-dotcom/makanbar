@@ -43,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07111f",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
-      <body className="min-h-screen bg-ink font-sans text-white antialiased">
+      <body className="min-h-screen bg-surface font-sans text-fg antialiased">
         <InstallApp />
         <UpdateChecker />
         {children}

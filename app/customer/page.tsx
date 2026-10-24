@@ -40,10 +40,10 @@ type CustomerProfile = {
 };
 
 const inputClass =
-  "w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-white outline-none placeholder:text-white/30 focus:border-orange-400";
+  "w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-fg outline-none placeholder:text-fg/45 focus:border-orange-400";
 
 const selectClass =
-  "w-full rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 text-white outline-none focus:border-orange-400 disabled:opacity-50";
+  "w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 text-fg outline-none focus:border-orange-400 disabled:opacity-50";
 
 const TYPE_HINTS: Record<ShipmentType, string> = {
   full: "کل ظرفیت یک خودرو برای بار شما؛ راننده مستقیم بار را جابه‌جا می‌کند.",
@@ -315,7 +315,7 @@ export default function CustomerPanelPage() {
     return (
       <main
         dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-ink text-white"
+        className="flex min-h-screen items-center justify-center bg-surface text-fg"
       >
         <p className="font-bold">در حال بارگذاری پنل...</p>
       </main>
@@ -326,12 +326,12 @@ export default function CustomerPanelPage() {
     return (
       <main
         dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-ink px-4 text-white"
+        className="flex min-h-screen items-center justify-center bg-surface px-4 text-fg"
       >
         <section className={`${ui.card} max-w-md p-8 text-center`}>
           <div className="text-4xl">📦</div>
           <h1 className="mt-4 text-xl font-black">این حساب، حساب صاحب بار نیست</h1>
-          <p className="mt-3 text-sm leading-7 text-white/60">
+          <p className="mt-3 text-sm leading-7 text-fg/60">
             با حساب مدیر، متصدی یا راننده وارد شده‌اید. برای ثبت بار، از این حساب خارج
             شوید و با حساب صاحب بار وارد شوید یا ثبت‌نام کنید.
           </p>
@@ -349,21 +349,21 @@ export default function CustomerPanelPage() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-ink pb-24 text-white sm:pb-0">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 backdrop-blur-xl">
+    <main dir="rtl" className="min-h-screen bg-surface pb-24 text-fg sm:pb-0">
+      <header className="sticky top-0 z-40 border-b border-fg/10 bg-surface/95 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:min-h-20 sm:px-5">
           <Brand subtitle="پنل صاحبان بار" />
 
           <div className="flex items-center gap-3">
             {profile?.full_name && (
-              <span className="hidden text-sm text-white/70 sm:block">
+              <span className="hidden text-sm text-fg/70 sm:block">
                 {profile.full_name}
               </span>
             )}
             <button
               type="button"
               onClick={logout}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold transition hover:bg-white/10"
+              className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
             >
               خروج
             </button>
@@ -373,14 +373,14 @@ export default function CustomerPanelPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-5 sm:px-5 sm:py-8">
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:rounded-3xl sm:p-5">
-            <p className="text-sm text-white/50">همه بارها</p>
-            <p className="mt-1 text-2xl font-black text-orange-400 sm:mt-2 sm:text-3xl">
+          <div className="rounded-2xl border border-fg/10 bg-surface-2 p-4 sm:rounded-3xl sm:p-5">
+            <p className="text-sm text-fg/60">همه بارها</p>
+            <p className="mt-1 text-2xl font-black text-orange-700 sm:mt-2 sm:text-3xl">
               {requests.length.toLocaleString("fa-IR")}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:rounded-3xl sm:p-5">
-            <p className="text-sm text-white/50">بارهای جاری</p>
+          <div className="rounded-2xl border border-fg/10 bg-surface-2 p-4 sm:rounded-3xl sm:p-5">
+            <p className="text-sm text-fg/60">بارهای جاری</p>
             <p className="mt-1 text-2xl font-black sm:mt-2 sm:text-3xl">
               {activeCount.toLocaleString("fa-IR")}
             </p>
@@ -411,8 +411,8 @@ export default function CustomerPanelPage() {
               onClick={() => setActiveTab(id)}
               className={`rounded-2xl px-5 py-3 text-sm font-bold transition ${
                 activeTab === id
-                  ? "bg-white text-[#07111f]"
-                  : "bg-white/5 text-white/70 hover:bg-white/10"
+                  ? "bg-fg text-white"
+                  : "bg-surface-2 text-fg/70 hover:bg-fg/10"
               }`}
             >
               {label}
@@ -421,13 +421,13 @@ export default function CustomerPanelPage() {
         </div>
 
         {error && (
-          <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {formSuccess && activeTab === "list" && (
-          <div className="mt-6 rounded-2xl border border-green-400/20 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+          <div className="mt-6 rounded-2xl border border-green-400/20 bg-green-500/10 px-4 py-3 text-sm text-green-700">
             {formSuccess}
           </div>
         )}
@@ -435,7 +435,7 @@ export default function CustomerPanelPage() {
         {activeTab === "list" && (
           <section className="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
             {requests.length === 0 && (
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+              <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center">
                 <p className="font-bold">هنوز باری ثبت نکرده‌اید.</p>
                 <button
                   type="button"
@@ -450,17 +450,17 @@ export default function CustomerPanelPage() {
             {requests.map((item) => (
               <article
                 key={item.id}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:rounded-3xl sm:p-5"
+                className="rounded-2xl border border-fg/10 bg-surface-2 p-4 sm:rounded-3xl sm:p-5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       {item.shipment_type && (
-                        <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold">
+                        <span className="rounded-full bg-fg/10 px-3 py-1 text-xs font-bold">
                           {SHIPMENT_TYPE_LABELS[item.shipment_type]}
                         </span>
                       )}
-                      <span className="text-xs text-white/40">
+                      <span className="text-xs text-fg/55">
                         کد {item.id.toLocaleString("fa-IR", { useGrouping: false })}
                       </span>
                     </div>
@@ -480,48 +480,48 @@ export default function CustomerPanelPage() {
                   className={`mt-3 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 sm:mt-4 ${
                     item.price != null
                       ? "border border-emerald-400/25 bg-emerald-500/10"
-                      : "border border-white/10 bg-black/10"
+                      : "border border-fg/10 bg-surface-3"
                   }`}
                 >
-                  <span className="text-sm text-white/60">کرایه</span>
+                  <span className="text-sm text-fg/60">کرایه</span>
                   {item.price != null ? (
-                    <span className="text-lg font-black text-emerald-300">
+                    <span className="text-lg font-black text-emerald-700">
                       {formatPrice(item.price)}
                     </span>
                   ) : (
-                    <span className="text-sm font-bold text-white/50">
+                    <span className="text-sm font-bold text-fg/60">
                       در حال بررسی…
                     </span>
                   )}
                 </div>
 
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:gap-3 lg:grid-cols-4">
-                  <div className="rounded-2xl bg-black/10 p-3">
-                    <p className="text-xs text-white/40">نوع بار</p>
+                  <div className="rounded-2xl bg-surface-3 p-3">
+                    <p className="text-xs text-fg/55">نوع بار</p>
                     <p className="mt-1 font-bold">{item.cargo_type}</p>
                   </div>
-                  <div className="rounded-2xl bg-black/10 p-3">
-                    <p className="text-xs text-white/40">
+                  <div className="rounded-2xl bg-surface-3 p-3">
+                    <p className="text-xs text-fg/55">
                       {item.quantity ? "تعداد / وزن" : "وزن"}
                     </p>
                     <p className="mt-1 font-bold">
                       {[item.quantity, item.weight].filter(Boolean).join(" · ") || "—"}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-black/10 p-3">
-                    <p className="text-xs text-white/40">روش تحویل</p>
+                  <div className="rounded-2xl bg-surface-3 p-3">
+                    <p className="text-xs text-fg/55">روش تحویل</p>
                     <p className="mt-1 font-bold">
                       {item.delivery_mode ? DELIVERY_MODE_LABELS[item.delivery_mode] : "—"}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-black/10 p-3">
-                    <p className="text-xs text-white/40">تاریخ ثبت</p>
+                  <div className="rounded-2xl bg-surface-3 p-3">
+                    <p className="text-xs text-fg/55">تاریخ ثبت</p>
                     <p className="mt-1 font-bold">{formatDate(item.created_at)}</p>
                   </div>
                 </div>
 
                 {item.dimensions && (
-                  <p className="mt-2 text-xs text-white/50">ابعاد: {item.dimensions}</p>
+                  <p className="mt-2 text-xs text-fg/60">ابعاد: {item.dimensions}</p>
                 )}
 
                 {(item.status || "جدید") === "جدید" && (
@@ -529,7 +529,7 @@ export default function CustomerPanelPage() {
                     type="button"
                     disabled={cancellingId === item.id}
                     onClick={() => void cancelRequest(item.id)}
-                    className="mt-3 w-full rounded-xl border border-red-400/20 px-4 py-3 text-sm font-bold text-red-300 sm:mt-4 sm:w-auto sm:py-2 transition hover:bg-red-500/10 disabled:opacity-50"
+                    className="mt-3 w-full rounded-xl border border-red-400/20 px-4 py-3 text-sm font-bold text-red-700 sm:mt-4 sm:w-auto sm:py-2 transition hover:bg-red-500/10 disabled:opacity-50"
                   >
                     {cancellingId === item.id ? "در حال لغو..." : "لغو درخواست"}
                   </button>
@@ -542,7 +542,7 @@ export default function CustomerPanelPage() {
         {activeTab === "create" && (
           <form
             onSubmit={handleSubmit}
-            className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 sm:mt-6 sm:rounded-3xl sm:p-6 md:p-8"
+            className="mt-5 rounded-2xl border border-fg/10 bg-surface-2 p-4 sm:mt-6 sm:rounded-3xl sm:p-6 md:p-8"
           >
             <h2 className="text-lg font-black sm:text-xl">نوع حمل</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -554,11 +554,11 @@ export default function CustomerPanelPage() {
                   className={`rounded-2xl border p-4 text-right transition ${
                     shipmentType === type
                       ? "border-orange-400 bg-orange-500/10"
-                      : "border-white/10 bg-white/[0.03] hover:bg-white/5"
+                      : "border-fg/10 bg-surface-2 hover:bg-fg/5"
                   }`}
                 >
                   <span className="font-black">{SHIPMENT_TYPE_LABELS[type]}</span>
-                  <span className="mt-2 block text-xs leading-6 text-white/60">
+                  <span className="mt-2 block text-xs leading-6 text-fg/60">
                     {TYPE_HINTS[type]}
                   </span>
                 </button>
@@ -570,8 +570,8 @@ export default function CustomerPanelPage() {
             </h2>
 
             {isIntracity ? (
-              <fieldset className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <legend className="px-1 text-sm font-black text-orange-300">شهر *</legend>
+              <fieldset className="mt-4 space-y-3 rounded-2xl border border-fg/10 bg-surface-2 p-4">
+                <legend className="px-1 text-sm font-black text-orange-700">شهر *</legend>
                 <div className="grid grid-cols-2 gap-2">
                   <select
                     aria-label="استان"
@@ -601,7 +601,7 @@ export default function CustomerPanelPage() {
                     ))}
                   </select>
                 </div>
-                <p className="pt-1 text-sm font-black text-orange-300">مبدا بار *</p>
+                <p className="pt-1 text-sm font-black text-orange-700">مبدا بار *</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
@@ -617,7 +617,7 @@ export default function CustomerPanelPage() {
                       className={`rounded-2xl border px-3 py-3 text-sm font-bold transition ${
                         pickupMode === mode
                           ? "border-orange-400 bg-orange-500/10"
-                          : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/5"
+                          : "border-fg/10 bg-surface-2 text-fg/70 hover:bg-fg/5"
                       }`}
                     >
                       {label}
@@ -627,9 +627,9 @@ export default function CustomerPanelPage() {
 
                 {pickupMode === "terminal" ? (
                   !origin.city ? (
-                    <p className="text-xs text-white/50">اول شهر را انتخاب کنید.</p>
+                    <p className="text-xs text-fg/60">اول شهر را انتخاب کنید.</p>
                   ) : cityTerminals.length === 0 ? (
-                    <p className="rounded-2xl border border-orange-400/20 bg-orange-500/10 px-4 py-3 text-xs leading-6 text-orange-200">
+                    <p className="rounded-2xl border border-orange-400/20 bg-orange-500/10 px-4 py-3 text-xs leading-6 text-orange-700">
                       در این شهر باربری ماکان بار ثبت نشده است؛ «آدرس دلخواه» را انتخاب کنید.
                     </p>
                   ) : (
@@ -658,7 +658,7 @@ export default function CustomerPanelPage() {
                   />
                 )}
 
-                <p className="pt-1 text-sm font-black text-orange-300">مقصد بار *</p>
+                <p className="pt-1 text-sm font-black text-orange-700">مقصد بار *</p>
                 <input
                   name="delivery_address"
                   maxLength={300}
@@ -677,9 +677,9 @@ export default function CustomerPanelPage() {
               ).map(([title, place, setPlace, addressName, addressLabel]) => (
                 <fieldset
                   key={title}
-                  className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                  className="space-y-3 rounded-2xl border border-fg/10 bg-surface-2 p-4"
                 >
-                  <legend className="px-1 text-sm font-black text-orange-300">
+                  <legend className="px-1 text-sm font-black text-orange-700">
                     {title} *
                   </legend>
 
@@ -745,14 +745,14 @@ export default function CustomerPanelPage() {
                       className={`rounded-2xl border p-4 text-right transition ${
                         deliveryMode === mode
                           ? "border-orange-400 bg-orange-500/10"
-                          : "border-white/10 bg-white/[0.03] hover:bg-white/5"
+                          : "border-fg/10 bg-surface-2 hover:bg-fg/5"
                       }`}
                     >
                       <span className="font-black">
                         {mode === "terminal" ? "🏢 " : "🚪 "}
                         {DELIVERY_MODE_LABELS[mode]}
                       </span>
-                      <span className="mt-2 block text-xs leading-6 text-white/60">
+                      <span className="mt-2 block text-xs leading-6 text-fg/60">
                         {DELIVERY_MODE_HINTS[mode]}
                       </span>
                     </button>
@@ -763,7 +763,7 @@ export default function CustomerPanelPage() {
 
             <h2 className="mt-6 text-lg font-black sm:mt-8 sm:text-xl">مشخصات بار</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-white/70 md:col-span-2">
+              <label className="block text-sm text-fg/70 md:col-span-2">
                 نوع بار *
                 <input
                   name="cargo_type"
@@ -775,7 +775,7 @@ export default function CustomerPanelPage() {
               </label>
 
               {shipmentType === "partial" && (
-                <label className="block text-sm text-white/70">
+                <label className="block text-sm text-fg/70">
                   تعداد *
                   <input
                     name="quantity"
@@ -787,7 +787,7 @@ export default function CustomerPanelPage() {
                 </label>
               )}
 
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 وزن {shipmentType === "partial" ? "*" : ""}
                 <input
                   name="weight"
@@ -806,13 +806,13 @@ export default function CustomerPanelPage() {
 
               {shipmentType === "partial" && (
                 <fieldset className="md:col-span-2">
-                  <legend className="text-sm text-white/70">
+                  <legend className="text-sm text-fg/70">
                     ابعاد هر بسته (سانتی‌متر، اختیاری)
                   </legend>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {DIMENSION_FIELDS.map(([name, label]) => (
                       <label key={name} className="block">
-                        <span className="mb-1 block text-xs text-white/50">{label}</span>
+                        <span className="mb-1 block text-xs text-fg/60">{label}</span>
                         <input
                           name={name}
                           inputMode="decimal"
@@ -827,7 +827,7 @@ export default function CustomerPanelPage() {
               )}
 
               {shipmentType !== "partial" && (
-                <label className="block text-sm text-white/70">
+                <label className="block text-sm text-fg/70">
                   نوع خودرو
                   <select name="vehicle_type" defaultValue="" className={`${selectClass} mt-2`}>
                     <option value="">فرقی نمی‌کند</option>
@@ -838,7 +838,7 @@ export default function CustomerPanelPage() {
                 </label>
               )}
 
-              <label className="block text-sm text-white/70 md:col-span-2">
+              <label className="block text-sm text-fg/70 md:col-span-2">
                 توضیحات
                 <textarea
                   name="description"
@@ -856,7 +856,7 @@ export default function CustomerPanelPage() {
 
             <h2 className="mt-6 text-lg font-black sm:mt-8 sm:text-xl">اطلاعات تماس</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 نام و نام خانوادگی *
                 <input
                   name="full_name"
@@ -865,7 +865,7 @@ export default function CustomerPanelPage() {
                   className={`${inputClass} mt-2`}
                 />
               </label>
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 شماره تماس *
                 <input
                   name="phone"
@@ -880,7 +880,7 @@ export default function CustomerPanelPage() {
             </div>
 
             {formError && (
-              <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                 {formError}
               </div>
             )}
@@ -899,12 +899,12 @@ export default function CustomerPanelPage() {
       </div>
 
       {/* منوی پایین موبایل */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-white/10 bg-ink/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-fg/10 bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
         <button
           type="button"
           onClick={() => setActiveTab("list")}
           className={`rounded-2xl py-3 text-sm font-bold transition ${
-            activeTab === "list" ? "bg-white text-[#07111f]" : "bg-white/5 text-white/70"
+            activeTab === "list" ? "bg-fg text-white" : "bg-surface-2 text-fg/70"
           }`}
         >
           📦 بارهای من

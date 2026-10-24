@@ -274,7 +274,7 @@ export default function DriverRegisterPage() {
         <section className="space-y-5">
           {!otpStep ? (
             <>
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 نام و نام خانوادگی
                 <input
                   className={inputStyle}
@@ -286,7 +286,7 @@ export default function DriverRegisterPage() {
                 />
               </label>
 
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 شماره موبایل
                 <input
                   className={inputStyle}
@@ -300,7 +300,7 @@ export default function DriverRegisterPage() {
                 />
               </label>
 
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 رمز عبور
                 <input
                   className={inputStyle}
@@ -313,7 +313,7 @@ export default function DriverRegisterPage() {
                 />
               </label>
 
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 نوع خودرو
                 <select
                   className={inputStyle}
@@ -333,7 +333,7 @@ export default function DriverRegisterPage() {
                 </select>
               </label>
 
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-fg/70">
                 مدل / نوع بارگیر
                 <select
                   className={inputStyle}
@@ -352,10 +352,10 @@ export default function DriverRegisterPage() {
               </label>
 
               {isMotor ? (
-                <div className="text-sm text-white/70">
+                <div className="text-sm text-fg/70">
                   <p>شماره پلاک موتور</p>
 
-                  <div className="mx-auto mt-2 w-48 overflow-hidden rounded-xl border-2 border-white/30 bg-white text-black">
+                  <div className="mx-auto mt-2 w-48 overflow-hidden rounded-xl border-2 border-fg/30 bg-white text-black">
                     <input
                       className="w-full border-b border-gray-300 p-2 text-center text-lg tracking-widest"
                       value={motorCode}
@@ -382,17 +382,17 @@ export default function DriverRegisterPage() {
                     />
                   </div>
 
-                  <p className="mt-2 text-center text-xs text-white/50">
+                  <p className="mt-2 text-center text-xs text-fg/60">
                     بالا: ۳ رقم · پایین: ۵ رقم
                   </p>
                 </div>
               ) : (
-              <div className="text-sm text-white/70">
+              <div className="text-sm text-fg/70">
                 <p>شماره پلاک خودرو</p>
 
                 <div
                   dir="ltr"
-                  className="mt-2 grid grid-cols-[1fr_1fr_1.2fr_0.8fr] gap-2 rounded-xl border-2 border-white/30 bg-white p-3"
+                  className="mt-2 grid grid-cols-[1fr_1fr_1.2fr_0.8fr] gap-2 rounded-xl border-2 border-fg/30 bg-white p-3"
                 >
                   <input
                     className="min-w-0 rounded-lg border border-gray-300 p-2 text-center text-lg text-black"
@@ -464,7 +464,7 @@ export default function DriverRegisterPage() {
                   </div>
                 </div>
 
-                <p className="mt-2 text-xs text-white/50">
+                <p className="mt-2 text-xs text-fg/60">
                   اعداد را وارد کنید و حرف پلاک را انتخاب کنید.
                 </p>
               </div>
@@ -482,11 +482,11 @@ export default function DriverRegisterPage() {
             </>
           ) : (
             <>
-              <p className="text-center text-white/70">
+              <p className="text-center text-fg/70">
                 کد ۶ رقمی ارسال‌شده به شماره زیر را وارد کنید:
               </p>
 
-              <p dir="ltr" className="text-center text-orange-400">
+              <p dir="ltr" className="text-center text-orange-700">
                 {normalizePhone(phone)}
               </p>
 

@@ -309,8 +309,8 @@ export default function CustomerRegisterPage() {
             />
           </div>
 
-          <details className="group rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
-            <summary className="cursor-pointer list-none text-sm font-bold text-white/70">
+          <details className="group rounded-xl border border-fg/10 bg-surface-2 px-4 py-3">
+            <summary className="cursor-pointer list-none text-sm font-bold text-fg/70">
               <span className="group-open:hidden">＋</span>
               <span className="hidden group-open:inline">－</span> نام شرکت و آدرس
               (اختیاری)
@@ -349,7 +349,7 @@ export default function CustomerRegisterPage() {
           }}
           className="space-y-4"
         >
-          <p className="text-center text-sm text-white/60">
+          <p className="text-center text-sm text-fg/60">
             ارسال‌شده به{" "}
             <span dir="ltr" className="font-bold text-brand-2">
               {phone}

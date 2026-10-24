@@ -83,7 +83,7 @@ function readFilter(): LoadFilter {
 }
 
 const selectClass =
-  "w-full rounded-xl border border-white/10 bg-ink-2 px-3 py-2.5 text-sm outline-none focus:border-brand disabled:opacity-40";
+  "w-full rounded-xl border border-fg/10 bg-surface-2 px-3 py-2.5 text-sm outline-none focus:border-brand disabled:opacity-40";
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: "available", icon: "📋", label: "بارهای آزاد" },
@@ -100,11 +100,11 @@ const STATUS_LABELS: Record<LoadStatus, string> = {
 };
 
 const STATUS_TONES: Record<LoadStatus, string> = {
-  available: "bg-emerald-500/15 text-emerald-300",
-  assigned: "bg-sky-500/15 text-sky-300",
-  in_transit: "bg-orange-500/15 text-orange-300",
-  delivered: "bg-white/10 text-white/60",
-  cancelled: "bg-red-500/15 text-red-300",
+  available: "bg-emerald-500/15 text-emerald-700",
+  assigned: "bg-sky-500/15 text-sky-700",
+  in_transit: "bg-orange-500/15 text-orange-700",
+  delivered: "bg-fg/10 text-fg/60",
+  cancelled: "bg-red-500/15 text-red-700",
 };
 
 // دکمه‌ی قدم بعدی برای راننده
@@ -308,12 +308,12 @@ export default function DriverPage() {
     return (
       <article
         key={load.id}
-        className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5"
+        className="rounded-2xl border border-fg/10 bg-surface-2 p-4 sm:p-5"
       >
         <div className="flex items-start justify-between gap-3">
           <h3 className="min-w-0 text-base font-black leading-7 sm:text-lg">
             {load.load_type === "intracity" && (
-              <span className="ml-2 inline-block rounded-full bg-violet-500/15 px-2.5 py-0.5 align-middle text-xs font-bold text-violet-300">
+              <span className="ml-2 inline-block rounded-full bg-violet-500/15 px-2.5 py-0.5 align-middle text-xs font-bold text-violet-700">
                 🏙 درون‌شهری
               </span>
             )}
@@ -327,36 +327,36 @@ export default function DriverPage() {
         </div>
 
         <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
-          <span className="text-sm text-white/60">کرایه</span>
-          <span className="text-lg font-black text-emerald-300">{formatPrice(load.price)}</span>
+          <span className="text-sm text-fg/60">کرایه</span>
+          <span className="text-lg font-black text-emerald-700">{formatPrice(load.price)}</span>
         </div>
 
         <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-xl bg-black/15 p-3">
-            <dt className="text-xs text-white/40">نوع بار</dt>
+          <div className="rounded-xl bg-surface-3 p-3">
+            <dt className="text-xs text-fg/55">نوع بار</dt>
             <dd className="mt-1 font-bold">{load.cargo_type}</dd>
           </div>
-          <div className="rounded-xl bg-black/15 p-3">
-            <dt className="text-xs text-white/40">وزن</dt>
+          <div className="rounded-xl bg-surface-3 p-3">
+            <dt className="text-xs text-fg/55">وزن</dt>
             <dd className="mt-1 font-bold">{load.weight || "—"}</dd>
           </div>
-          <div className="col-span-2 rounded-xl bg-black/15 p-3">
-            <dt className="text-xs text-white/40">خودرو</dt>
+          <div className="col-span-2 rounded-xl bg-surface-3 p-3">
+            <dt className="text-xs text-fg/55">خودرو</dt>
             <dd className="mt-1 font-bold">{load.vehicle_type || "فرقی نمی‌کند"}</dd>
           </div>
         </dl>
 
         {load.description && (
-          <p className="mt-2 rounded-xl bg-black/15 p-3 text-sm leading-7 text-white/70">
+          <p className="mt-2 rounded-xl bg-surface-3 p-3 text-sm leading-7 text-fg/70">
             {load.description}
           </p>
         )}
 
         {mine && job && (
           <div className="mt-3 space-y-2 rounded-xl border border-sky-400/20 bg-sky-500/10 p-4 text-sm">
-            <p className="font-bold text-sky-200">اطلاعات کار</p>
+            <p className="font-bold text-sky-700">اطلاعات کار</p>
             <p>
-              <span className="text-white/50">
+              <span className="text-fg/60">
                 {load.request_id != null ? "صاحب بار: " : "هماهنگی با: "}
               </span>
               {job.full_name}{" "}
@@ -366,13 +366,13 @@ export default function DriverPage() {
             </p>
             {job.pickup_address && (
               <p>
-                <span className="text-white/50">بارگیری: </span>
+                <span className="text-fg/60">بارگیری: </span>
                 {job.pickup_address}
               </p>
             )}
             {job.delivery_address && (
               <p>
-                <span className="text-white/50">تخلیه: </span>
+                <span className="text-fg/60">تخلیه: </span>
                 {job.delivery_address}
               </p>
             )}
@@ -407,7 +407,7 @@ export default function DriverPage() {
   function placeSelects(title: string, place: Place, onChange: (place: Place) => void) {
     return (
       <div>
-        <p className="mb-2 text-xs font-bold text-white/55">{title}</p>
+        <p className="mb-2 text-xs font-bold text-fg/55">{title}</p>
         <div className="grid grid-cols-2 gap-2">
           <select
             aria-label={`استان ${title}`}
@@ -459,7 +459,7 @@ export default function DriverPage() {
               </span>
             )}
           </span>
-          <span className="text-sm text-white/50">{filterOpen ? "بستن ▲" : "انتخاب مبدا و مقصد ▼"}</span>
+          <span className="text-sm text-fg/60">{filterOpen ? "بستن ▲" : "انتخاب مبدا و مقصد ▼"}</span>
         </button>
 
         {filterOpen && (
@@ -483,7 +483,7 @@ export default function DriverPage() {
         )}
 
         {profile?.vehicle_type && (
-          <label className="mt-4 flex items-center gap-3 border-t border-white/10 pt-4 text-sm">
+          <label className="mt-4 flex items-center gap-3 border-t border-fg/10 pt-4 text-sm">
             <input
               type="checkbox"
               checked={filter.myVehicleOnly}
@@ -494,7 +494,7 @@ export default function DriverPage() {
               فقط بارهای مناسب ماشین من (<b>{profile.vehicle_type}</b>)
             </span>
             {filter.myVehicleOnly && hiddenByVehicle > 0 && (
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-fg/55">
                 {hiddenByVehicle.toLocaleString("fa-IR")} بار دیگر
               </span>
             )}
@@ -506,7 +506,7 @@ export default function DriverPage() {
 
   function emptyState(text: string) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-10 text-center text-white/50">
+      <div className="rounded-2xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/60">
         {text}
       </div>
     );
@@ -525,17 +525,17 @@ export default function DriverPage() {
 
   return (
     <main dir="rtl" className={`min-h-screen ${approved ? "pb-24 sm:pb-0" : ""}`}>
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-fg/10 bg-surface/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-5">
           <Brand subtitle="پنل رانندگان" />
           <div className="flex items-center gap-3">
             {profile && (
-              <span className="hidden text-sm text-white/70 sm:block">{profile.full_name}</span>
+              <span className="hidden text-sm text-fg/70 sm:block">{profile.full_name}</span>
             )}
             <button
               type="button"
               onClick={logout}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold transition hover:bg-white/10"
+              className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
             >
               خروج
             </button>
@@ -545,7 +545,7 @@ export default function DriverPage() {
 
       <div className="mx-auto max-w-4xl px-4 py-5 sm:px-5 sm:py-8">
         {error && (
-          <div className="mb-5 rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="mb-5 rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -553,7 +553,7 @@ export default function DriverPage() {
         {!profile ? (
           <section className={`${ui.card} p-8 text-center`}>
             <h2 className="text-xl font-black">پروفایل راننده پیدا نشد</h2>
-            <p className="mt-3 text-sm leading-7 text-white/60">
+            <p className="mt-3 text-sm leading-7 text-fg/60">
               این حساب هنوز ثبت‌نام رانندگی ندارد.
             </p>
             <Link href="/driver/register" className={`${ui.btnPrimary} mt-6 sm:w-auto`}>
@@ -564,7 +564,7 @@ export default function DriverPage() {
           <section className={`${ui.card} p-8 text-center`}>
             <div className="text-5xl">⏳</div>
             <h2 className="mt-4 text-xl font-black">حساب شما در انتظار تأیید است</h2>
-            <p className="mt-3 text-sm leading-7 text-white/60">
+            <p className="mt-3 text-sm leading-7 text-fg/60">
               مدیریت ماکان بار اطلاعات شما را بررسی می‌کند. بعد از تأیید، بارهای آزاد
               اینجا نمایش داده می‌شوند.
             </p>
@@ -572,7 +572,7 @@ export default function DriverPage() {
         ) : profile.status === "rejected" ? (
           <section className={`${ui.card} p-8 text-center`}>
             <h2 className="text-xl font-black">حساب رانندگی شما غیرفعال است</h2>
-            <p className="mt-3 text-sm leading-7 text-white/60">
+            <p className="mt-3 text-sm leading-7 text-fg/60">
               برای پیگیری با پشتیبانی ماکان بار تماس بگیرید.
             </p>
           </section>
@@ -584,7 +584,7 @@ export default function DriverPage() {
                 onClick={() => setActiveTab("available")}
                 className={`${ui.card} p-4 text-right sm:p-5`}
               >
-                <p className="text-sm text-white/50">بارهای آزاد</p>
+                <p className="text-sm text-fg/60">بارهای آزاد</p>
                 <p className="mt-1 text-2xl font-black text-brand sm:text-3xl">
                   {filteredLoads.length.toLocaleString("fa-IR")}
                 </p>
@@ -594,7 +594,7 @@ export default function DriverPage() {
                 onClick={() => setActiveTab("mine")}
                 className={`${ui.card} p-4 text-right sm:p-5`}
               >
-                <p className="text-sm text-white/50">کارهای جاری من</p>
+                <p className="text-sm text-fg/60">کارهای جاری من</p>
                 <p className="mt-1 text-2xl font-black sm:text-3xl">
                   {activeJobs.toLocaleString("fa-IR")}
                 </p>
@@ -609,8 +609,8 @@ export default function DriverPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`rounded-xl px-5 py-3 text-sm font-bold transition ${
                     activeTab === tab.id
-                      ? "bg-white text-ink"
-                      : "bg-white/5 text-white/70 hover:bg-white/10"
+                      ? "bg-fg text-fg"
+                      : "bg-surface-2 text-fg/70 hover:bg-fg/10"
                   }`}
                 >
                   {tab.label}
@@ -619,7 +619,7 @@ export default function DriverPage() {
               <button
                 type="button"
                 onClick={() => void refresh()}
-                className="mr-auto rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/70 hover:bg-white/5"
+                className="mr-auto rounded-xl border border-fg/10 px-4 py-3 text-sm font-bold text-fg/70 hover:bg-fg/5"
               >
                 بروزرسانی
               </button>
@@ -641,7 +641,7 @@ export default function DriverPage() {
                   : myLoads.map((load) => loadCard(load, true)))}
 
               {activeTab === "profile" && (
-                <dl className={`${ui.card} divide-y divide-white/10 text-sm`}>
+                <dl className={`${ui.card} divide-y divide-fg/10 text-sm`}>
                   {[
                     ["نام", profile.full_name],
                     ["موبایل", profile.phone],
@@ -651,7 +651,7 @@ export default function DriverPage() {
                     ["وضعیت حساب", "تأیید شده ✓"],
                   ].map(([label, value]) => (
                     <div key={label} className="flex items-center justify-between gap-4 p-4">
-                      <dt className="text-white/50">{label}</dt>
+                      <dt className="text-fg/60">{label}</dt>
                       <dd className="font-bold" dir={label === "موبایل" ? "ltr" : undefined}>
                         {value || "—"}
                       </dd>
@@ -665,14 +665,14 @@ export default function DriverPage() {
       </div>
 
       {approved && (
-        <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-white/10 bg-ink-2/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl sm:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-fg/10 bg-surface-2/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl sm:hidden">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center gap-1 rounded-xl py-2 text-xs ${
-                activeTab === tab.id ? "bg-white/10 font-bold text-brand-2" : "text-white/55"
+                activeTab === tab.id ? "bg-fg/10 font-bold text-brand-2" : "text-fg/55"
               }`}
             >
               <span className="text-lg">{tab.icon}</span>

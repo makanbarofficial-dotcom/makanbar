@@ -81,7 +81,7 @@ export default function RepresentativesPage() {
           </span>
           <h1 className="mt-4 text-3xl font-black sm:text-4xl">نمایندگی‌ها</h1>
           {!loading && representatives.length > 0 && (
-            <p className="mt-3 text-white/60">
+            <p className="mt-3 text-fg/60">
               {representatives.length.toLocaleString("fa-IR")} نمایندگی در{" "}
               {provinceCount.toLocaleString("fa-IR")} استان
             </p>
@@ -89,7 +89,7 @@ export default function RepresentativesPage() {
         </div>
 
         <div className="relative mx-auto mt-8 max-w-xl">
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-lg text-white/40">
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-lg text-fg/55">
             🔍
           </span>
           <input
@@ -104,7 +104,7 @@ export default function RepresentativesPage() {
               type="button"
               onClick={() => setSearch("")}
               aria-label="پاک کردن جستجو"
-              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-white/50 hover:bg-white/10"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-fg/60 hover:bg-fg/10"
             >
               ✕
             </button>
@@ -114,7 +114,7 @@ export default function RepresentativesPage() {
         <section className="mt-8 grid gap-4 md:grid-cols-2">
           {loading &&
             [0, 1].map((key) => (
-              <div key={key} className={`${ui.card} h-52 animate-pulse`} />
+              <div key={key} className={`${ui.card} h-52 animate-pulse bg-surface-3`} />
             ))}
 
           {!loading &&
@@ -128,13 +128,13 @@ export default function RepresentativesPage() {
                   className={`flex flex-col rounded-2xl border p-5 sm:p-6 ${
                     isHeadOffice
                       ? "border-brand/40 bg-brand/[0.07]"
-                      : "border-white/10 bg-white/[0.04]"
+                      : "border-fg/10 bg-surface-2"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h2 className="text-xl font-black">{city}</h2>
-                      <p className="mt-1 text-sm text-white/50">استان {province}</p>
+                      <p className="mt-1 text-sm text-fg/60">استان {province}</p>
                       {rep.name && (
                         <p className="mt-2 text-sm font-bold text-brand-2">{rep.name}</p>
                       )}
@@ -147,7 +147,7 @@ export default function RepresentativesPage() {
                   </div>
 
                   {rep.address && (
-                    <p className="mt-4 flex gap-2 text-sm leading-7 text-white/75">
+                    <p className="mt-4 flex gap-2 text-sm leading-7 text-fg/75">
                       <span aria-hidden="true">📍</span>
                       {rep.address}
                     </p>
@@ -175,7 +175,7 @@ export default function RepresentativesPage() {
                   </div>
 
                   {rep.phone && rep.mobile && (
-                    <p className="mt-3 text-center text-xs text-white/45">
+                    <p className="mt-3 text-center text-xs text-fg/45">
                       تلفن ثابت:{" "}
                       <a href={`tel:${rep.phone}`} dir="ltr" className="hover:text-brand-2">
                         {rep.phone}
@@ -193,7 +193,7 @@ export default function RepresentativesPage() {
             <h2 className="mt-3 text-lg font-black">
               {query ? `در «${query}» هنوز نمایندگی نداریم` : "هنوز نمایندگی ثبت نشده است"}
             </h2>
-            <p className="mt-2 text-sm leading-7 text-white/60">
+            <p className="mt-2 text-sm leading-7 text-fg/60">
               بار شما را از دفتر مرکزی تهران هماهنگ می‌کنیم؛ کافی است تماس بگیرید یا بار را
               آنلاین ثبت کنید.
             </p>
@@ -208,10 +208,10 @@ export default function RepresentativesPage() {
           </div>
         )}
 
-        <section className="mt-12 flex flex-col items-start gap-4 rounded-2xl border border-white/10 bg-ink-2/60 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mt-12 flex flex-col items-start gap-4 rounded-2xl border border-fg/10 bg-surface-2/60 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-black">می‌خواهید نماینده ماکان بار شوید؟</h2>
-            <p className="mt-1 text-sm text-white/60">با دفتر مرکزی تماس بگیرید.</p>
+            <p className="mt-1 text-sm text-fg/60">با دفتر مرکزی تماس بگیرید.</p>
           </div>
           <a href={`tel:${PHONES[0]}`} dir="ltr" className="font-black text-brand-2 hover:text-brand">
             {formatPhone(PHONES[0])}

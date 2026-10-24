@@ -56,7 +56,7 @@ export function UpdateChecker() {
   if (!updateReady) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-24 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-brand/40 bg-ink-2 px-4 py-3 text-sm text-white shadow-2xl sm:bottom-6">
+    <div className="fixed inset-x-3 bottom-24 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-brand/40 bg-surface-2 px-4 py-3 text-sm text-fg shadow-2xl sm:bottom-6">
       <span className="flex-1">نسخه‌ی جدید سایت آماده است.</span>
       <button
         type="button"

@@ -24,9 +24,9 @@ type Place = { province: string; city: string };
 const empty: Place = { province: "", city: "" };
 
 const field =
-  "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/30 focus:border-orange-500";
+  "w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 outline-none placeholder:text-fg/45 focus:border-orange-500";
 const select =
-  "w-full rounded-2xl border border-white/10 bg-ink-2 px-4 py-3 outline-none focus:border-orange-500 disabled:opacity-50";
+  "w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-3 outline-none focus:border-orange-500 disabled:opacity-50";
 
 const ALL_TYPES = Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[];
 
@@ -213,7 +213,7 @@ export function PhoneOrderForm({
   function placePicker(title: string, place: Place, setPlace: (p: Place) => void, limit?: Place[]) {
     return (
       <fieldset>
-        <legend className="mb-2 text-sm font-bold text-orange-300">{title} *</legend>
+        <legend className="mb-2 text-sm font-bold text-orange-700">{title} *</legend>
         <div className="grid grid-cols-2 gap-2">
           <select
             aria-label={`استان ${title}`}
@@ -260,7 +260,7 @@ export function PhoneOrderForm({
           type="button"
           onClick={onClose}
           aria-label="بستن"
-          className="rounded-lg px-3 py-1 text-white/50 hover:bg-white/10"
+          className="rounded-lg px-3 py-1 text-fg/60 hover:bg-fg/10"
         >
           ✕
         </button>
@@ -287,7 +287,7 @@ export function PhoneOrderForm({
             className={`rounded-2xl border py-3 font-bold transition ${
               shipmentType === type
                 ? "border-orange-400 bg-orange-500/15"
-                : "border-white/10 bg-white/5 text-white/70"
+                : "border-fg/10 bg-surface-2 text-fg/70"
             }`}
           >
             {SHIPMENT_TYPE_LABELS[type]}
@@ -315,7 +315,7 @@ export function PhoneOrderForm({
               className={`rounded-2xl border py-3 text-sm font-bold transition ${
                 deliveryMode === mode
                   ? "border-orange-400 bg-orange-500/15"
-                  : "border-white/10 bg-white/5 text-white/70"
+                  : "border-fg/10 bg-surface-2 text-fg/70"
               }`}
             >
               {DELIVERY_MODE_LABELS[mode]}
@@ -325,7 +325,7 @@ export function PhoneOrderForm({
       )}
 
       {isIntracity && (
-        <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="space-y-2 rounded-2xl border border-fg/10 bg-surface-2 p-4">
           <label className="flex cursor-pointer items-center gap-3 text-sm font-bold">
             <input
               type="checkbox"
@@ -338,14 +338,14 @@ export function PhoneOrderForm({
 
           {fromCompany &&
             (!origin.city ? (
-              <p className="text-xs text-white/50">اول شهر را انتخاب کنید.</p>
+              <p className="text-xs text-fg/60">اول شهر را انتخاب کنید.</p>
             ) : cityTerminals.length === 0 ? (
-              <p className="text-xs leading-6 text-orange-200">
+              <p className="text-xs leading-6 text-orange-700">
                 برای این شهر آدرس شرکت ثبت نشده است (بخش نمایندگان)؛ تیک را بردارید و آدرس مبدا را
                 بنویسید.
               </p>
             ) : cityTerminals.length === 1 ? (
-              <p className="text-xs leading-6 text-emerald-300">{terminalAddress(cityTerminals[0])}</p>
+              <p className="text-xs leading-6 text-emerald-700">{terminalAddress(cityTerminals[0])}</p>
             ) : (
               <select
                 aria-label="باربری مبدا"
@@ -407,7 +407,7 @@ export function PhoneOrderForm({
             className={field}
           />
           {priceValue != null && (
-            <p className="mt-1 text-xs font-bold text-emerald-300">{formatPrice(priceValue)}</p>
+            <p className="mt-1 text-xs font-bold text-emerald-700">{formatPrice(priceValue)}</p>
           )}
         </div>
       </div>
@@ -423,7 +423,7 @@ export function PhoneOrderForm({
       <textarea name="description" rows={2} placeholder="توضیحات" className={`${field} resize-none`} />
 
       {error && (
-        <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700">
           {error}
         </p>
       )}

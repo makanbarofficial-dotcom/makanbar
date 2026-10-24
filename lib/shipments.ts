@@ -223,20 +223,20 @@ export function regionLabel(
 export function statusTone(status: string | null) {
   switch (status || "جدید") {
     case "جدید":
-      return "bg-sky-500/15 text-sky-300";
+      return "bg-sky-500/15 text-sky-700";
     case "در حال پیگیری":
     case "تأیید شده":
-      return "bg-amber-500/15 text-amber-300";
+      return "bg-amber-500/15 text-amber-700";
     case "ارسال به رانندگان":
     case "راننده تعیین شد":
     case "در حال حمل":
-      return "bg-orange-500/15 text-orange-300";
+      return "bg-orange-500/15 text-orange-700";
     case "انجام شد":
-      return "bg-emerald-500/15 text-emerald-300";
+      return "bg-emerald-500/15 text-emerald-700";
     case "لغو شد":
-      return "bg-red-500/15 text-red-300";
+      return "bg-red-500/15 text-red-700";
     default:
-      return "bg-white/10 text-white/70";
+      return "bg-fg/10 text-fg/70";
   }
 }
 

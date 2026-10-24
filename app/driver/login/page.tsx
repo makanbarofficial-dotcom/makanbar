@@ -115,7 +115,7 @@ export default function DriverLoginPage() {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="password" className="text-sm font-bold text-white/80">
+            <label htmlFor="password" className="text-sm font-bold text-fg/80">
               رمز عبور
             </label>
             <Link href="/driver/forgot-password" className="text-xs text-brand-2 hover:text-brand">
