@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brand, ui } from "@/components/ui";
+import { RepresentativesList } from "@/components/representatives-list";
 import {
   DELIVERY_MODE_HINTS,
   DELIVERY_MODE_LABELS,
@@ -85,7 +86,7 @@ export default function CustomerPanelPage() {
   // حساب واردشده صاحب بار نیست (مثلاً مدیر، متصدی یا راننده)
   const [notCustomer, setNotCustomer] = useState(false);
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
-  const [activeTab, setActiveTab] = useState<"list" | "create">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "create" | "reps">("list");
 
   const [shipmentType, setShipmentType] = useState<ShipmentType>("full");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("door_to_door");
@@ -403,6 +404,7 @@ export default function CustomerPanelPage() {
             [
               ["list", "بارهای من"],
               ["create", "ثبت بار جدید"],
+              ["reps", "📍 نمایندگان"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -430,6 +432,13 @@ export default function CustomerPanelPage() {
           <div className="mt-6 rounded-2xl border border-green-400/20 bg-green-500/10 px-4 py-3 text-sm text-green-700">
             {formSuccess}
           </div>
+        )}
+
+        {/* نشانی و شماره‌ی نمایندگان شهرها برای هماهنگی صاحب بار */}
+        {activeTab === "reps" && (
+          <section className="mt-5 sm:mt-6">
+            <RepresentativesList supabase={supabase} />
+          </section>
         )}
 
         {activeTab === "list" && (
@@ -899,7 +908,7 @@ export default function CustomerPanelPage() {
       </div>
 
       {/* منوی پایین موبایل */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-fg/10 bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-[1fr_1.2fr_1fr] gap-2 border-t border-fg/10 bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
         <button
           type="button"
           onClick={() => setActiveTab("list")}
@@ -920,6 +929,15 @@ export default function CustomerPanelPage() {
           }`}
         >
           ＋ ثبت بار جدید
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("reps")}
+          className={`rounded-2xl py-3 text-sm font-bold transition ${
+            activeTab === "reps" ? "bg-fg text-white" : "bg-surface-2 text-fg/70"
+          }`}
+        >
+          📍 نمایندگان
         </button>
       </nav>
     </main>
