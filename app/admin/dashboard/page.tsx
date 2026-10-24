@@ -358,17 +358,24 @@ export default function AdminDashboardPage() {
 
   // متصدیانی که این بار را در پنل خود می‌بینند:
   // خرده‌بار «تهران ← این شهر» برای متصدی بین‌شهری، بار درون‌شهری برای متصدی درون‌شهری همان شهر
+  // و خرده‌بار شهرستان ← هر جا برای نماینده‌ی شهر مبدا
   function responsibleStaff(item: RequestItem) {
     const kind: StaffKind | null =
       item.shipment_type === "intracity"
         ? "intracity"
-        : item.shipment_type === "partial" && item.direction === "from_tehran"
-          ? "intercity"
+        : item.shipment_type === "partial"
+          ? item.direction === "from_tehran"
+            ? "intercity"
+            : "origin"
           : null;
 
     if (!kind) {
       return [];
     }
+
+    // نماینده با شهر مبدا مقایسه می‌شود، بقیه با شهر ذخیره‌شده (مقصد یا شهر درون‌شهری)
+    const province = kind === "origin" ? item.origin_province : item.city_province;
+    const city = kind === "origin" ? item.origin_city : item.city;
 
     return staff.filter(
       (member) =>
@@ -376,10 +383,10 @@ export default function AdminDashboardPage() {
         (member.kind ?? "intercity") === kind &&
         (staffLocations[member.id] || []).some(
           (location) =>
-            location.province === item.city_province &&
+            location.province === province &&
             (!location.city ||
               location.city === "*" ||
-              location.city === item.city)
+              location.city === city)
         )
     );
   }
@@ -2392,8 +2399,14 @@ ${formatPrice(price)}`)) {
 
                       {(item.shipment_type === "partial" || item.shipment_type === "intracity") && (
                         <div className="mt-3 rounded-2xl bg-black/10 p-4 text-sm">
-                          <p className="text-xs text-white/40">متصدی مسئول</p>
-                          {item.shipment_type === "partial" && item.direction !== "from_tehran" ? (
+                          <p className="text-xs text-white/40">
+                            {item.shipment_type === "partial" && item.direction !== "from_tehran"
+                              ? "نماینده‌ی شهر مبدا"
+                              : "متصدی مسئول"}
+                          </p>
+                          {item.shipment_type === "partial" &&
+                          item.direction !== "from_tehran" &&
+                          !item.origin_province ? (
                             <p className="mt-1 text-white/75">
                               {item.direction ? DIRECTION_LABELS[item.direction] : "مسیر نامشخص"} · فقط مدیریت
                             </p>
@@ -2406,8 +2419,12 @@ ${formatPrice(price)}`)) {
                           ) : (
                             <p className="mt-1 font-bold text-red-300">
                               برای{" "}
-                              {regionLabel(item.city_province, item.city)}{" "}
-                              متصدی فعالی تعیین نشده است.
+                              {item.shipment_type === "partial" && item.direction !== "from_tehran"
+                                ? regionLabel(item.origin_province, item.origin_city)
+                                : regionLabel(item.city_province, item.city)}{" "}
+                              {item.shipment_type === "partial" && item.direction !== "from_tehran"
+                                ? "نماینده‌ی فعالی تعیین نشده است."
+                                : "متصدی فعالی تعیین نشده است."}
                             </p>
                           )}
                           {item.staff_note && (
@@ -2886,7 +2903,7 @@ ${formatPrice(price)}`)) {
                       className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 outline-none placeholder:text-white/30 focus:border-orange-500"
                     />
 
-                    <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/10 p-1">
+                    <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/10 p-1">
                       {(Object.keys(STAFF_KIND_LABELS) as StaffKind[]).map((kind) => (
                         <button
                           key={kind}
@@ -2901,7 +2918,7 @@ ${formatPrice(price)}`)) {
                               : "text-white/60 hover:text-white")
                           }
                         >
-                          {kind === "intracity" ? "🏙 " : "📦 "}
+                          {kind === "intracity" ? "🏙 " : kind === "origin" ? "🏢 " : "📦 "}
                           {STAFF_KIND_LABELS[kind]}
                         </button>
                       ))}
@@ -2909,7 +2926,9 @@ ${formatPrice(price)}`)) {
                     <p className="-mt-2 text-xs leading-6 text-white/40">
                       {staffForm.kind === "intracity"
                         ? "بارهای درون‌شهری شهرهای انتخاب‌شده را می‌بیند، بار تلفنی ثبت می‌کند و بار را برای رانندگان می‌فرستد."
-                        : "خرده‌بارهای «تهران ← شهرهای انتخاب‌شده» را می‌بیند و کرایه تعیین می‌کند."}
+                        : staffForm.kind === "origin"
+                          ? "خرده‌بارهایی که از شهر انتخاب‌شده به تهران یا شهرهای دیگر می‌روند را می‌بیند، کرایه تعیین می‌کند و بار تلفنی ثبت می‌کند."
+                          : "خرده‌بارهای «تهران ← شهرهای انتخاب‌شده» را می‌بیند و کرایه تعیین می‌کند."}
                     </p>
 
                     <div className="rounded-2xl border border-white/10 bg-black/10 p-4">

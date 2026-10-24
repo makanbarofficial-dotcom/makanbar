@@ -248,6 +248,8 @@ export default function CustomerPanelPage() {
       direction: routing.direction,
       city_province: routing.province,
       city: routing.city,
+      origin_province: origin.province,
+      origin_city: origin.city,
       origin: placeLabel(origin.province, origin.city),
       destination: placeLabel(target.province, target.city),
       pickup_address: showAddresses ? pickupAddress : null,

@@ -111,6 +111,7 @@ export default function EmployeePanelPage() {
 
     // دیتابیس فقط بارهای شهرهای این متصدی را برمی‌گرداند:
     // متصدی بین‌شهری خرده‌بار «تهران ← شهر او»، متصدی درون‌شهری بار درون‌شهری شهر او
+    // نماینده: خرده‌بارهایی که مبدا آن‌ها شهر خودش است (دیتابیس فقط همان‌ها را برمی‌گرداند)
     const intracity = staff.kind === "intracity";
     let requestsQuery = supabase
       .from("requests")
@@ -118,7 +119,9 @@ export default function EmployeePanelPage() {
       .order("created_at", { ascending: false });
     requestsQuery = intracity
       ? requestsQuery.eq("shipment_type", "intracity")
-      : requestsQuery.eq("shipment_type", "partial").eq("direction", "from_tehran");
+      : staff.kind === "origin"
+        ? requestsQuery.eq("shipment_type", "partial").neq("direction", "from_tehran")
+        : requestsQuery.eq("shipment_type", "partial").eq("direction", "from_tehran");
 
     const [{ data: locationRows }, { data: rows, error: requestsError }, { data: published }] =
       await Promise.all([
@@ -441,6 +444,12 @@ export default function EmployeePanelPage() {
   }
 
   const isIntracity = profile?.kind === "intracity";
+  const isOriginRep = profile?.kind === "origin";
+  const canPhoneOrder = isIntracity || isOriginRep;
+  const myAreas = locations.map((location) => ({
+    province: location.province,
+    city: location.city && location.city !== "*" ? location.city : "",
+  }));
   const newCount = requests.filter((item) => (item.status || "جدید") === "جدید").length;
   const activeCount = requests.filter(
     (item) => !FINISHED.includes(item.status || "جدید")
@@ -450,7 +459,9 @@ export default function EmployeePanelPage() {
     <main dir="rtl" className="min-h-screen bg-ink text-white">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 backdrop-blur-xl">
         <div className="mx-auto flex min-h-20 max-w-6xl items-center justify-between gap-4 px-5">
-          <Brand subtitle={isIntracity ? "پنل متصدی درون‌شهری" : "پنل متصدیان"} />
+          <Brand
+            subtitle={isIntracity ? "پنل متصدی درون‌شهری" : isOriginRep ? "پنل نمایندگان" : "پنل متصدیان"}
+          />
 
           <div className="flex items-center gap-3">
             {profile?.name && (
@@ -503,7 +514,9 @@ export default function EmployeePanelPage() {
               <p className="mt-4 text-xs leading-6 text-white/40">
                 {isIntracity
                   ? "بارهای درون‌شهری شهرهای شما در این پنل نمایش داده می‌شوند. کرایه را تعیین کنید و بار را برای رانندگان بفرستید."
-                  : "خرده‌بارهایی که از تهران به شهرهای شما ارسال می‌شوند در این پنل نمایش داده می‌شوند."}
+                  : isOriginRep
+                    ? "خرده‌بارهایی که از شهر شما به تهران یا شهرهای دیگر ارسال می‌شوند در این پنل نمایش داده می‌شوند."
+                    : "خرده‌بارهایی که از تهران به شهرهای شما ارسال می‌شوند در این پنل نمایش داده می‌شوند."}
               </p>
             </section>
 
@@ -523,16 +536,24 @@ export default function EmployeePanelPage() {
             </section>
 
             {/* متصدی درون‌شهری درخواست ماشین ندارد؛ بارها را مستقیم برای رانندگان می‌فرستد */}
-            <div className="mt-8 grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
+            <div
+              className={`mt-8 grid gap-2 rounded-2xl bg-white/5 p-1 ${isOriginRep ? "grid-cols-3" : "grid-cols-2"}`}
+            >
               {(isIntracity
                 ? ([
                     ["loads", "🏙 بارهای شهر"],
                     ["phone", "📞 بار تلفنی"],
                   ] as const)
-                : ([
-                    ["loads", "📦 خرده‌بارها"],
-                    ["vehicles", "🚚 درخواست ماشین"],
-                  ] as const)
+                : isOriginRep
+                  ? ([
+                      ["loads", "📦 خرده‌بارها"],
+                      ["phone", "📞 بار تلفنی"],
+                      ["vehicles", "🚚 درخواست ماشین"],
+                    ] as const)
+                  : ([
+                      ["loads", "📦 خرده‌بارها"],
+                      ["vehicles", "🚚 درخواست ماشین"],
+                    ] as const)
               ).map(([id, label]) => (
                 <button
                   key={id}
@@ -547,19 +568,13 @@ export default function EmployeePanelPage() {
               ))}
             </div>
 
-            {view === "phone" && isIntracity ? (
+            {view === "phone" && canPhoneOrder ? (
               <div className="mt-5">
                 <PhoneOrderForm
                   supabase={supabase}
-                  types={["intracity"]}
-                  areas={locations.map((location) => ({
-                    province: location.province,
-                    city: location.city && location.city !== "*" ? location.city : "",
-                  }))}
-                  defaultCity={{
-                    province: locations[0]?.province ?? "",
-                    city: locations[0]?.city && locations[0].city !== "*" ? locations[0].city : "",
-                  }}
+                  types={isIntracity ? ["intracity"] : ["partial"]}
+                  areas={myAreas}
+                  defaultCity={myAreas[0] ?? { province: "", city: "" }}
                   onCreated={(row) => {
                     setRequests((current) => [row, ...current]);
                     setPrices((current) => ({
@@ -567,7 +582,11 @@ export default function EmployeePanelPage() {
                       [row.id]: row.price != null ? String(row.price) : "",
                     }));
                     setView("loads");
-                    alert("بار تلفنی ثبت شد. حالا می‌توانید آن را برای رانندگان بفرستید.");
+                    alert(
+                      isIntracity
+                        ? "بار تلفنی ثبت شد. حالا می‌توانید آن را برای رانندگان بفرستید."
+                        : "بار تلفنی ثبت شد."
+                    );
                   }}
                   onClose={() => setView("loads")}
                 />

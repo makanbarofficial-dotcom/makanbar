@@ -5,6 +5,7 @@ import soap from "npm:soap";
 // پیامک اطلاع‌رسانی بار جدید:
 //   خرده‌بار «تهران ← شهری که متصدی دارد»  → متصدی‌های آن شهر
 //   بار درون‌شهری → متصدی درون‌شهری همان شهر
+//   خرده‌بار شهرستان ← تهران یا شهرستان دیگر → نماینده‌ی شهر مبدا
 //   مدیران (ADMIN_PHONES و ADMIN_NOTIFY_PHONE) برای همه بارها، از جمله دربستی و شهرهای بدون متصدی
 // صاحب بار بعد از ثبت، این تابع را با شناسه بار صدا می‌زند؛ برای هر بار فقط یک‌بار پیامک می‌رود.
 
@@ -91,14 +92,14 @@ Deno.serve(async (req) => {
 
     const { requestId } = await req.json();
 
-    // بار تلفنی را مدیر یا متصدی درون‌شهری ثبت می‌کند؛ بقیه بارها را خود صاحب بار
+    // بار تلفنی را مدیر، متصدی درون‌شهری یا نماینده ثبت می‌کند؛ بقیه بارها را خود صاحب بار
     const [{ data: callerAdmin }, { data: callerStaff }] = await Promise.all([
       supabase.from("app_admins").select("auth_user_id").eq("auth_user_id", userId).maybeSingle(),
       supabase
         .from("staff")
-        .select("phone")
+        .select("phone, kind")
         .eq("auth_user_id", userId)
-        .eq("kind", "intracity")
+        .in("kind", ["intracity", "origin"])
         .eq("panel_enabled", true)
         .maybeSingle(),
     ]);
@@ -113,12 +114,14 @@ Deno.serve(async (req) => {
       .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
     if (!byAdmin) {
       claim = callerStaff
-        ? claim.is("customer_id", null).eq("shipment_type", "intracity")
+        ? claim
+            .is("customer_id", null)
+            .eq("shipment_type", callerStaff.kind === "origin" ? "partial" : "intracity")
         : claim.eq("customer_id", userId);
     }
 
     const { data: request } = await claim
-      .select("id, shipment_type, direction, city_province, city, origin, destination")
+      .select("id, shipment_type, direction, city_province, city, origin_province, origin_city, origin, destination")
       .maybeSingle();
 
     if (!request) return json({ success: true, sent: 0 });
@@ -147,25 +150,28 @@ Deno.serve(async (req) => {
       }
     }
 
-    // متصدی بین‌شهری: خرده‌بار تهران ← شهر او؛ متصدی درون‌شهری: بار درون‌شهری شهر او
+    // متصدی بین‌شهری: خرده‌بار تهران ← شهر او؛ متصدی درون‌شهری: بار درون‌شهری شهر او؛
+    // نماینده: خرده‌باری که از شهر او بیرون می‌رود (با شهر مبدا مقایسه می‌شود)
     const staffKind = request.shipment_type === "intracity"
       ? "intracity"
-      : request.shipment_type === "partial" && request.direction === "from_tehran"
-        ? "intercity"
+      : request.shipment_type === "partial"
+        ? request.direction === "from_tehran" ? "intercity" : "origin"
         : null;
+    const areaProvince = staffKind === "origin" ? request.origin_province : request.city_province;
+    const areaCity = staffKind === "origin" ? request.origin_city : request.city;
     const callerPhone = callerStaff?.phone ? toSmsNumber(callerStaff.phone) : null;
 
-    if (staffKind) {
+    if (staffKind && areaProvince) {
       const { data: staff } = await supabase
         .from("staff")
         .select("phone, staff_locations!inner(province, city)")
         .eq("panel_enabled", true)
         .eq("kind", staffKind)
-        .eq("staff_locations.province", request.city_province);
+        .eq("staff_locations.province", areaProvince);
 
       for (const member of staff ?? []) {
         // deno-lint-ignore no-explicit-any
-        const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === "*" || loc.city === request.city);
+        const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === "*" || loc.city === areaCity);
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
         // کسی که خودش بار تلفنی را ثبت کرده پیامک نمی‌گیرد
@@ -174,7 +180,9 @@ Deno.serve(async (req) => {
             phone,
             staffKind === "intracity"
               ? `ماکان بار: بار درون‌شهری جدید در ${request.destination} ثبت شد.`
-              : `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`,
+              : staffKind === "origin"
+                ? `ماکان بار: خرده‌بار جدید از ${request.origin} به ${request.destination} ثبت شد.`
+                : `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`,
           );
         }
       }

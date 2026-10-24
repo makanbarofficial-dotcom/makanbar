@@ -31,8 +31,8 @@ const select =
 const ALL_TYPES = Object.keys(SHIPMENT_TYPE_LABELS) as ShipmentType[];
 
 // ثبت بار برای مشتری‌ای که تلفنی تماس گرفته؛ بار به هیچ حساب صاحب باری وصل نیست.
-// مدیر همه نوع بار ثبت می‌کند؛ متصدی درون‌شهری فقط بار درون‌شهری شهرهای خودش
-// (types، defaultCity و areas: محدوده‌های او؛ شهر خالی یعنی کل استان).
+// مدیر همه نوع بار ثبت می‌کند؛ متصدی درون‌شهری فقط بار درون‌شهری شهرهای خودش و نماینده
+// فقط خرده‌بار با مبدا شهر خودش (types، defaultCity و areas: محدوده‌ی «مبدا»؛ شهر خالی یعنی کل استان).
 export function PhoneOrderForm({
   supabase,
   onCreated,
@@ -50,7 +50,7 @@ export function PhoneOrderForm({
 }) {
   const [shipmentType, setShipmentType] = useState<ShipmentType>(types[0]);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("door_to_door");
-  const [origin, setOrigin] = useState<Place>(types[0] === "intracity" ? defaultCity : empty);
+  const [origin, setOrigin] = useState<Place>(defaultCity);
   const [destination, setDestination] = useState<Place>(empty);
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
@@ -156,6 +156,8 @@ export function PhoneOrderForm({
         direction: routing.direction,
         city_province: routing.province,
         city: routing.city,
+        origin_province: origin.province,
+        origin_city: origin.city,
         origin: placeLabel(origin.province, origin.city),
         destination: placeLabel(target.province, target.city),
         pickup_address: showAddresses ? pickupAddress || null : null,
@@ -188,20 +190,22 @@ export function PhoneOrderForm({
     onCreated(data as ShipmentRequest);
   }
 
-  // فقط استان‌ها و شهرهای محدوده‌ی متصدی (اگر areas داده شده باشد)
-  const provinceOptions = areas
-    ? getProvinces().filter((item) => areas.some((area) => area.province === item.en))
-    : getProvinces();
+  // فقط استان‌ها و شهرهای محدوده‌ی متصدی/نماینده (اگر areas داده شده باشد)؛ فقط برای مبدا
+  function provinceOptions(restricted: boolean) {
+    return restricted && areas
+      ? getProvinces().filter((item) => areas.some((area) => area.province === item.en))
+      : getProvinces();
+  }
 
-  function cityOptions(province: string) {
+  function cityOptions(province: string, restricted: boolean) {
     const cities = getProvinceCities(province);
-    if (!areas) return cities;
+    if (!restricted || !areas) return cities;
     const inProvince = areas.filter((area) => area.province === province);
     if (inProvince.some((area) => !area.city)) return cities;
     return cities.filter((item) => inProvince.some((area) => area.city === item.en));
   }
 
-  function placePicker(title: string, place: Place, setPlace: (p: Place) => void) {
+  function placePicker(title: string, place: Place, setPlace: (p: Place) => void, restricted = false) {
     return (
       <fieldset>
         <legend className="mb-2 text-sm font-bold text-orange-300">{title} *</legend>
@@ -213,7 +217,7 @@ export function PhoneOrderForm({
             className={select}
           >
             <option value="">استان</option>
-            {provinceOptions.map((item) => (
+            {provinceOptions(restricted).map((item) => (
               <option key={item.en} value={item.en}>
                 {item.fa}
               </option>
@@ -227,7 +231,7 @@ export function PhoneOrderForm({
             className={select}
           >
             <option value="">شهر</option>
-            {cityOptions(place.province).map((item) => (
+            {cityOptions(place.province, restricted).map((item) => (
               <option key={item.en} value={item.en}>
                 {item.fa}
               </option>
@@ -288,10 +292,10 @@ export function PhoneOrderForm({
       )}
 
       {isIntracity ? (
-        placePicker("شهر", origin, setOrigin)
+        placePicker("شهر", origin, setOrigin, true)
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {placePicker("مبدا", origin, setOrigin)}
+          {placePicker("مبدا", origin, setOrigin, true)}
           {placePicker("مقصد", destination, setDestination)}
         </div>
       )}
