@@ -6,8 +6,14 @@ import { useRouter } from "next/navigation";
 import { Alert, AuthShell, ui } from "@/components/ui";
 import { normalizeDigits } from "@/lib/shipments";
 
-// مدیر با ایمیل یا شماره موبایل وارد می‌شود؛ شماره به ایمیل ساختگی تابع create-admin-user تبدیل می‌شود
-function loginEmail(identifier: string) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+);
+
+// مدیر با ایمیل یا شماره موبایل وارد می‌شود. برای شماره، ایمیل واقعی حساب از جدول مدیران
+// پیدا می‌شود (مدیر اصلی جیمیل دارد)؛ اگر پیدا نشد، همان ایمیل ساختگی 98…@admins.makanbar.com
+async function loginEmail(identifier: string) {
   const value = normalizeDigits(identifier).trim();
   if (value.includes("@")) return value;
 
@@ -17,13 +23,9 @@ function loginEmail(identifier: string) {
   else if (phone.startsWith("09")) phone = "98" + phone.slice(1);
   else if (phone.startsWith("9")) phone = "98" + phone;
 
-  return `${phone}@admins.makanbar.com`;
+  const { data } = await supabase.rpc("admin_login_email", { p_phone: `+${phone}` });
+  return typeof data === "string" && data ? data : `${phone}@admins.makanbar.com`;
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
 
 export default function AdminPage() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function AdminPage() {
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail(email),
+      email: await loginEmail(email),
       password,
     });
 
