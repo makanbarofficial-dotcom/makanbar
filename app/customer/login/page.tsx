@@ -77,7 +77,11 @@ export default function CustomerLoginPage() {
 
       if (loginError) {
         console.error("Customer login error:", loginError);
-        setError(`ورود انجام نشد: ${loginError.message}`);
+        setError(
+          loginError.code === "invalid_credentials"
+            ? "شماره موبایل یا رمز عبور اشتباه است."
+            : "ورود انجام نشد؛ اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+        );
         return;
       }
 
