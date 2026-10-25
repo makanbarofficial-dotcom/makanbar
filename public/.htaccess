@@ -13,6 +13,11 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # فایل تأیید اپ اندروید (Digital Asset Links)؛ کافه‌بازار آن را کنار آدرس شروع اپ (/app/) هم می‌خواهد
 RewriteRule ^(.+/)?\.well-known/assetlinks\.json$ /.well-known/assetlinks.json [L]
 
+# رله‌ی Supabase: همه‌ی درخواست‌های /sb/... به sb/index.php می‌رود (توکن ورود هم همراهش)
+RewriteRule ^sb/ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteCond %{REQUEST_URI} !^/sb/index\.php
+RewriteRule ^sb/ sb/index.php [L,QSA]
+
 <IfModule mod_headers.c>
   # فایل‌های _next/static نام یکتا دارند و برای همیشه کش می‌شوند
   <If "%{REQUEST_URI} =~ m#^/_next/static/#">
