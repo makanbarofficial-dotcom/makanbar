@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brand, ui } from "@/components/ui";
 import { RepresentativesList } from "@/components/representatives-list";
+import { AdminSessionNotice } from "@/components/admin-session-notice";
 import {
   DELIVERY_MODE_HINTS,
   DELIVERY_MODE_LABELS,
@@ -85,6 +86,8 @@ export default function CustomerPanelPage() {
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   // حساب واردشده صاحب بار نیست (مثلاً مدیر، متصدی یا راننده)
   const [notCustomer, setNotCustomer] = useState(false);
+  // با حساب مدیر وارد شده؛ صفحه‌ی انتخاب «پنل مدیریت / خروج» نشان داده می‌شود
+  const [adminSession, setAdminSession] = useState(false);
   const [requests, setRequests] = useState<ShipmentRequest[]>([]);
   const [activeTab, setActiveTab] = useState<"list" | "create" | "reps">("list");
 
@@ -153,13 +156,9 @@ export default function CustomerPanelPage() {
           .order("created_at", { ascending: false }),
       ]);
 
-    // مدیر که (مثلاً از اپ) به پنل صاحب بار رسیده، مستقیم به پنل مدیریت برود
     if (!customer) {
       const { data: isAdmin } = await supabase.rpc("is_admin");
-      if (isAdmin) {
-        router.replace("/admin/dashboard");
-        return;
-      }
+      setAdminSession(!!isAdmin);
     }
 
     if (customer) setProfile(customer as CustomerProfile);
@@ -330,6 +329,10 @@ export default function CustomerPanelPage() {
         <p className="font-bold">در حال بارگذاری پنل...</p>
       </main>
     );
+  }
+
+  if (adminSession) {
+    return <AdminSessionNotice panel="پنل صاحب بار" onLogout={logout} />;
   }
 
   if (notCustomer) {

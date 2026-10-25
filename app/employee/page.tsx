@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Brand } from "@/components/ui";
 import { VehicleRequests } from "./vehicle-requests";
 import { PhoneOrderForm } from "../admin/dashboard/phone-order";
+import { AdminSessionNotice } from "@/components/admin-session-notice";
 import {
   DELIVERY_MODE_LABELS,
   STAFF_STATUSES,
@@ -66,6 +67,8 @@ export default function EmployeePanelPage() {
   // بارهای درون‌شهری که این متصدی برای رانندگان فرستاده است
   const [publishedIds, setPublishedIds] = useState<Set<number>>(new Set());
   const [publishingId, setPublishingId] = useState<number | null>(null);
+  // با حساب مدیر وارد شده؛ صفحه‌ی انتخاب «پنل مدیریت / خروج» نشان داده می‌شود
+  const [adminSession, setAdminSession] = useState(false);
   // انتخاب راننده/پیک برای بار درون‌شهری
   const [drivers, setDrivers] = useState<DriverOption[]>([]);
   const [assignedDrivers, setAssignedDrivers] = useState<Record<number, string>>({});
@@ -102,13 +105,9 @@ export default function EmployeePanelPage() {
       return;
     }
 
-    // مدیر که (مثلاً از اپ) به پنل متصدیان رسیده، مستقیم به پنل مدیریت برود
     if (!staff) {
       const { data: isAdmin } = await supabase.rpc("is_admin");
-      if (isAdmin) {
-        router.replace("/admin/dashboard");
-        return;
-      }
+      setAdminSession(!!isAdmin);
     }
 
     setProfile(staff as StaffProfile | null);
@@ -450,6 +449,10 @@ export default function EmployeePanelPage() {
         <p className="font-bold">در حال بارگذاری پنل...</p>
       </main>
     );
+  }
+
+  if (adminSession) {
+    return <AdminSessionNotice panel="پنل متصدیان" onLogout={logout} />;
   }
 
   const isIntracity = profile?.kind === "intracity";

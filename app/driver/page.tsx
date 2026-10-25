@@ -13,6 +13,7 @@ import {
   vehicleFits,
 } from "@/lib/shipments";
 import { notifyCustomer } from "@/lib/notify";
+import { AdminSessionNotice } from "@/components/admin-session-notice";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -134,6 +135,8 @@ export default function DriverPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [filter, setFilter] = useState<LoadFilter>(DEFAULT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
+  // با حساب مدیر وارد شده؛ صفحه‌ی انتخاب «پنل مدیریت / خروج» نشان داده می‌شود
+  const [adminSession, setAdminSession] = useState(false);
 
   useEffect(() => {
     setFilter(readFilter());
@@ -188,13 +191,9 @@ export default function DriverPage() {
       return;
     }
 
-    // مدیر که (مثلاً از اپ) به پنل رانندگان رسیده، مستقیم به پنل مدیریت برود
     if (!driver) {
       const { data: isAdmin } = await supabase.rpc("is_admin");
-      if (isAdmin) {
-        router.replace("/admin/dashboard");
-        return;
-      }
+      setAdminSession(!!isAdmin);
     }
 
     setProfile(driver as DriverProfile | null);
@@ -527,6 +526,10 @@ export default function DriverPage() {
         <p className="font-bold">در حال بارگذاری پنل...</p>
       </main>
     );
+  }
+
+  if (adminSession) {
+    return <AdminSessionNotice panel="پنل رانندگان" onLogout={logout} />;
   }
 
   const approved = profile?.status === "approved";
