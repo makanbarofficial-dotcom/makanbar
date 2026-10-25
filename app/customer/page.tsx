@@ -153,6 +153,15 @@ export default function CustomerPanelPage() {
           .order("created_at", { ascending: false }),
       ]);
 
+    // مدیر که (مثلاً از اپ) به پنل صاحب بار رسیده، مستقیم به پنل مدیریت برود
+    if (!customer) {
+      const { data: isAdmin } = await supabase.rpc("is_admin");
+      if (isAdmin) {
+        router.replace("/admin/dashboard");
+        return;
+      }
+    }
+
     if (customer) setProfile(customer as CustomerProfile);
     setNotCustomer(!customer);
 

@@ -102,6 +102,15 @@ export default function EmployeePanelPage() {
       return;
     }
 
+    // مدیر که (مثلاً از اپ) به پنل متصدیان رسیده، مستقیم به پنل مدیریت برود
+    if (!staff) {
+      const { data: isAdmin } = await supabase.rpc("is_admin");
+      if (isAdmin) {
+        router.replace("/admin/dashboard");
+        return;
+      }
+    }
+
     setProfile(staff as StaffProfile | null);
 
     if (!staff || !staff.panel_enabled) {

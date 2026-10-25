@@ -188,6 +188,15 @@ export default function DriverPage() {
       return;
     }
 
+    // مدیر که (مثلاً از اپ) به پنل رانندگان رسیده، مستقیم به پنل مدیریت برود
+    if (!driver) {
+      const { data: isAdmin } = await supabase.rpc("is_admin");
+      if (isAdmin) {
+        router.replace("/admin/dashboard");
+        return;
+      }
+    }
+
     setProfile(driver as DriverProfile | null);
 
     if (!driver || driver.status !== "approved") {

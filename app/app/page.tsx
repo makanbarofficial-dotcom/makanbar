@@ -70,6 +70,11 @@ function AppStart() {
       <p className="mt-8 text-center text-xs text-fg/55">
         انتخاب شما ذخیره می‌شود و دفعه بعد مستقیم وارد پنل خود می‌شوید.
       </p>
+
+      {/* مدیران نوع حساب جدا در اپ ندارند؛ از اینجا مستقیم به پنل مدیریت می‌روند */}
+      <a href="/admin/" className="mt-4 block text-center text-sm font-bold text-fg/60 hover:text-brand-2">
+        🛡️ ورود مدیران
+      </a>
     </main>
   );
 }
