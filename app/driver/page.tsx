@@ -1,5 +1,6 @@
 "use client";
 
+import { PanelLoading } from "@/components/panel-loading";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -521,11 +522,7 @@ export default function DriverPage() {
   }
 
   if (loading) {
-    return (
-      <main dir="rtl" className="flex min-h-screen items-center justify-center">
-        <p className="font-bold">در حال بارگذاری پنل...</p>
-      </main>
-    );
+    return <PanelLoading />;
   }
 
   if (adminSession) {

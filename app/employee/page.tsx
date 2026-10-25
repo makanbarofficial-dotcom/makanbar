@@ -1,5 +1,6 @@
 "use client";
 
+import { PanelLoading } from "@/components/panel-loading";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -441,14 +442,7 @@ export default function EmployeePanelPage() {
   }
 
   if (loading) {
-    return (
-      <main
-        dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-surface text-fg"
-      >
-        <p className="font-bold">در حال بارگذاری پنل...</p>
-      </main>
-    );
+    return <PanelLoading />;
   }
 
   if (adminSession) {

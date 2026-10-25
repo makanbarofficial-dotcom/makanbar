@@ -1,5 +1,6 @@
 "use client";
 
+import { PanelLoading } from "@/components/panel-loading";
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -321,14 +322,7 @@ export default function CustomerPanelPage() {
   ).length;
 
   if (loading) {
-    return (
-      <main
-        dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-surface text-fg"
-      >
-        <p className="font-bold">در حال بارگذاری پنل...</p>
-      </main>
-    );
+    return <PanelLoading />;
   }
 
   if (adminSession) {

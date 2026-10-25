@@ -1,5 +1,6 @@
 "use client";
 
+import { PanelLoading } from "@/components/panel-loading";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -1912,22 +1913,7 @@ ${formatPrice(price)}`)) {
   }
 
   if (loading) {
-    return (
-      <main
-        dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-surface text-fg"
-      >
-        <div className="text-center">
-          <div className="mb-4 text-5xl">
-            🚛
-          </div>
-
-          <p className="font-bold">
-            در حال بارگذاری داشبورد...
-          </p>
-        </div>
-      </main>
-    );
+    return <PanelLoading />;
   }
 
   return (
