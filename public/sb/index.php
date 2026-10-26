@@ -69,31 +69,48 @@ if ($method === 'POST' && in_array($relayMethod, RELAY_METHODS, true)) {
 }
 $body = file_get_contents('php://input');
 
-$responseHeaders = [];
-$ch = curl_init(SUPABASE_URL . '/' . $path);
-curl_setopt_array($ch, [
-  CURLOPT_CUSTOMREQUEST => $method,
-  CURLOPT_HTTPHEADER => $headers,
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_ENCODING => '',
-  CURLOPT_CONNECTTIMEOUT => 15,
-  CURLOPT_TIMEOUT => 80,
-  CURLOPT_HEADERFUNCTION => function ($curl, $line) use (&$responseHeaders) {
-    $parts = explode(':', $line, 2);
-    if (count($parts) === 2) {
-      $name = trim($parts[0]);
-      if (!in_array(strtolower($name), SKIP_RESPONSE_HEADERS, true)) {
-        $responseHeaders[] = $name . ': ' . trim($parts[1]);
-      }
-    }
-    return strlen($line);
-  },
-]);
-if ($body !== '' && $method !== 'GET' && $method !== 'HEAD') {
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-}
+// ارتباط هاست با Supabase گاهی چند ثانیه بی‌جواب می‌ماند؛ به‌جای ۸۰ ثانیه انتظار، زود قطع
+// و دوباره فرستاده می‌شود. درخواستی که به Supabase نرسیده همیشه دوباره فرستاده می‌شود، ولی
+// درخواستی که شاید رسیده باشد فقط وقتی تکرارش بی‌خطر است (خواندن، ویرایش، حذف، ورود)؛
+// ثبت بار یا پیامک دوباره فرستاده نمی‌شود تا دوتا نشود.
+$repeatable = in_array($method, ['GET', 'HEAD', 'PATCH', 'DELETE', 'PUT'], true)
+  || strncmp($path, 'auth/v1/token', 13) === 0
+  || strncmp($path, 'functions/v1/admin-list-customers', 33) === 0
+  || strncmp($path, 'functions/v1/delete-staff-user', 30) === 0;
 
-$result = curl_exec($ch);
+for ($attempt = 1; $attempt <= 3; $attempt++) {
+  $responseHeaders = [];
+  $ch = curl_init(SUPABASE_URL . '/' . $path);
+  curl_setopt_array($ch, [
+    CURLOPT_CUSTOMREQUEST => $method,
+    CURLOPT_HTTPHEADER => $headers,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => '',
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CONNECTTIMEOUT => 6,
+    CURLOPT_TIMEOUT => 25,
+    CURLOPT_HEADERFUNCTION => function ($curl, $line) use (&$responseHeaders) {
+      $parts = explode(':', $line, 2);
+      if (count($parts) === 2) {
+        $name = trim($parts[0]);
+        if (!in_array(strtolower($name), SKIP_RESPONSE_HEADERS, true)) {
+          $responseHeaders[] = $name . ': ' . trim($parts[1]);
+        }
+      }
+      return strlen($line);
+    },
+  ]);
+  if ($body !== '' && $method !== 'GET' && $method !== 'HEAD') {
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+  }
+
+  $result = curl_exec($ch);
+  if ($result !== false) break;
+
+  $sent = curl_getinfo($ch, CURLINFO_PRETRANSFER_TIME) > 0;
+  if ($sent && !$repeatable) break;
+  if ($attempt < 3) usleep(500000);
+}
 
 if ($result === false) {
   http_response_code(502);

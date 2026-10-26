@@ -15,6 +15,18 @@ function relayFetch(input: RequestInfo | URL, init?: RequestInit) {
   return fetch(input, { ...init, method: "POST", headers });
 }
 
+// خطای تابع‌های سرور پیام فارسی را داخل بدنه‌ی پاسخ دارد؛ متن انگلیسی خود supabase-js
+// («Edge Function returned a non-2xx status code») به کاربر نشان داده نمی‌شود
+export async function functionErrorMessage(error: unknown, fallback = "ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید.") {
+  try {
+    const body = await (error as { context?: Response })?.context?.json();
+    if (body?.error || body?.message) return String(body.error || body.message);
+  } catch {
+    // بدنه قابل خواندن نبود
+  }
+  return fallback;
+}
+
 export function createSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

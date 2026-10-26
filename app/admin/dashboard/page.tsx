@@ -2,7 +2,7 @@
 
 import { PanelLoading } from "@/components/panel-loading";
 import { useEffect, useMemo, useState } from "react";
-import { createSupabase } from "@/lib/supabase";
+import { createSupabase, functionErrorMessage } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
   getCities,
@@ -1559,7 +1559,7 @@ ${formatPrice(price)}`)) {
             );
 
             alert(
-              `اطلاعات متصدی ذخیره شد، اما حساب پنل ساخته نشد: ${functionError.message}`
+              `اطلاعات متصدی ذخیره شد، اما حساب پنل ساخته نشد: ${await functionErrorMessage(functionError)}`
             );
 
             return;
@@ -1658,7 +1658,7 @@ ${formatPrice(price)}`)) {
           );
 
           alert(
-            `متصدی ثبت شد، اما حساب پنل ساخته نشد: ${functionError.message}`
+            `متصدی ثبت شد، اما حساب پنل ساخته نشد: ${await functionErrorMessage(functionError)}`
           );
 
           return;
@@ -1749,8 +1749,14 @@ ${formatPrice(price)}`)) {
         );
 
         alert(
-          `حذف متصدی انجام نشد: ${functionError.message}`
+          `حذف متصدی انجام نشد: ${await functionErrorMessage(functionError)}`
         );
+
+        // شاید حذف انجام شده و فقط جواب نرسیده باشد؛ فهرست از سرور تازه می‌شود
+        await Promise.all([
+          loadStaff(),
+          loadStaffLocations(),
+        ]);
 
         return;
       }
