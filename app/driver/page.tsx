@@ -2,7 +2,7 @@
 
 import { PanelLoading } from "@/components/panel-loading";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brand, ui } from "@/components/ui";
@@ -16,10 +16,7 @@ import {
 import { notifyCustomer } from "@/lib/notify";
 import { AdminSessionNotice } from "@/components/admin-session-notice";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+const supabase = createSupabase();
 
 type LoadStatus = "available" | "assigned" | "in_transit" | "delivered" | "cancelled";
 

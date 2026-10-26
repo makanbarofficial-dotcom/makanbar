@@ -1,14 +1,11 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "@/lib/supabase";
 import { SiteFooter, SiteHeader } from "@/components/site";
 import { RepresentativesList } from "@/components/representatives-list";
 import { PHONES, formatPhone } from "@/lib/contact";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+const supabase = createSupabase();
 
 export default function RepresentativesPage() {
   return (

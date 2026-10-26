@@ -2,7 +2,7 @@
 
 import { PanelLoading } from "@/components/panel-loading";
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Brand, ui } from "@/components/ui";
@@ -31,10 +31,7 @@ type Place = { province: string; city: string };
 
 const emptyPlace: Place = { province: "", city: "" };
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+const supabase = createSupabase();
 
 type CustomerProfile = {
   full_name: string | null;

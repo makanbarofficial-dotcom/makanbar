@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Alert, AuthShell, ui } from "@/components/ui";
 import { normalizeDigits } from "@/lib/shipments";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+const supabase = createSupabase();
 
 // مدیر با ایمیل یا شماره موبایل وارد می‌شود. برای شماره، ایمیل واقعی حساب از جدول مدیران
 // پیدا می‌شود (مدیر اصلی جیمیل دارد)؛ اگر پیدا نشد، همان ایمیل ساختگی 98…@admins.makanbar.com

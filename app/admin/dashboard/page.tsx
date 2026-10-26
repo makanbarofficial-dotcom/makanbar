@@ -2,7 +2,7 @@
 
 import { PanelLoading } from "@/components/panel-loading";
 import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
   getCities,
@@ -30,10 +30,7 @@ import { VehicleRequests } from "../../employee/vehicle-requests";
 import { PHONES } from "@/lib/contact";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+const supabase = createSupabase();
 
 type RequestItem = ShipmentRequest;
 

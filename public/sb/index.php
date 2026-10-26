@@ -12,7 +12,10 @@ const SUPABASE_URL = 'https://zuyzbxytfguuuojlydfb.supabase.co';
 // فقط همین بخش‌های Supabase رد می‌شوند
 const ALLOWED_PREFIXES = ['rest/v1/', 'auth/v1/', 'functions/v1/', 'storage/v1/'];
 // سربرگ‌هایی که از مرورگر به Supabase فرستاده نمی‌شوند
-const SKIP_REQUEST_HEADERS = ['host', 'cookie', 'content-length', 'accept-encoding', 'connection', 'origin', 'referer'];
+const SKIP_REQUEST_HEADERS = ['host', 'cookie', 'content-length', 'accept-encoding', 'connection', 'origin', 'referer', 'x-relay-method'];
+// فایروال هاست درخواست‌های PATCH و DELETE و PUT را می‌بندد (403)؛ مرورگر آن‌ها را با POST
+// و سربرگ X-Relay-Method می‌فرستد و این‌جا به روش اصلی برگردانده می‌شوند (lib/supabase.ts)
+const RELAY_METHODS = ['PATCH', 'DELETE', 'PUT'];
 // سربرگ‌هایی که از جواب Supabase به مرورگر برنمی‌گردند
 const SKIP_RESPONSE_HEADERS = ['transfer-encoding', 'content-encoding', 'content-length', 'connection', 'set-cookie', 'alt-svc', 'strict-transport-security'];
 
@@ -60,6 +63,10 @@ if (!$hasAuth) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$relayMethod = strtoupper($_SERVER['HTTP_X_RELAY_METHOD'] ?? '');
+if ($method === 'POST' && in_array($relayMethod, RELAY_METHODS, true)) {
+  $method = $relayMethod;
+}
 $body = file_get_contents('php://input');
 
 $responseHeaders = [];

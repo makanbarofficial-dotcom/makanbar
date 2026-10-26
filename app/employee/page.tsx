@@ -3,7 +3,7 @@
 import { PanelLoading } from "@/components/panel-loading";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Brand } from "@/components/ui";
 import { VehicleRequests } from "./vehicle-requests";
@@ -23,10 +23,7 @@ import {
   statusTone,
 } from "@/lib/shipments";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+const supabase = createSupabase();
 
 type StaffProfile = {
   id: number;
