@@ -52,6 +52,9 @@ const vehicleOptions: Record<string, string[]> = {
 
 const MOTOR = "پیک موتوری";
 
+// خودروهای سنگین باید شماره هوشمند ناوگان داشته باشند (driver-send-otp هم همین فهرست را دارد)
+const FLEET_CARD_TYPES = ["تریلی", "جفت", "تک", "خاور و کامیونت"];
+
 const plateLetters = [
   "الف", "ب", "پ", "ت", "ث", "ج", "چ", "ح", "خ", "د", "ذ", "ر",
   "ز", "ژ", "س", "ش", "ص", "ض", "ط", "ظ", "ع", "غ", "ف", "ق",
@@ -119,6 +122,8 @@ export default function DriverRegisterPage() {
   const [motorCode, setMotorCode] = useState("");
   const [motorNumber, setMotorNumber] = useState("");
   const isMotor = vehicleType === MOTOR;
+  const [fleetNumber, setFleetNumber] = useState("");
+  const needsFleetNumber = FLEET_CARD_TYPES.includes(vehicleType);
 
   const vehiclePlate = isMotor
     ? `${motorCode}-${motorNumber}`
@@ -151,6 +156,11 @@ export default function DriverRegisterPage() {
     const identityProblem = identityError(nationalCode, birth);
     if (identityProblem) {
       setError(identityProblem);
+      return;
+    }
+
+    if (needsFleetNumber && !/^\d{5,10}$/.test(fleetNumber)) {
+      setError("شماره هوشمند ناوگان را درست وارد کنید (فقط رقم).");
       return;
     }
 
@@ -187,6 +197,7 @@ export default function DriverRegisterPage() {
             vehicleType,
             vehicleModel,
             vehiclePlate,
+            fleetNumber: needsFleetNumber ? fleetNumber : "",
           },
         }
       );
@@ -370,6 +381,25 @@ export default function DriverRegisterPage() {
                   ))}
                 </select>
               </label>
+
+              {needsFleetNumber && (
+                <label className="block text-sm text-fg/70">
+                  شماره هوشمند ناوگان
+                  <input
+                    className={`${inputStyle} text-right`}
+                    dir="ltr"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={fleetNumber}
+                    onChange={(e) =>
+                      setFleetNumber(toEnglishDigits(e.target.value).replace(/\D/g, "").slice(0, 10))
+                    }
+                    placeholder="شماره روی کارت هوشمند"
+                    required
+                  />
+                </label>
+              )}
 
               {isMotor ? (
                 <div className="text-sm text-fg/70">

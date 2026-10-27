@@ -7,6 +7,9 @@ const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const OTP_SECRET = Deno.env.get("CUSTOMER_OTP_SECRET")!;
 
 const MIN_PASSWORD_LENGTH = 6;
+
+// خودروهای سنگین باید شماره هوشمند ناوگان داشته باشند (app/driver/register هم همین فهرست را دارد)
+const FLEET_CARD_TYPES = ["تریلی", "جفت", "تک", "خاور و کامیونت"];
 const MAX_PASSWORD_LENGTH = 128;
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -192,6 +195,8 @@ Deno.serve(async (req: Request) => {
     const phone = normalizeIranPhone(String(body.phone ?? ""));
     const nationalCode = normalizeDigits(String(body.nationalCode ?? "")).trim();
     const birthDate = normalizeDigits(String(body.birthDate ?? "")).trim();
+    const fleetNumber = normalizeDigits(String(body.fleetNumber ?? "")).replace(/\D/g, "");
+    const needsFleetNumber = FLEET_CARD_TYPES.includes(vehicleType);
 
     if (!fullName || !password || !vehicleType || !vehicleModel || !vehiclePlate) {
       return fail("نام، رمز عبور و اطلاعات خودرو الزامی هستند.");
@@ -211,6 +216,10 @@ Deno.serve(async (req: Request) => {
 
     if (!/^1[34]\d{2}\/\d{2}\/\d{2}$/.test(birthDate)) {
       return fail("تاریخ تولد را کامل انتخاب کنید.");
+    }
+
+    if (needsFleetNumber && !/^\d{5,10}$/.test(fleetNumber)) {
+      return fail("شماره هوشمند ناوگان را درست وارد کنید.");
     }
 
     const { data: existingDriver, error: lookupError } = await supabase
@@ -250,6 +259,7 @@ Deno.serve(async (req: Request) => {
           vehicle_plate: vehiclePlate,
           national_code: nationalCode,
           birth_date: birthDate,
+          fleet_smart_number: needsFleetNumber ? fleetNumber : null,
           password_hash: await encryptPassword(password),
           otp_code: otpCode,
           expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),

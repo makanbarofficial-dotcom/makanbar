@@ -88,6 +88,7 @@ type Driver = {
   vehicle_type: string | null;
   vehicle_model: string | null;
   vehicle_plate: string | null;
+  fleet_smart_number: string | null;
   national_code: string | null;
   birth_date: string | null;
   created_at: string;
@@ -656,7 +657,7 @@ export default function AdminDashboardPage() {
 
     const { data, error } = await supabase
       .from("driver_profiles")
-      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, created_at")
+      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, fleet_smart_number, national_code, birth_date, created_at")
       .order("created_at", { ascending: false });
 
     setDriverLoading(false);
@@ -3495,7 +3496,7 @@ ${formatPrice(price)}`)) {
                         </span>
                       </div>
 
-                      <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+                      <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                         <div className="rounded-2xl bg-surface-3 p-4">
                           <p className="text-xs text-fg/55">کد ملی</p>
                           <p dir="ltr" className="mt-1 text-right font-bold">{driver.national_code || "—"}</p>
@@ -3515,6 +3516,10 @@ ${formatPrice(price)}`)) {
                         <div className="rounded-2xl bg-surface-3 p-4">
                           <p className="text-xs text-fg/55">پلاک</p>
                           <p className="mt-1 font-bold">{driver.vehicle_plate || "—"}</p>
+                        </div>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">هوشمند ناوگان</p>
+                          <p dir="ltr" className="mt-1 text-right font-bold">{driver.fleet_smart_number || "—"}</p>
                         </div>
                       </div>
 

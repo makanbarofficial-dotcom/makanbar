@@ -401,6 +401,7 @@ Deno.serve(async (req: Request) => {
         vehicle_plate: otpRow.vehicle_plate,
         national_code: otpRow.national_code,
         birth_date: otpRow.birth_date,
+        fleet_smart_number: otpRow.fleet_smart_number,
         status: "approved",
       });
 
