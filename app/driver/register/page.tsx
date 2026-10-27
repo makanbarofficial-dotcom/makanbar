@@ -4,6 +4,12 @@ import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, AuthShell, ui } from "@/components/ui";
+import {
+  EMPTY_BIRTH_DATE,
+  IdentityFields,
+  formatBirthDate,
+  identityError,
+} from "@/components/identity-fields";
 
 const supabase = createSupabase();
 
@@ -92,6 +98,8 @@ export default function DriverRegisterPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [nationalCode, setNationalCode] = useState("");
+  const [birth, setBirth] = useState(EMPTY_BIRTH_DATE);
 
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
@@ -140,6 +148,12 @@ export default function DriverRegisterPage() {
       return;
     }
 
+    const identityProblem = identityError(nationalCode, birth);
+    if (identityProblem) {
+      setError(identityProblem);
+      return;
+    }
+
     if (
       isMotor
         ? !/^\d{3}$/.test(motorCode) || !/^\d{5}$/.test(motorNumber)
@@ -167,6 +181,8 @@ export default function DriverRegisterPage() {
           body: {
             fullName: name.trim(),
             phone: normalized,
+            nationalCode,
+            birthDate: formatBirthDate(birth),
             password,
             vehicleType,
             vehicleModel,
@@ -296,6 +312,13 @@ export default function DriverRegisterPage() {
                   required
                 />
               </label>
+
+              <IdentityFields
+                nationalCode={nationalCode}
+                onNationalCodeChange={setNationalCode}
+                birth={birth}
+                onBirthChange={setBirth}
+              />
 
               <label className="block text-sm text-fg/70">
                 رمز عبور

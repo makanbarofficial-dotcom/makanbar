@@ -88,6 +88,8 @@ type Driver = {
   vehicle_type: string | null;
   vehicle_model: string | null;
   vehicle_plate: string | null;
+  national_code: string | null;
+  birth_date: string | null;
   created_at: string;
 };
 
@@ -104,6 +106,8 @@ type Customer = {
   phone: string | null;
   company_name: string | null;
   address: string | null;
+  national_code: string | null;
+  birth_date: string | null;
   created_at: string | null;
 };
 
@@ -588,6 +592,7 @@ export default function AdminDashboardPage() {
         customer.phone,
         customer.company_name,
         customer.address,
+        customer.national_code,
       ]
         .filter(Boolean)
         .some((value) =>
@@ -651,7 +656,7 @@ export default function AdminDashboardPage() {
 
     const { data, error } = await supabase
       .from("driver_profiles")
-      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, created_at")
+      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, created_at")
       .order("created_at", { ascending: false });
 
     setDriverLoading(false);
@@ -3387,11 +3392,13 @@ ${formatPrice(price)}`)) {
               ) : filteredCustomers.length > 0 ? (
                 <div className="overflow-hidden rounded-3xl border border-fg/10 bg-surface-2">
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[760px] text-right text-sm">
+                    <table className="w-full min-w-[980px] text-right text-sm">
                       <thead className="bg-surface-2 text-fg/60">
                         <tr>
                           <th className="px-5 py-4 font-bold">نام مشتری</th>
                           <th className="px-5 py-4 font-bold">شماره موبایل</th>
+                          <th className="px-5 py-4 font-bold">کد ملی</th>
+                          <th className="px-5 py-4 font-bold">تاریخ تولد</th>
                           <th className="px-5 py-4 font-bold">شرکت</th>
                           <th className="px-5 py-4 font-bold">آدرس</th>
                           <th className="px-5 py-4 font-bold">تاریخ ثبت</th>
@@ -3402,6 +3409,8 @@ ${formatPrice(price)}`)) {
                           <tr key={customer.id} className="transition hover:bg-fg/[0.03]">
                             <td className="px-5 py-4 font-bold">{customer.full_name || "—"}</td>
                             <td className="px-5 py-4 text-fg/70" dir="ltr">{formatCustomerPhone(customer.phone)}</td>
+                            <td className="px-5 py-4 text-fg/70" dir="ltr">{customer.national_code || "—"}</td>
+                            <td className="px-5 py-4 text-fg/70" dir="ltr">{customer.birth_date || "—"}</td>
                             <td className="px-5 py-4 text-fg/70">{customer.company_name || "—"}</td>
                             <td className="max-w-xs px-5 py-4 text-fg/60">{customer.address || "—"}</td>
                             <td className="px-5 py-4 text-fg/60">
@@ -3486,7 +3495,15 @@ ${formatPrice(price)}`)) {
                         </span>
                       </div>
 
-                      <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+                      <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">کد ملی</p>
+                          <p dir="ltr" className="mt-1 text-right font-bold">{driver.national_code || "—"}</p>
+                        </div>
+                        <div className="rounded-2xl bg-surface-3 p-4">
+                          <p className="text-xs text-fg/55">تاریخ تولد</p>
+                          <p dir="ltr" className="mt-1 text-right font-bold">{driver.birth_date || "—"}</p>
+                        </div>
                         <div className="rounded-2xl bg-surface-3 p-4">
                           <p className="text-xs text-fg/55">نوع خودرو</p>
                           <p className="mt-1 font-bold">{driver.vehicle_type || "—"}</p>

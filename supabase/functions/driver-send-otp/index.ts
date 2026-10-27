@@ -52,6 +52,15 @@ function normalizeIranPhone(value: string): string {
   return phone;
 }
 
+// الگوریتم رقم کنترل کد ملی ایران (همان بررسی components/identity-fields.tsx)
+function isValidNationalCode(code: string): boolean {
+  if (!/^\d{10}$/.test(code) || /^(\d)\1{9}$/.test(code)) return false;
+  const sum = [...code.slice(0, 9)].reduce((total, digit, i) => total + Number(digit) * (10 - i), 0);
+  const remainder = sum % 11;
+  const check = Number(code[9]);
+  return remainder < 2 ? check === remainder : check === 11 - remainder;
+}
+
 function generateOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -181,6 +190,8 @@ Deno.serve(async (req: Request) => {
     const vehicleModel = String(body.vehicleModel ?? "").trim();
     const vehiclePlate = String(body.vehiclePlate ?? "").trim();
     const phone = normalizeIranPhone(String(body.phone ?? ""));
+    const nationalCode = normalizeDigits(String(body.nationalCode ?? "")).trim();
+    const birthDate = normalizeDigits(String(body.birthDate ?? "")).trim();
 
     if (!fullName || !password || !vehicleType || !vehicleModel || !vehiclePlate) {
       return fail("نام، رمز عبور و اطلاعات خودرو الزامی هستند.");
@@ -192,6 +203,14 @@ Deno.serve(async (req: Request) => {
 
     if (!/^\+989\d{9}$/.test(phone)) {
       return fail("شماره موبایل معتبر ایران وارد کنید.");
+    }
+
+    if (!isValidNationalCode(nationalCode)) {
+      return fail("کد ملی معتبر نیست.");
+    }
+
+    if (!/^1[34]\d{2}\/\d{2}\/\d{2}$/.test(birthDate)) {
+      return fail("تاریخ تولد را کامل انتخاب کنید.");
     }
 
     const { data: existingDriver, error: lookupError } = await supabase
@@ -229,6 +248,8 @@ Deno.serve(async (req: Request) => {
           vehicle_type: vehicleType,
           vehicle_model: vehicleModel,
           vehicle_plate: vehiclePlate,
+          national_code: nationalCode,
+          birth_date: birthDate,
           password_hash: await encryptPassword(password),
           otp_code: otpCode,
           expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),

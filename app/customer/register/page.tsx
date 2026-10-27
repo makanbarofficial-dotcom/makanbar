@@ -5,6 +5,12 @@ import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, AuthShell, ui } from "@/components/ui";
+import {
+  EMPTY_BIRTH_DATE,
+  IdentityFields,
+  formatBirthDate,
+  identityError,
+} from "@/components/identity-fields";
 
 const supabase = createSupabase();
 
@@ -62,6 +68,8 @@ export default function CustomerRegisterPage() {
   const [companyName, setCompanyName] = useState("");
   const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [nationalCode, setNationalCode] = useState("");
+  const [birth, setBirth] = useState(EMPTY_BIRTH_DATE);
 
   const [otp, setOtp] = useState("");
   const [otpStep, setOtpStep] = useState(false);
@@ -81,6 +89,12 @@ export default function CustomerRegisterPage() {
 
     if (!phone.trim()) {
       setError("لطفاً شماره موبایل را وارد کنید.");
+      return;
+    }
+
+    const identityProblem = identityError(nationalCode, birth);
+    if (identityProblem) {
+      setError(identityProblem);
       return;
     }
 
@@ -115,6 +129,8 @@ export default function CustomerRegisterPage() {
             phone: normalizedPhone,
             companyName: companyName.trim(),
             address: address.trim(),
+            nationalCode,
+            birthDate: formatBirthDate(birth),
             password: normalizeDigits(password),
           },
         }
@@ -290,6 +306,13 @@ export default function CustomerRegisterPage() {
               className={`${ui.input} text-right`}
             />
           </div>
+
+          <IdentityFields
+            nationalCode={nationalCode}
+            onNationalCodeChange={setNationalCode}
+            birth={birth}
+            onBirthChange={setBirth}
+          />
 
           <div>
             <label htmlFor="password" className={ui.label}>

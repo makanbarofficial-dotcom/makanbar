@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: customers, error: queryError } = await adminClient
       .from("customers")
-      .select("id, auth_user_id, full_name, phone, company_name, address, created_at")
+      .select("id, auth_user_id, full_name, phone, company_name, address, national_code, birth_date, created_at")
       .order("created_at", { ascending: false });
 
     if (queryError) {
