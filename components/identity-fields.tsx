@@ -77,7 +77,7 @@ export function IdentityFields({
           onChange={(event) =>
             onNationalCodeChange(toEnglishDigits(event.target.value).replace(/\D/g, "").slice(0, 10))
           }
-          placeholder="۱۰ رقم بدون خط تیره"
+          placeholder="0012345678"
           className={`${ui.input} text-right`}
         />
       </div>
