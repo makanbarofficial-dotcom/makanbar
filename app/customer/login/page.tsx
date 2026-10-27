@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import { Alert, AuthShell, ui } from "@/components/ui";
+import { LoginModeTabs, OtpLogin } from "@/components/otp-login";
 
 const supabase = createSupabase();
 
@@ -43,6 +44,7 @@ function loginEmailFromPhone(normalizedPhone: string) {
 export default function CustomerLoginPage() {
   const router = useRouter();
 
+  const [mode, setMode] = useState<"password" | "otp">("password");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,52 +107,58 @@ export default function CustomerLoginPage() {
         </p>
       }
     >
-      <form onSubmit={handleLogin} className="space-y-5">
-        <div>
-          <label htmlFor="phone" className={ui.label}>
-            شماره موبایل
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            dir="ltr"
-            autoComplete="tel"
-            inputMode="tel"
-            required
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="09121234567"
-            className={`${ui.input} text-right`}
-          />
-        </div>
+      <LoginModeTabs mode={mode} onChange={setMode} />
 
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="password" className="text-sm font-bold text-fg/80">
-              رمز عبور
+      {mode === "otp" ? (
+        <OtpLogin supabase={supabase} role="customer" redirectTo="/customer" initialPhone={phone} />
+      ) : (
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label htmlFor="phone" className={ui.label}>
+              شماره موبایل
             </label>
-            <Link href="/customer/forgot-password" className="text-xs text-brand-2 hover:text-brand">
-              فراموش کرده‌اید؟
-            </Link>
+            <input
+              id="phone"
+              type="tel"
+              dir="ltr"
+              autoComplete="tel"
+              inputMode="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="09121234567"
+              className={`${ui.input} text-right`}
+            />
           </div>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="رمز عبور حساب"
-            className={ui.input}
-          />
-        </div>
-
-        {error && <Alert tone="error">{error}</Alert>}
-
-        <button type="submit" disabled={loading} className={ui.btnPrimary}>
-          {loading ? "در حال ورود..." : "ورود به پنل"}
-        </button>
-      </form>
+  
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label htmlFor="password" className="text-sm font-bold text-fg/80">
+                رمز عبور
+              </label>
+              <Link href="/customer/forgot-password" className="text-xs text-brand-2 hover:text-brand">
+                فراموش کرده‌اید؟
+              </Link>
+            </div>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="رمز عبور حساب"
+              className={ui.input}
+            />
+          </div>
+  
+          {error && <Alert tone="error">{error}</Alert>}
+  
+          <button type="submit" disabled={loading} className={ui.btnPrimary}>
+            {loading ? "در حال ورود..." : "ورود به پنل"}
+          </button>
+        </form>
+      )}
     </AuthShell>
   );
 }
