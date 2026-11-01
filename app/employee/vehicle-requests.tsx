@@ -33,6 +33,7 @@ type VehicleRequest = {
   created_at: string;
   driver_id: string | null;
   contact_name: string | null;
+  driver_agreed_at: string | null;
 };
 
 type Driver = {
@@ -90,7 +91,7 @@ export function VehicleRequests({
     let query = supabase
       .from("loads")
       .select(
-        "id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, driver_id, contact_name"
+        "id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, driver_id, contact_name, driver_agreed_at"
       )
       .is("request_id", null)
       .order("created_at", { ascending: false });
@@ -363,6 +364,13 @@ export function VehicleRequests({
 
               {driver && (
                 <div className="mt-3 rounded-xl border border-sky-400/20 bg-sky-500/10 p-3 text-sm">
+                  {item.status === "assigned" && (
+                    <p className="mb-2 text-xs font-bold">
+                      {item.driver_agreed_at
+                        ? "✅ راننده اعلام کرد توافق شد"
+                        : "⏳ در انتظار تماس و اعلام توافق راننده"}
+                    </p>
+                  )}
                   <span className="text-fg/60">راننده: </span>
                   <span className="font-bold">{driver.full_name}</span>{" "}
                   <a href={`tel:${driver.phone}`} dir="ltr" className="font-bold text-brand-2">

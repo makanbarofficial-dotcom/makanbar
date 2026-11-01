@@ -13,7 +13,7 @@ import {
   placeMatches,
   vehicleFits,
 } from "@/lib/shipments";
-import { notifyCustomer } from "@/lib/notify";
+import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { AdminSessionNotice } from "@/components/admin-session-notice";
 
 const supabase = createSupabase();
@@ -37,6 +37,7 @@ type Load = {
   contact_name: string | null;
   contact_phone: string | null;
   load_type: string | null;
+  driver_agreed_at: string | null;
 };
 
 // جزئیات کار که فقط بعد از پذیرش بار به راننده نشان داده می‌شود
@@ -113,7 +114,7 @@ const NEXT_STEP: Partial<Record<LoadStatus, { status: LoadStatus; label: string 
 };
 
 const LOAD_COLUMNS =
-  "id, request_id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, pickup_address, delivery_address, contact_name, contact_phone, load_type";
+  "id, request_id, origin, destination, cargo_type, weight, vehicle_type, price, status, description, created_at, pickup_address, delivery_address, contact_name, contact_phone, load_type, driver_agreed_at";
 
 function errorMessage(error: unknown, fallback: string) {
   const message = (error as { message?: string })?.message;
@@ -270,6 +271,32 @@ export default function DriverPage() {
     if (accepted) setActiveTab("mine");
   }
 
+  // بعد از پذیرش، راننده تماس می‌گیرد و نتیجه را اعلام می‌کند؛ اگر توافق نشد بار آزاد می‌شود
+  async function answerAgreement(load: Load, agreed: boolean) {
+    if (
+      !agreed &&
+      !confirm("توافق نشد؟ این بار از کارهای شما حذف می‌شود و به بارهای آزاد برمی‌گردد.")
+    ) {
+      return;
+    }
+
+    setBusyId(load.id);
+    const { error: answerError } = await supabase.rpc("respond_load_agreement", {
+      p_load_id: load.id,
+      p_agreed: agreed,
+    });
+    setBusyId(null);
+
+    if (answerError) {
+      alert(errorMessage(answerError, "ثبت پاسخ انجام نشد"));
+      return;
+    }
+
+    if (!agreed) notifyDrivers(supabase);
+
+    await refresh();
+  }
+
   async function advanceLoad(load: Load) {
     const next = NEXT_STEP[load.status];
     if (!next || !confirm(`${next.label}؟`)) return;
@@ -310,6 +337,8 @@ export default function DriverPage() {
             }
           : undefined;
     const next = NEXT_STEP[load.status];
+    // تا راننده توافق را تأیید نکند، دکمه‌ی حرکت نشان داده نمی‌شود
+    const awaitingAgreement = load.status === "assigned" && !load.driver_agreed_at;
 
     return (
       <article
@@ -396,7 +425,35 @@ export default function DriverPage() {
           </button>
         )}
 
-        {mine && next && (
+        {mine && awaitingAgreement && (
+          <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-4">
+            <p className="text-sm font-bold leading-7">
+              {job
+                ? `با ${job.full_name} تماس بگیرید. توافق کردید؟`
+                : "با ثبت‌کننده‌ی بار توافق کردید؟"}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={busyId === load.id}
+                onClick={() => void answerAgreement(load, true)}
+                className="rounded-xl bg-emerald-600 px-3 py-3 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+              >
+                بله، توافق کردیم
+              </button>
+              <button
+                type="button"
+                disabled={busyId === load.id}
+                onClick={() => void answerAgreement(load, false)}
+                className="rounded-xl border border-red-400/30 px-3 py-3 text-sm font-bold text-red-700 transition hover:bg-red-500/10 disabled:opacity-50"
+              >
+                نه، توافق نشد
+              </button>
+            </div>
+          </div>
+        )}
+
+        {mine && next && !awaitingAgreement && (
           <button
             type="button"
             disabled={busyId === load.id}
