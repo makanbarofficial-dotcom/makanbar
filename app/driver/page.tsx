@@ -285,16 +285,25 @@ export default function DriverPage() {
       p_load_id: load.id,
       p_agreed: agreed,
     });
-    setBusyId(null);
-
     if (answerError) {
+      setBusyId(null);
       alert(errorMessage(answerError, "ثبت پاسخ انجام نشد"));
       return;
     }
 
+    // کارت همین الان عوض می‌شود تا تا تازه شدن صفحه دوباره زده نشود
+    setMyLoads((current) =>
+      agreed
+        ? current.map((item) =>
+            item.id === load.id ? { ...item, driver_agreed_at: new Date().toISOString() } : item
+          )
+        : current.filter((item) => item.id !== load.id)
+    );
+
     if (!agreed) notifyDrivers(supabase);
 
     await refresh();
+    setBusyId(null);
   }
 
   async function advanceLoad(load: Load) {
