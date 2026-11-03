@@ -122,7 +122,9 @@ Deno.serve(async (req) => {
     if (error) throw error;
 
     // { to: "09..." } فقط به همان شماره (برای آزمایش متن پیش از ارسال همگانی)
-    const phones = body.to
+    // { exclude: ["1234", ...] } شماره‌هایی که با این چهار رقم تمام می‌شوند (قبلاً پیامک گرفته‌اند) کنار می‌روند
+    const exclude: string[] = Array.isArray(body.exclude) ? body.exclude.map(String) : [];
+    const phones = (body.to
       ? [toSmsNumber(String(body.to))]
       : [
           ...new Set(
@@ -130,29 +132,36 @@ Deno.serve(async (req) => {
               .filter((d) => d.phone && (!d.national_code || !d.birth_date || !d.fleet_smart_number))
               .map((d) => toSmsNumber(d.phone)),
           ),
-        ];
+        ]).filter((phone) => !exclude.includes(phone.slice(-4)));
 
-    if (!body.send) return json({ success: true, count: phones.length, message: MESSAGE });
-
-    const client = await createSmsClient();
-    let sent = 0;
-    const statuses: Record<string, number> = {};
-    for (const phone of phones) {
-      let status: string;
-      try {
-        status = await sendSms(client, phone, MESSAGE);
-      } catch (smsError) {
-        status = "Error: " + (smsError instanceof Error ? smsError.message : String(smsError));
-      }
-      statuses[status] = (statuses[status] ?? 0) + 1;
-      if (status === "Successful") sent++;
-      console.log("reminder sms", phone.slice(-4), status);
-      // فاصله بین پیامک‌ها تا سرویس پیامک ارسال پشت‌سرهم را محدود نکند
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (!body.send) {
+      return json({ success: true, count: phones.length, endings: phones.map((p) => p.slice(-4)), message: MESSAGE });
     }
 
-    console.log("sms-driver-profile-reminder sent", sent, "of", phones.length, JSON.stringify(statuses));
-    return json({ success: true, count: phones.length, sent, statuses });
+    // ارسال در پس‌زمینه ادامه پیدا می‌کند؛ رله‌ی هاست بیشتر از ۲۵ ثانیه منتظر جواب نمی‌ماند
+    const sendAll = async () => {
+      const client = await createSmsClient();
+      let sent = 0;
+      const statuses: Record<string, number> = {};
+      for (const phone of phones) {
+        let status: string;
+        try {
+          status = await sendSms(client, phone, MESSAGE);
+        } catch (smsError) {
+          status = "Error: " + (smsError instanceof Error ? smsError.message : String(smsError));
+        }
+        statuses[status] = (statuses[status] ?? 0) + 1;
+        if (status === "Successful") sent++;
+        console.log("reminder sms", phone.slice(-4), status);
+        // فاصله بین پیامک‌ها تا سرویس پیامک ارسال پشت‌سرهم را محدود نکند
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+      console.log("sms-driver-profile-reminder sent", sent, "of", phones.length, JSON.stringify(statuses));
+    };
+
+    // deno-lint-ignore no-explicit-any
+    (globalThis as any).EdgeRuntime.waitUntil(sendAll());
+    return json({ success: true, queued: phones.length });
   } catch (error) {
     console.error("sms-driver-profile-reminder:", error instanceof Error ? error.message : error);
     return json({ success: false, error: "خطای داخلی سرور رخ داد." }, 500);
