@@ -7,7 +7,7 @@ import soap from "npm:soap";
 
 const FLEET_CARD_TYPES = ["تریلی", "جفت", "تک", "خاور و کامیونت"];
 const MESSAGE =
-  "ماکان بار: راننده گرامی، لطفاً کد ملی، تاریخ تولد و شماره هوشمند ناوگان خود را در پنل رانندگان تکمیل کنید.\nmakanbar.com/driver";
+  "سلام راننده عزیز، ماکان بار هستیم. لطفاً هر وقت فرصت کردید کد ملی، تاریخ تولد و شماره هوشمند ناوگانتون رو در پنل رانندگان ثبت کنید. ممنون از همراهیتون\nmakanbar.com/driver";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
