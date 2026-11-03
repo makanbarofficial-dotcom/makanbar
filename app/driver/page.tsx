@@ -15,6 +15,7 @@ import {
 } from "@/lib/shipments";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { AdminSessionNotice } from "@/components/admin-session-notice";
+import { CompleteProfile, needsProfileCompletion } from "./complete-profile";
 
 const supabase = createSupabase();
 
@@ -57,6 +58,9 @@ type DriverProfile = {
   vehicle_type: string | null;
   vehicle_model: string | null;
   vehicle_plate: string | null;
+  national_code: string | null;
+  birth_date: string | null;
+  fleet_smart_number: string | null;
 };
 
 type Tab = "available" | "mine" | "profile";
@@ -180,7 +184,7 @@ export default function DriverPage() {
 
     const { data: driver, error: profileError } = await supabase
       .from("driver_profiles")
-      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate")
+      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, fleet_smart_number")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
@@ -650,6 +654,10 @@ export default function DriverPage() {
           </section>
         ) : (
           <>
+            {needsProfileCompletion(profile) && (
+              <CompleteProfile supabase={supabase} profile={profile} onDone={() => void refresh()} />
+            )}
+
             <section className="grid grid-cols-2 gap-3">
               <button
                 type="button"
