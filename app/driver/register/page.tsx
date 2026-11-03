@@ -4,6 +4,7 @@ import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, AuthShell, ui } from "@/components/ui";
+import { VEHICLE_BODY_TYPES } from "@/lib/shipments";
 import {
   EMPTY_BIRTH_DATE,
   IdentityFields,
@@ -33,22 +34,7 @@ function normalizePhone(value: string) {
   return phone;
 }
 
-const vehicleOptions: Record<string, string[]> = {
-  "تریلی": [
-    "چادری",
-    "کمپرسی",
-    "بغلدار",
-    "کفی",
-    "تیغه",
-    "تانکر (مخزن‌دار)",
-    "یخچالی",
-  ],
-  "جفت": ["روباز", "مسقف", "کمپرسی", "یخچالی"],
-  "تک": ["روباز", "مسقف", "کمپرسی", "یخچالی"],
-  "خاور و کامیونت": ["روباز", "مسقف", "کمپرسی", "یخچالی"],
-  "وانت و نیسان": ["وانت", "نیسان"],
-  "پیک موتوری": ["موتور با باکس", "موتور بدون باکس"],
-};
+const vehicleOptions = VEHICLE_BODY_TYPES;
 
 const MOTOR = "پیک موتوری";
 

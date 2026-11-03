@@ -7,6 +7,7 @@ import { notifyDrivers } from "@/lib/notify";
 import {
   TEHRAN_CITY,
   TEHRAN_PROVINCE,
+  VEHICLE_BODY_TYPES,
   VEHICLE_TYPES,
   formatDate,
   formatPrice,
@@ -83,6 +84,8 @@ export function VehicleRequests({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [vehicleType, setVehicleType] = useState("");
+  const bodyTypes = VEHICLE_BODY_TYPES[vehicleType] ?? [];
 
   const isAdmin = staff.id == null;
 
@@ -132,6 +135,11 @@ export function VehicleRequests({
     const value = (name: string) => String(formData.get(name) ?? "").trim();
 
     const cargoType = value("cargo_type");
+    // بارگیر ستون جدا ندارد؛ اول توضیحات نوشته می‌شود تا راننده روی کارت بار ببیند
+    const bodyType = value("body_type");
+    const description = [bodyType && `بارگیر: ${bodyType}`, value("description")]
+      .filter(Boolean)
+      .join(" · ");
     const priceDigits = normalizeDigits(value("price")).replace(/\D/g, "");
 
     if (!origin.city || !destination.city || !cargoType) {
@@ -155,7 +163,7 @@ export function VehicleRequests({
       price: priceDigits ? Number(priceDigits) : null,
       pickup_address: value("pickup_address") || null,
       delivery_address: value("delivery_address") || null,
-      description: value("description") || null,
+      description: description || null,
       contact_name: staff.name,
       contact_phone: staff.phone,
     });
@@ -171,6 +179,7 @@ export function VehicleRequests({
     notifyDrivers(supabase);
 
     form.reset();
+    setVehicleType("");
     setOrigin(defaultOrigin);
     setDestination(defaultDestination);
     setShowForm(false);
@@ -273,13 +282,29 @@ export function VehicleRequests({
             ))}
             <label className="block text-sm text-fg/70">
               نوع خودرو
-              <select name="vehicle_type" defaultValue="" className={`${ui.select} mt-2`}>
+              <select
+                name="vehicle_type"
+                value={vehicleType}
+                onChange={(event) => setVehicleType(event.target.value)}
+                className={`${ui.select} mt-2`}
+              >
                 <option value="">فرقی نمی‌کند</option>
                 {VEHICLE_TYPES.map((type) => (
                   <option key={type}>{type}</option>
                 ))}
               </select>
             </label>
+            {bodyTypes.length > 0 && (
+              <label className="block text-sm text-fg/70">
+                نوع بارگیر
+                <select key={vehicleType} name="body_type" defaultValue="" className={`${ui.select} mt-2`}>
+                  <option value="">فرقی نمی‌کند</option>
+                  {bodyTypes.map((body) => (
+                    <option key={body}>{body}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="block text-sm text-fg/70">
               نوع بار *
               <input
