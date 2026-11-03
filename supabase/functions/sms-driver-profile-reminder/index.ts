@@ -76,7 +76,7 @@ async function sendSms(client: any, recipient: string, message: string) {
     );
   });
 
-  return result?.PtpSmsResult?.Status === "Successful";
+  return String(result?.PtpSmsResult?.Status ?? "Unknown");
 }
 
 Deno.serve(async (req) => {
@@ -96,6 +96,23 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
 
+    // وضعیت حساب پیامک: نام عملیات‌های سرویس و اعتبار باقی‌مانده
+    if (body.credit) {
+      const client = await createSmsClient();
+      const operations = Object.keys(client.describe()?.NiksmsWebservice?.BasicHttpBinding_INiksmsWebservice ?? {});
+      let credit: unknown = null;
+      if (typeof client.GetCredit === "function") {
+        credit = await new Promise((resolve) =>
+          client.GetCredit(
+            { security: { Username: Deno.env.get("NIKSMS_USERNAME"), Password: Deno.env.get("NIKSMS_PASSWORD") } },
+            // deno-lint-ignore no-explicit-any
+            (error: any, res: any) => resolve(error ? String(error.message ?? error) : res),
+          )
+        );
+      }
+      return json({ success: true, operations, credit });
+    }
+
     const { data: drivers, error } = await supabase
       .from("driver_profiles")
       .select("phone, national_code, birth_date, fleet_smart_number")
@@ -104,28 +121,38 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    const phones = [
-      ...new Set(
-        (drivers ?? [])
-          .filter((d) => d.phone && (!d.national_code || !d.birth_date || !d.fleet_smart_number))
-          .map((d) => toSmsNumber(d.phone)),
-      ),
-    ];
+    // { to: "09..." } فقط به همان شماره (برای آزمایش متن پیش از ارسال همگانی)
+    const phones = body.to
+      ? [toSmsNumber(String(body.to))]
+      : [
+          ...new Set(
+            (drivers ?? [])
+              .filter((d) => d.phone && (!d.national_code || !d.birth_date || !d.fleet_smart_number))
+              .map((d) => toSmsNumber(d.phone)),
+          ),
+        ];
 
     if (!body.send) return json({ success: true, count: phones.length, message: MESSAGE });
 
     const client = await createSmsClient();
     let sent = 0;
+    const statuses: Record<string, number> = {};
     for (const phone of phones) {
+      let status: string;
       try {
-        if (await sendSms(client, phone, MESSAGE)) sent++;
+        status = await sendSms(client, phone, MESSAGE);
       } catch (smsError) {
-        console.error("reminder sms failed:", smsError instanceof Error ? smsError.message : smsError);
+        status = "Error: " + (smsError instanceof Error ? smsError.message : String(smsError));
       }
+      statuses[status] = (statuses[status] ?? 0) + 1;
+      if (status === "Successful") sent++;
+      console.log("reminder sms", phone.slice(-4), status);
+      // فاصله بین پیامک‌ها تا سرویس پیامک ارسال پشت‌سرهم را محدود نکند
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
-    console.log("sms-driver-profile-reminder sent", sent, "of", phones.length);
-    return json({ success: true, count: phones.length, sent });
+    console.log("sms-driver-profile-reminder sent", sent, "of", phones.length, JSON.stringify(statuses));
+    return json({ success: true, count: phones.length, sent, statuses });
   } catch (error) {
     console.error("sms-driver-profile-reminder:", error instanceof Error ? error.message : error);
     return json({ success: false, error: "خطای داخلی سرور رخ داد." }, 500);
