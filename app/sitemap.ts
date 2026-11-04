@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { ROUTE_CITIES, SERVICE_PAGES, routeSlug } from "@/lib/seo-pages";
 
 export const dynamic = "force-static";
 
@@ -13,5 +14,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/vehicles/`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE}/about/`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE}/download/`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE}/haml-bar/`, changeFrequency: "monthly", priority: 0.8 },
+    ...SERVICE_PAGES.map((page) => ({
+      url: `${SITE}/services/${page.slug}/`,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    ...ROUTE_CITIES.map((city) => ({
+      url: `${SITE}/haml-bar/${routeSlug(city)}/`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
   ];
 }

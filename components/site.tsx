@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Brand, Logo } from "@/components/ui";
 import { ADDRESS, PHONES, formatPhone } from "@/lib/contact";
+import { ROUTE_CITIES, SERVICE_PAGES, routeSlug } from "@/lib/seo-pages";
 
 const NAV = [
   { label: "خانه", href: "/", icon: "🏠" },
@@ -222,6 +223,26 @@ export function SiteFooter() {
             @maknbar_com ↗
           </a>
         </div>
+      </div>
+
+      {/* لینک صفحه‌های خدمت و مسیر در همه‌ی صفحه‌ها تا گوگل آن‌ها را پیدا کند */}
+      <div className="border-t border-white/10">
+        <ul className="mx-auto flex max-w-6xl flex-wrap gap-x-5 gap-y-2 px-4 py-5 text-xs sm:px-6">
+          {[
+            ...SERVICE_PAGES.map((page) => ({ label: page.title, href: `/services/${page.slug}/` })),
+            ...ROUTE_CITIES.slice(0, 8).map((city) => ({
+              label: `حمل بار تهران به ${city.fa}`,
+              href: `/haml-bar/${routeSlug(city)}/`,
+            })),
+            { label: "همه‌ی مسیرها", href: "/haml-bar/" },
+          ].map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="text-white/50 transition hover:text-orange-300">
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="border-t border-white/10">
