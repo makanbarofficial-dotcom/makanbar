@@ -104,13 +104,15 @@ Deno.serve(async (req) => {
 
     if (customerError || driverError) throw customerError ?? driverError;
 
+    // { exclude: ["1234", ...] } شماره‌هایی که با این چهار رقم تمام می‌شوند (قبلاً پیامک گرفته‌اند) کنار می‌روند
+    const exclude: string[] = Array.isArray(body.exclude) ? body.exclude.map(String) : [];
     const phones = [
       ...new Set(
         [...(customers ?? []), ...(drivers ?? [])]
           .filter((row) => row.phone)
           .map((row) => toSmsNumber(row.phone)),
       ),
-    ];
+    ].filter((phone) => !exclude.includes(phone.slice(-4)));
 
     if (!body.send) {
       return json({
