@@ -23,6 +23,8 @@ import {
   normalizeDigits,
   regionLabel,
   statusTone,
+  formatPriceInput,
+  priceInWords,
 } from "@/lib/shipments";
 import { Logo } from "@/components/ui";
 import { PhoneOrderForm } from "./phone-order";
@@ -2434,12 +2436,12 @@ ${formatPrice(price)}`)) {
                         <input
                           value={
                             priceDrafts[item.id] ??
-                            (item.price != null ? String(item.price) : "")
+                            (item.price != null ? formatPriceInput(String(item.price)) : "")
                           }
                           onChange={(e) =>
                             setPriceDrafts((current) => ({
                               ...current,
-                              [item.id]: e.target.value,
+                              [item.id]: formatPriceInput(e.target.value),
                             }))
                           }
                           inputMode="numeric"
@@ -2450,7 +2452,7 @@ ${formatPrice(price)}`)) {
                         {/* مبلغ خوانا کنار کادر تا صفر اضافه یا کم دیده شود */}
                         <span className="text-xs font-bold text-emerald-700">
                           {parsePriceDraft(item) != null
-                            ? formatPrice(parsePriceDraft(item))
+                            ? `${formatPrice(parsePriceDraft(item))} (${priceInWords(parsePriceDraft(item))})`
                             : ""}
                         </span>
 

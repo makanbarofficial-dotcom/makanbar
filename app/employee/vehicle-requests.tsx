@@ -3,6 +3,7 @@
 import { type SubmitEvent, useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Alert, ui } from "@/components/ui";
+import { PriceInput } from "@/components/price-input";
 import { notifyDrivers } from "@/lib/notify";
 import {
   TEHRAN_CITY,
@@ -321,7 +322,7 @@ export function VehicleRequests({
             </label>
             <label className="block text-sm text-fg/70">
               کرایه (تومان)
-              <input name="price" inputMode="numeric" placeholder="کرایه پیشنهادی" className={`${ui.input} mt-2`} />
+              <PriceInput name="price" placeholder="کرایه پیشنهادی" className={`${ui.input} mt-2`} />
             </label>
             <label className="block text-sm text-fg/70">
               آدرس بارگیری

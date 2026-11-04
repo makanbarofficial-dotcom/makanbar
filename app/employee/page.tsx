@@ -21,6 +21,8 @@ import {
   formatDate,
   regionLabel,
   statusTone,
+  formatPriceInput,
+  priceInWords,
 } from "@/lib/shipments";
 
 const supabase = createSupabase();
@@ -180,7 +182,7 @@ export default function EmployeePanelPage() {
       );
       setPrices(
         Object.fromEntries(
-          list.map((item) => [item.id, item.price != null ? String(item.price) : ""])
+          list.map((item) => [item.id, item.price != null ? formatPriceInput(String(item.price)) : ""])
         )
       );
     }
@@ -589,7 +591,7 @@ export default function EmployeePanelPage() {
                     setRequests((current) => [row, ...current]);
                     setPrices((current) => ({
                       ...current,
-                      [row.id]: row.price != null ? String(row.price) : "",
+                      [row.id]: row.price != null ? formatPriceInput(String(row.price)) : "",
                     }));
                     setView("loads");
                     alert(
@@ -755,7 +757,7 @@ export default function EmployeePanelPage() {
                       <input
                         value={prices[item.id] ?? ""}
                         onChange={(event) =>
-                          setPrices((current) => ({ ...current, [item.id]: event.target.value }))
+                          setPrices((current) => ({ ...current, [item.id]: formatPriceInput(event.target.value) }))
                         }
                         inputMode="numeric"
                         placeholder="کرایه"
@@ -874,7 +876,7 @@ export default function EmployeePanelPage() {
 
                   {!isLockedPrice(item) && draftPrice(item.id) != null && draftPrice(item.id) !== item.price && (
                     <p className="mt-2 text-xs text-emerald-700">
-                      کرایه‌ی جدید: {formatPrice(draftPrice(item.id))} — برای ثبت «ذخیره» را بزنید.
+                      کرایه‌ی جدید: {formatPrice(draftPrice(item.id))} ({priceInWords(draftPrice(item.id))}) — برای ثبت «ذخیره» را بزنید.
                     </p>
                   )}
                 </article>

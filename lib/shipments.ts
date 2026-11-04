@@ -296,3 +296,27 @@ export function normalizeDigits(value: string) {
     .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
     .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
 }
+
+// متن کادر کرایه را موقع تایپ سه‌رقم‌سه‌رقم جدا می‌کند: ۱۲۵۰۰۰۰۰ ← ۱۲٬۵۰۰٬۰۰۰
+export function formatPriceInput(value: string) {
+  const digits = normalizeDigits(value).replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 13);
+  return digits ? Number(digits).toLocaleString("fa-IR") : "";
+}
+
+// مبلغ را خوانا می‌کند: ۱۲۵۰۰۰۰۰ ← «۱۲ میلیون و ۵۰۰ هزار تومان»
+export function priceInWords(value: number | null) {
+  if (value == null || !Number.isFinite(value) || value <= 0) return "";
+  const parts: string[] = [];
+  let rest = Math.floor(value);
+  for (const [unit, label] of [
+    [1_000_000_000, "میلیارد"],
+    [1_000_000, "میلیون"],
+    [1_000, "هزار"],
+  ] as const) {
+    const count = Math.floor(rest / unit);
+    if (count) parts.push(`${count.toLocaleString("fa-IR")} ${label}`);
+    rest %= unit;
+  }
+  if (rest) parts.push(rest.toLocaleString("fa-IR"));
+  return `${parts.join(" و ")} تومان`;
+}

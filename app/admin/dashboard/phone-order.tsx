@@ -17,6 +17,8 @@ import {
   normalizeDigits,
   placeLabel,
   terminalAddress,
+  formatPriceInput,
+  priceInWords,
 } from "@/lib/shipments";
 
 type Place = { province: string; city: string };
@@ -401,13 +403,13 @@ export function PhoneOrderForm({
         <div>
           <input
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={(e) => setPrice(formatPriceInput(e.target.value))}
             inputMode="numeric"
             placeholder="کرایه (تومان، اختیاری)"
             className={field}
           />
           {priceValue != null && (
-            <p className="mt-1 text-xs font-bold text-emerald-700">{formatPrice(priceValue)}</p>
+            <p className="mt-1 text-xs font-bold text-emerald-700">{formatPrice(priceValue)} ({priceInWords(priceValue)})</p>
           )}
         </div>
       </div>
