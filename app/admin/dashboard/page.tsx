@@ -2,7 +2,7 @@
 
 import { PanelLoading } from "@/components/panel-loading";
 import { MonthlyReport } from "@/components/monthly-report";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { createSupabase, functionErrorMessage } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
@@ -27,6 +27,7 @@ import {
   formatPriceInput,
   priceInWords,
   matchesSearch,
+  VEHICLE_BODY_TYPES,
 } from "@/lib/shipments";
 import { Logo } from "@/components/ui";
 import { PhoneOrderForm } from "./phone-order";
@@ -97,6 +98,12 @@ type Driver = {
   birth_date: string | null;
   created_at: string;
 };
+
+// ترتیب ردیف‌های رانندگان در پنل مدیر
+const DRIVER_VEHICLE_ORDER = Object.keys(VEHICLE_BODY_TYPES);
+
+// ترتیب ردیف‌های متصدی‌ها
+const STAFF_KIND_ORDER: StaffKind[] = ["intercity", "charter", "intracity", "origin"];
 
 const DRIVER_STATUS_LABELS: Record<DriverStatus, string> = {
   approved: "فعال",
@@ -232,6 +239,9 @@ export default function AdminDashboardPage() {
 
   // جستجوی راننده با نام، موبایل، پلاک، کد ملی یا شماره هوشمند؛ در همه‌ی وضعیت‌ها
   const [driverSearch, setDriverSearch] = useState("");
+  // ردیف‌بندی رانندگان بر اساس نوع ماشین و متصدی‌ها بر اساس نوع کار
+  const [driverVehicleFilter, setDriverVehicleFilter] = useState("all");
+  const [staffKindFilter, setStaffKindFilter] = useState<StaffKind | "all">("all");
 
   const [customerLoading, setCustomerLoading] = useState(false);
 
@@ -462,6 +472,9 @@ export default function AdminDashboardPage() {
       provinces,
     ]);
 
+  // متصدی‌ها ردیف‌بندی‌شده بر اساس نوع کار (خرده‌بار تهران، دربستی، درون‌شهری، نماینده)
+  const kindOf = (item: Staff) => item.kind ?? "intercity";
+
   const filteredStaff = useMemo(() => {
     const query =
       staffSearch.trim().toLowerCase();
@@ -509,6 +522,15 @@ export default function AdminDashboardPage() {
     staffLocations,
     provinces,
   ]);
+
+  const groupedStaff = useMemo(
+    () =>
+      filteredStaff
+        .filter((item) => staffKindFilter === "all" || kindOf(item) === staffKindFilter)
+        .sort((a, b) => STAFF_KIND_ORDER.indexOf(kindOf(a)) - STAFF_KIND_ORDER.indexOf(kindOf(b))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filteredStaff, staffKindFilter]
+  );
 
   async function loadRequests() {
     const [{ data, error }, { data: loadRows }] = await Promise.all([
@@ -613,7 +635,8 @@ export default function AdminDashboardPage() {
     setStaffLocations(grouped);
   }
 
-  const visibleDrivers = useMemo(() => {
+  // رانندگان بعد از جستجو و وضعیت (پیش از فیلتر نوع ماشین؛ برای شمارش دکمه‌ها)
+  const searchedDrivers = useMemo(() => {
     const query = driverSearch.trim();
     if (!query) return drivers.filter((driver) => driver.status === driverFilter);
     return drivers.filter((driver) =>
@@ -628,6 +651,23 @@ export default function AdminDashboardPage() {
       ])
     );
   }, [drivers, driverFilter, driverSearch]);
+
+  // هر راننده در ردیف نوع ماشین خودش؛ نوع ناشناخته در «سایر»
+  const driverGroupOf = (driver: Driver) =>
+    driver.vehicle_type && DRIVER_VEHICLE_ORDER.includes(driver.vehicle_type) ? driver.vehicle_type : "سایر";
+
+  const visibleDrivers = useMemo(
+    () =>
+      searchedDrivers
+        .filter((driver) => driverVehicleFilter === "all" || driverGroupOf(driver) === driverVehicleFilter)
+        .sort(
+          (a, b) =>
+            [...DRIVER_VEHICLE_ORDER, "سایر"].indexOf(driverGroupOf(a)) -
+            [...DRIVER_VEHICLE_ORDER, "سایر"].indexOf(driverGroupOf(b))
+        ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [searchedDrivers, driverVehicleFilter]
+  );
 
   const filteredCustomers = useMemo(() => {
     const query = customerSearch.trim().toLocaleLowerCase("fa-IR");
@@ -3244,19 +3284,53 @@ ${formatPrice(price)}`)) {
                     />
                   </div>
 
+                  {/* ردیف‌بندی متصدی‌ها بر اساس نوع کار */}
+                  <div className="mb-5 flex flex-wrap gap-2">
+                    {(["all", ...STAFF_KIND_ORDER] as const).map((kind) => {
+                      const count =
+                        kind === "all"
+                          ? filteredStaff.length
+                          : filteredStaff.filter((item) => kindOf(item) === kind).length;
+                      return (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => setStaffKindFilter(kind)}
+                          className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
+                            staffKindFilter === kind
+                              ? "bg-fg text-white"
+                              : "border border-fg/10 bg-surface-2 text-fg/70 hover:bg-fg/10"
+                          }`}
+                        >
+                          {kind === "all" ? "همه" : STAFF_KIND_LABELS[kind]}
+                          <span className="mr-1.5 text-xs opacity-70">{count.toLocaleString("fa-IR")}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <div className="space-y-4">
-                    {filteredStaff.map(
-                      (item) => {
+                    {groupedStaff.map(
+                      (item, index) => {
                         const locations =
                           staffLocations[
                             item.id
                           ] || [];
 
                         return (
+                          <Fragment key={item.id}>
+                          {(index === 0 || kindOf(groupedStaff[index - 1]) !== kindOf(item)) && (
+                            <h3 className="pt-3 text-base font-black text-orange-700">
+                              {STAFF_KIND_LABELS[kindOf(item)]}
+                              <span className="mr-2 text-xs font-bold text-fg/50">
+                                {groupedStaff
+                                  .filter((other) => kindOf(other) === kindOf(item))
+                                  .length.toLocaleString("fa-IR")}{" "}
+                                نفر
+                              </span>
+                            </h3>
+                          )}
                           <div
-                            key={
-                              item.id
-                            }
                             className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                           >
                             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -3384,11 +3458,12 @@ ${formatPrice(price)}`)) {
                               </div>
                             </div>
                           </div>
+                          </Fragment>
                         );
                       }
                     )}
 
-                    {filteredStaff.length ===
+                    {groupedStaff.length ===
                       0 && (
                       <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
                         هنوز متصدی ثبت نشده است.
@@ -3542,8 +3617,46 @@ ${formatPrice(price)}`)) {
                 className="mb-5 w-full rounded-2xl border border-fg/10 bg-surface-2 px-5 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
               />
 
+              {/* ردیف‌بندی بر اساس نوع ماشین */}
+              <div className="mb-5 flex flex-wrap gap-2">
+                {["all", ...DRIVER_VEHICLE_ORDER, "سایر"].map((group) => {
+                  const count =
+                    group === "all"
+                      ? searchedDrivers.length
+                      : searchedDrivers.filter((driver) => driverGroupOf(driver) === group).length;
+                  if (group === "سایر" && count === 0) return null;
+                  return (
+                    <button
+                      key={group}
+                      type="button"
+                      onClick={() => setDriverVehicleFilter(group)}
+                      className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
+                        driverVehicleFilter === group
+                          ? "bg-fg text-white"
+                          : "border border-fg/10 bg-surface-2 text-fg/70 hover:bg-fg/10"
+                      }`}
+                    >
+                      {group === "all" ? "همه‌ی ماشین‌ها" : group}
+                      <span className="mr-1.5 text-xs opacity-70">{count.toLocaleString("fa-IR")}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="space-y-3">
-                {visibleDrivers.map((driver) => (
+                {visibleDrivers.map((driver, index) => (
+                  <Fragment key={driver.id}>
+                    {(index === 0 || driverGroupOf(visibleDrivers[index - 1]) !== driverGroupOf(driver)) && (
+                      <h3 className="pt-3 text-base font-black text-orange-700">
+                        {driver.vehicle_type === "پیک موتوری" ? "🛵" : "🚚"} {driverGroupOf(driver)}
+                        <span className="mr-2 text-xs font-bold text-fg/50">
+                          {visibleDrivers
+                            .filter((other) => driverGroupOf(other) === driverGroupOf(driver))
+                            .length.toLocaleString("fa-IR")}{" "}
+                          راننده
+                        </span>
+                      </h3>
+                    )}
                     <article
                       key={driver.id}
                       className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
@@ -3622,7 +3735,8 @@ ${formatPrice(price)}`)) {
                         )}
                       </div>
                     </article>
-                  ))}
+                  </Fragment>
+                ))}
 
                 {visibleDrivers.length === 0 && (
                   <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
