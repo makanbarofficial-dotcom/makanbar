@@ -234,6 +234,9 @@ export function regionLabel(
   province: string | null | undefined,
   city: string | null | undefined
 ) {
+  // متصدی دربستی سراسری
+  if (province === "*") return "همه‌ی شهرها";
+
   const cityName = cityFa(province, city);
   const provinceName = provinceFa(province);
 

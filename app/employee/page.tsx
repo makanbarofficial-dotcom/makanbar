@@ -598,7 +598,7 @@ export default function EmployeePanelPage() {
                   supabase={supabase}
                   types={["full"]}
                   // مبدا یا مقصد باید یکی از شهرهای متصدی باشد (دیتابیس هم کنترل می‌کند)
-                  defaultCity={myAreas[0] ?? { province: "", city: "" }}
+                  defaultCity={myAreas.find((area) => area.province !== "*") ?? { province: "", city: "" }}
                   onCreated={(row) => {
                     setRequests((current) => [row, ...current]);
                     setPrices((current) => ({

@@ -283,6 +283,11 @@ export default function AdminDashboardPage() {
       return "";
     }
 
+    // متصدی دربستی سراسری
+    if (value === "*") {
+      return "همه‌ی استان‌ها";
+    }
+
     const found = provinces.find(
       (province) =>
         province.en === value ||
@@ -298,6 +303,10 @@ export default function AdminDashboardPage() {
   ) {
     if (!cityValue) {
       return "";
+    }
+
+    if (provinceValue === "*") {
+      return "همه‌ی شهرها";
     }
 
     if (cityValue === "*") {
@@ -377,7 +386,8 @@ export default function AdminDashboardPage() {
     // متصدی دربستی: شهر مبدا یا مقصد بار در محدوده‌ی اوست
     if (item.shipment_type === "full") {
       const covers = (province?: string | null, city?: string | null) => (location: { province: string; city: string | null }) =>
-        location.province === province && (!location.city || location.city === "*" || location.city === city);
+        location.province === "*" ||
+        (location.province === province && (!location.city || location.city === "*" || location.city === city));
       return staff.filter(
         (member) =>
           member.panel_enabled &&
@@ -2981,7 +2991,7 @@ ${formatPrice(price)}`)) {
                             index
                           ) => {
                             const cities =
-                              location.province
+                              location.province && location.province !== "*"
                                 ? getCities(
                                     location.province
                                   )
@@ -3014,6 +3024,13 @@ ${formatPrice(price)}`)) {
                                     <option value="">
                                       انتخاب استان
                                     </option>
+
+                                    {/* متصدی دربستی می‌تواند برای همه‌ی شهرها باشد */}
+                                    {staffForm.kind === "charter" && (
+                                      <option value="*">
+                                        🌍 همه‌ی استان‌ها و شهرها
+                                      </option>
+                                    )}
 
                                     {provinces.map(
                                       (

@@ -172,14 +172,15 @@ Deno.serve(async (req) => {
         .eq("kind", staffKind)
         // متصدی دربستی: استان مبدا یا مقصد
         .in("staff_locations.province", staffKind === "charter"
-          ? [request.origin_province, request.city_province].filter(Boolean)
+          ? ["*", request.origin_province, request.city_province].filter(Boolean)
           : [areaProvince]);
 
       for (const member of staff ?? []) {
         // deno-lint-ignore no-explicit-any
         const covers = member.staff_locations.some((loc: any) =>
           staffKind === "charter"
-            ? (loc.province === request.origin_province && (!loc.city || loc.city === "*" || loc.city === request.origin_city)) ||
+            ? loc.province === "*" ||
+              (loc.province === request.origin_province && (!loc.city || loc.city === "*" || loc.city === request.origin_city)) ||
               (loc.province === request.city_province && (!loc.city || loc.city === "*" || loc.city === request.city))
             : !loc.city || loc.city === "*" || loc.city === areaCity
         );
