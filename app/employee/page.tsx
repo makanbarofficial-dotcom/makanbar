@@ -554,7 +554,7 @@ export default function EmployeePanelPage() {
 
             {/* متصدی درون‌شهری درخواست ماشین ندارد؛ بارها را مستقیم برای رانندگان می‌فرستد */}
             <div
-              className={`mt-8 grid gap-2 rounded-2xl bg-surface-2 p-1 ${isDispatcher ? "grid-cols-2" : "grid-cols-3"}`}
+              className={`mt-8 grid gap-2 rounded-2xl bg-surface-2 p-1 ${isIntracity ? "grid-cols-2" : "grid-cols-3"}`}
             >
               {(isIntracity
                 ? ([
@@ -565,6 +565,7 @@ export default function EmployeePanelPage() {
                   ? ([
                       ["loads", "🚛 بارهای دربستی"],
                       ["phone", "📞 بار تلفنی"],
+                      ["vehicles", "🚚 درخواست ماشین"],
                     ] as const)
                   : isOriginRep
                   ? ([
@@ -637,13 +638,22 @@ export default function EmployeePanelPage() {
                 />
                 )}
               </div>
-            ) : view === "vehicles" && !isDispatcher ? (
+            ) : view === "vehicles" && !isIntracity ? (
               <VehicleRequests
                 supabase={supabase}
                 staff={{ id: profile.id, name: profile.name, phone: profile.phone }}
                 // نماینده از شهر خودش ماشین می‌خواهد؛ متصدی تهران از تهران به شهر خودش
-                defaultOrigin={isOriginRep ? (myAreas[0] ?? TEHRAN) : TEHRAN}
-                defaultDestination={isOriginRep ? { province: "", city: "" } : (myAreas[0] ?? { province: "", city: "" })}
+                // متصدی دربستی: مبدا پیش‌فرض اولین شهر خودش (برای «همه‌ی شهرها» تهران)
+                defaultOrigin={
+                  isOriginRep
+                    ? (myAreas[0] ?? TEHRAN)
+                    : isCharter
+                      ? (myAreas.find((area) => area.province !== "*" && area.city) ?? TEHRAN)
+                      : TEHRAN
+                }
+                defaultDestination={
+                  isOriginRep || isCharter ? { province: "", city: "" } : (myAreas[0] ?? { province: "", city: "" })
+                }
               />
             ) : (
             <>
