@@ -1608,6 +1608,11 @@ ${formatPrice(price)}`)) {
             )
         );
 
+        // محدوده‌ها اول ذخیره می‌شوند تا اگر ساخت حساب پنل خطا داد، از دست نروند
+        await syncStaffLocations(
+          editingStaffId
+        );
+
         // اگر پنل فعال شده ولی حساب ندارد
         if (
           staffForm.panel_enabled &&
@@ -1669,11 +1674,6 @@ ${formatPrice(price)}`)) {
           await loadStaff();
         }
 
-        // ذخیره محدوده‌های جدید
-        await syncStaffLocations(
-          editingStaffId
-        );
-
         await loadStaffLocations();
 
         alert(
@@ -1718,6 +1718,11 @@ ${formatPrice(price)}`)) {
         return;
       }
 
+      // محدوده‌ها همین الان ذخیره می‌شوند تا اگر ساخت حساب پنل خطا داد، از دست نروند
+      await syncStaffLocations(
+        data.id
+      );
+
       // ساخت حساب پنل
       if (
         staffForm.panel_enabled
@@ -1749,9 +1754,12 @@ ${formatPrice(price)}`)) {
           );
 
           alert(
-            `متصدی ثبت شد، اما حساب پنل ساخته نشد: ${await functionErrorMessage(functionError)}`
+            `متصدی و محدوده‌اش ثبت شد، اما حساب پنل ساخته نشد: ${await functionErrorMessage(functionError)}
+
+متصدی را «ویرایش» کنید، رمز بدهید و دوباره ذخیره کنید.`
           );
 
+          await Promise.all([loadStaff(), loadStaffLocations()]);
           return;
         }
 
@@ -1765,11 +1773,6 @@ ${formatPrice(price)}`)) {
           return;
         }
       }
-
-      // ثبت محدوده‌ها
-      await syncStaffLocations(
-        data.id
-      );
 
       await Promise.all([
         loadStaff(),
