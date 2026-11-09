@@ -25,6 +25,7 @@ import {
   statusTone,
   formatPriceInput,
   priceInWords,
+  matchesSearch,
 } from "@/lib/shipments";
 import { Logo } from "@/components/ui";
 import { PhoneOrderForm } from "./phone-order";
@@ -227,6 +228,9 @@ export default function AdminDashboardPage() {
 
   const [driverFilter, setDriverFilter] =
     useState<DriverStatus>("approved");
+
+  // جستجوی راننده با نام، موبایل، پلاک، کد ملی یا شماره هوشمند؛ در همه‌ی وضعیت‌ها
+  const [driverSearch, setDriverSearch] = useState("");
 
   const [customerLoading, setCustomerLoading] = useState(false);
 
@@ -607,6 +611,22 @@ export default function AdminDashboardPage() {
 
     setStaffLocations(grouped);
   }
+
+  const visibleDrivers = useMemo(() => {
+    const query = driverSearch.trim();
+    if (!query) return drivers.filter((driver) => driver.status === driverFilter);
+    return drivers.filter((driver) =>
+      matchesSearch(query, [
+        driver.full_name,
+        driver.phone,
+        driver.vehicle_plate,
+        driver.vehicle_type,
+        driver.vehicle_model,
+        driver.national_code,
+        driver.fleet_smart_number,
+      ])
+    );
+  }, [drivers, driverFilter, driverSearch]);
 
   const filteredCustomers = useMemo(() => {
     const query = customerSearch.trim().toLocaleLowerCase("fa-IR");
@@ -3507,17 +3527,30 @@ ${formatPrice(price)}`)) {
                 </button>
               </div>
 
+              <input
+                value={driverSearch}
+                onChange={(event) => setDriverSearch(event.target.value)}
+                placeholder="جستجوی راننده: نام، موبایل، پلاک، نوع ماشین یا کد ملی..."
+                className="mb-5 w-full rounded-2xl border border-fg/10 bg-surface-2 px-5 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
+              />
+
               <div className="space-y-3">
-                {drivers
-                  .filter((driver) => driver.status === driverFilter)
-                  .map((driver) => (
+                {visibleDrivers.map((driver) => (
                     <article
                       key={driver.id}
                       className="rounded-3xl border border-fg/10 bg-surface-2 p-5"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <h3 className="text-lg font-black">{driver.full_name}</h3>
+                          <h3 className="text-lg font-black">
+                            {driver.full_name}
+                            {/* هنگام جستجو راننده‌های همه‌ی وضعیت‌ها نشان داده می‌شوند */}
+                            {driverSearch.trim() && (
+                              <span className="mr-2 rounded-full bg-fg/10 px-2 py-0.5 align-middle text-xs font-bold text-fg/70">
+                                {DRIVER_STATUS_LABELS[driver.status]}
+                              </span>
+                            )}
+                          </h3>
                           <a
                             href={`tel:${driver.phone}`}
                             dir="ltr"
@@ -3583,9 +3616,13 @@ ${formatPrice(price)}`)) {
                     </article>
                   ))}
 
-                {drivers.filter((driver) => driver.status === driverFilter).length === 0 && (
+                {visibleDrivers.length === 0 && (
                   <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center text-fg/55">
-                    {driverLoading ? "در حال دریافت..." : "راننده‌ای در این بخش نیست."}
+                    {driverLoading
+                      ? "در حال دریافت..."
+                      : driverSearch.trim()
+                        ? "راننده‌ای با این مشخصات پیدا نشد."
+                        : "راننده‌ای در این بخش نیست."}
                   </div>
                 )}
               </div>
