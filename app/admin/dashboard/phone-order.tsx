@@ -185,7 +185,12 @@ export function PhoneOrderForm({
     setSaving(false);
 
     if (insertError) {
-      setError(`ثبت بار انجام نشد: ${insertError.message}`);
+      // 42501: دیتابیس اجازه نداد؛ یعنی شهر بار در محدوده‌ی این متصدی نیست
+      setError(
+        insertError.code === "42501"
+          ? "ثبت بار انجام نشد؛ مبدا یا مقصد بار باید یکی از شهرهای شما باشد."
+          : `ثبت بار انجام نشد: ${insertError.message}`
+      );
       return;
     }
 

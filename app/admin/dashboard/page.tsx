@@ -374,6 +374,20 @@ export default function AdminDashboardPage() {
             : "origin"
           : null;
 
+    // متصدی دربستی: شهر مبدا یا مقصد بار در محدوده‌ی اوست
+    if (item.shipment_type === "full") {
+      const covers = (province?: string | null, city?: string | null) => (location: { province: string; city: string | null }) =>
+        location.province === province && (!location.city || location.city === "*" || location.city === city);
+      return staff.filter(
+        (member) =>
+          member.panel_enabled &&
+          member.kind === "charter" &&
+          (staffLocations[member.id] || []).some(
+            (location) => covers(item.origin_province, item.origin_city)(location) || covers(item.city_province, item.city)(location)
+          )
+      );
+    }
+
     if (!kind) {
       return [];
     }
@@ -2900,7 +2914,7 @@ ${formatPrice(price)}`)) {
                       className="w-full rounded-2xl border border-fg/10 bg-surface-2 px-4 py-4 outline-none placeholder:text-fg/45 focus:border-orange-500"
                     />
 
-                    <div className="grid grid-cols-3 gap-2 rounded-2xl border border-fg/10 bg-surface-3 p-1">
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl border border-fg/10 bg-surface-3 p-1 sm:grid-cols-4">
                       {(Object.keys(STAFF_KIND_LABELS) as StaffKind[]).map((kind) => (
                         <button
                           key={kind}
@@ -2915,7 +2929,7 @@ ${formatPrice(price)}`)) {
                               : "text-fg/60 hover:text-fg")
                           }
                         >
-                          {kind === "intracity" ? "🏙 " : kind === "origin" ? "🏢 " : "📦 "}
+                          {kind === "intracity" ? "🏙 " : kind === "origin" ? "🏢 " : kind === "charter" ? "🚛 " : "📦 "}
                           {STAFF_KIND_LABELS[kind]}
                         </button>
                       ))}
@@ -2923,7 +2937,9 @@ ${formatPrice(price)}`)) {
                     <p className="-mt-2 text-xs leading-6 text-fg/55">
                       {staffForm.kind === "intracity"
                         ? "بارهای درون‌شهری شهرهای انتخاب‌شده را می‌بیند، بار تلفنی ثبت می‌کند و بار را برای رانندگان می‌فرستد."
-                        : staffForm.kind === "origin"
+                        : staffForm.kind === "charter"
+                          ? "بارهای دربستی‌ای که از شهرهای انتخاب‌شده بارگیری می‌شوند یا به آن‌ها می‌روند را می‌بیند، کرایه تعیین می‌کند، بار تلفنی ثبت می‌کند و بار را برای رانندگان می‌فرستد."
+                          : staffForm.kind === "origin"
                           ? "خرده‌بارهایی که از شهر انتخاب‌شده به تهران یا شهرهای دیگر می‌روند را می‌بیند، کرایه تعیین می‌کند و بار تلفنی ثبت می‌کند."
                           : "خرده‌بارهای «تهران ← شهرهای انتخاب‌شده» را می‌بیند و کرایه تعیین می‌کند."}
                     </p>

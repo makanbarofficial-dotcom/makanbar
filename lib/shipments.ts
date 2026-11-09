@@ -21,12 +21,14 @@ export const DIRECTION_LABELS: Record<Direction, string> = {
 
 // نوع متصدی: بین‌شهری (خرده‌بار تهران ← شهر او)، درون‌شهری (بارهای داخل شهر او)
 // یا نماینده (خرده‌بارهایی که از شهر او به تهران یا شهرهای دیگر می‌رود)
-export type StaffKind = "intercity" | "intracity" | "origin";
+// یا متصدی دربستی (بار دربستی‌ای که مبدا یا مقصدش شهر اوست)
+export type StaffKind = "intercity" | "intracity" | "origin" | "charter";
 
 export const STAFF_KIND_LABELS: Record<StaffKind, string> = {
   intercity: "متصدی خرده‌بار تهران",
   intracity: "متصدی درون‌شهری",
   origin: "نماینده شهر",
+  charter: "متصدی دربستی",
 };
 
 // بارهایی که برای رانندگان فرستاده می‌شوند (دربستی و درون‌شهری)

@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
         .from("staff")
         .select("phone, kind")
         .eq("auth_user_id", userId)
-        .in("kind", ["intercity", "intracity", "origin"])
+        .in("kind", ["intercity", "intracity", "origin", "charter"])
         .eq("panel_enabled", true)
         .maybeSingle(),
     ]);
@@ -116,7 +116,10 @@ Deno.serve(async (req) => {
       claim = callerStaff
         ? claim
             .is("customer_id", null)
-            .eq("shipment_type", callerStaff.kind === "intracity" ? "intracity" : "partial")
+            .eq(
+              "shipment_type",
+              callerStaff.kind === "intracity" ? "intracity" : callerStaff.kind === "charter" ? "full" : "partial",
+            )
         : claim.eq("customer_id", userId);
     }
 
@@ -156,7 +159,7 @@ Deno.serve(async (req) => {
       ? "intracity"
       : request.shipment_type === "partial"
         ? request.direction === "from_tehran" ? "intercity" : "origin"
-        : null;
+        : "charter";
     const areaProvince = staffKind === "origin" ? request.origin_province : request.city_province;
     const areaCity = staffKind === "origin" ? request.origin_city : request.city;
     const callerPhone = callerStaff?.phone ? toSmsNumber(callerStaff.phone) : null;
@@ -167,11 +170,19 @@ Deno.serve(async (req) => {
         .select("phone, staff_locations!inner(province, city)")
         .eq("panel_enabled", true)
         .eq("kind", staffKind)
-        .eq("staff_locations.province", areaProvince);
+        // متصدی دربستی: استان مبدا یا مقصد
+        .in("staff_locations.province", staffKind === "charter"
+          ? [request.origin_province, request.city_province].filter(Boolean)
+          : [areaProvince]);
 
       for (const member of staff ?? []) {
         // deno-lint-ignore no-explicit-any
-        const covers = member.staff_locations.some((loc: any) => !loc.city || loc.city === "*" || loc.city === areaCity);
+        const covers = member.staff_locations.some((loc: any) =>
+          staffKind === "charter"
+            ? (loc.province === request.origin_province && (!loc.city || loc.city === "*" || loc.city === request.origin_city)) ||
+              (loc.province === request.city_province && (!loc.city || loc.city === "*" || loc.city === request.city))
+            : !loc.city || loc.city === "*" || loc.city === areaCity
+        );
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
         // کسی که خودش بار تلفنی را ثبت کرده پیامک نمی‌گیرد
@@ -180,7 +191,9 @@ Deno.serve(async (req) => {
             phone,
             staffKind === "intracity"
               ? `ماکان بار: بار درون‌شهری جدید در ${request.destination} ثبت شد.`
-              : staffKind === "origin"
+              : staffKind === "charter"
+                ? `ماکان بار: بار دربستی جدید ${request.origin} ← ${request.destination} ثبت شد.`
+                : staffKind === "origin"
                 ? `ماکان بار: خرده‌بار جدید از ${request.origin} به ${request.destination} ثبت شد.`
                 : `ماکان بار: خرده‌بار جدید به ${request.destination} ثبت شد.`,
           );
