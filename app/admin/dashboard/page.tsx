@@ -528,7 +528,6 @@ export default function AdminDashboardPage() {
       filteredStaff
         .filter((item) => staffKindFilter === "all" || kindOf(item) === staffKindFilter)
         .sort((a, b) => STAFF_KIND_ORDER.indexOf(kindOf(a)) - STAFF_KIND_ORDER.indexOf(kindOf(b))),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [filteredStaff, staffKindFilter]
   );
 
@@ -665,7 +664,6 @@ export default function AdminDashboardPage() {
             [...DRIVER_VEHICLE_ORDER, "سایر"].indexOf(driverGroupOf(a)) -
             [...DRIVER_VEHICLE_ORDER, "سایر"].indexOf(driverGroupOf(b))
         ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [searchedDrivers, driverVehicleFilter]
   );
 
