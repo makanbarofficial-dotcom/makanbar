@@ -44,7 +44,7 @@ function loginEmailFromPhone(normalizedPhone: string) {
 export default function CustomerLoginPage() {
   const router = useRouter();
 
-  const [mode, setMode] = useState<"password" | "otp">("password");
+  const [mode, setMode] = useState<"password" | "otp">("otp");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

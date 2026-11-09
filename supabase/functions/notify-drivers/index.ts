@@ -51,6 +51,22 @@ function vehicleFits(loadVehicle: string | null, driverVehicle: string | null) {
   return loadVehicle === "کامیون" && (driverVehicle === "تک" || driverVehicle === "جفت");
 }
 
+// نوع بارگیر (همان فهرست VEHICLE_BODY_TYPES در lib/shipments.ts)؛ راننده آن را در «مدل خودرو» انتخاب می‌کند
+const BODY_TYPES = new Set([
+  "چادری", "کمپرسی", "بغلدار", "کفی", "تیغه", "تانکر (مخزن‌دار)", "یخچالی", "روباز", "مسقف",
+]);
+
+// درخواست ماشین متصدی، بارگیر را اول توضیحات می‌نویسد: «بارگیر: چادری · ...»
+function loadBodyType(description: string | null) {
+  return description?.match(/^بارگیر:\s*([^·\n]+)/)?.[1]?.trim() || null;
+}
+
+// بار بدون بارگیر مشخص، یا راننده‌ای که بارگیرش معلوم نیست (ثبت‌نام قدیمی)، پیامک را می‌گیرد
+function bodyFits(loadBody: string | null, driverModel: string | null) {
+  if (!loadBody || !driverModel || !BODY_TYPES.has(driverModel.trim())) return true;
+  return loadBody === driverModel.trim();
+}
+
 // deno-lint-ignore no-explicit-any
 async function createSmsClient(): Promise<any> {
   const client = await new Promise((resolve, reject) => {
@@ -112,13 +128,13 @@ Deno.serve(async (req) => {
       .or(
         `status.eq.assigned,created_at.gte.${new Date(Date.now() - MAX_AGE_MINUTES * 60_000).toISOString()}`,
       )
-      .select("id, origin, destination, vehicle_type, price, load_type, status, driver_id");
+      .select("id, origin, destination, vehicle_type, price, load_type, status, driver_id, description");
 
     if (!loads?.length) return json({ success: true, loads: 0, sent: 0 });
 
     const { data: drivers } = await supabase
       .from("driver_profiles")
-      .select("id, phone, vehicle_type")
+      .select("id, phone, vehicle_type, vehicle_model")
       .eq("status", "approved");
 
     const client = await createSmsClient();
@@ -130,15 +146,18 @@ Deno.serve(async (req) => {
         : `${load.origin} ← ${load.destination}`;
       const price = load.price ? ` · کرایه ${Number(load.price).toLocaleString("fa-IR")} تومان` : "";
       const assigned = load.status === "assigned";
+      const body = loadBodyType(load.description);
       const message = assigned
         ? `ماکان بار: بار ${route}${price} به شما واگذار شد.\nجزئیات: ${SITE}`
-        : `ماکان بار: بار جدید ${route}${price}\nپذیرش: ${SITE}`;
+        : `ماکان بار: بار جدید ${route}${body ? ` · ${body}` : ""}${price}\nپذیرش: ${SITE}`;
 
       const phones = new Set(
         (drivers ?? [])
           .filter((driver) =>
             driver.phone &&
-            (assigned ? driver.id === load.driver_id : vehicleFits(load.vehicle_type, driver.vehicle_type))
+            (assigned
+              ? driver.id === load.driver_id
+              : vehicleFits(load.vehicle_type, driver.vehicle_type) && bodyFits(body, driver.vehicle_model))
           )
           .map((driver) => toSmsNumber(driver.phone)),
       );

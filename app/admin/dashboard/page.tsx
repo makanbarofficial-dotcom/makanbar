@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { MonthlyReport } from "@/components/monthly-report";
 import { useEffect, useMemo, useState } from "react";
 import { createSupabase, functionErrorMessage } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -1891,6 +1892,11 @@ ${formatPrice(price)}`)) {
       icon: "📦",
     },
     {
+      id: "reports",
+      label: "گزارش ماهانه",
+      icon: "📊",
+    },
+    {
       id: "representatives",
       label: "نمایندگان",
       icon: "📍",
@@ -3493,6 +3499,8 @@ ${formatPrice(price)}`)) {
               ) : null}
             </section>
           )}
+
+          {activeSection === "reports" && <MonthlyReport supabase={supabase} />}
 
           {activeSection === "drivers" && (
             <section>

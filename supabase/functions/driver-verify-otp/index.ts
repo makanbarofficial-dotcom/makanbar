@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js";
+import soap from "npm:soap";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -105,6 +106,61 @@ async function decryptPassword(encryptedPassword: string) {
   );
 
   return new TextDecoder().decode(decrypted);
+}
+
+// پیامک خوش‌آمد بعد از ثبت‌نام موفق؛ در پس‌زمینه می‌رود تا پاسخ ثبت‌نام معطل نشود
+const WELCOME_MESSAGE =
+  "سلام، ممنونیم که عضو خانواده ماکان بار شدید. هر وقت کاری داشتید در خدمتیم.\nmakanbar.com";
+
+async function sendWelcomeSms(phone: string) {
+  try {
+    const digits = phone
+      .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+      .replace(/\D/g, "");
+    const recipient = digits.startsWith("98")
+      ? "+" + digits
+      : "+98" + (digits.startsWith("0") ? digits.slice(1) : digits);
+
+    // deno-lint-ignore no-explicit-any
+    const client: any = await new Promise((resolve, reject) => {
+      soap.createClient(
+        "http://niksms.com:1370/NiksmsWebservice.svc?wsdl",
+        { timeout: 10000 },
+        // deno-lint-ignore no-explicit-any
+        (error: any, created: any) => (error ? reject(error) : resolve(created)),
+      );
+    });
+    client.setEndpoint("http://94.182.154.28:1370/NiksmsWebservice.svc");
+
+    // deno-lint-ignore no-explicit-any
+    const result: any = await new Promise((resolve, reject) => {
+      client.PtpSms(
+        {
+          security: {
+            Username: Deno.env.get("NIKSMS_USERNAME"),
+            Password: Deno.env.get("NIKSMS_PASSWORD"),
+          },
+          model: {
+            Message: [{ string: WELCOME_MESSAGE }],
+            SenderNumber: "blacklist",
+            Numbers: [{ string: recipient }],
+            SendType: "Normal",
+            YourMessageId: [{ string: crypto.randomUUID() }],
+          },
+        },
+        // deno-lint-ignore no-explicit-any
+        (error: any, res: any) => (error ? reject(error) : resolve(res)),
+      );
+    });
+    console.log("welcome sms", recipient.slice(-4), result?.PtpSmsResult?.Status);
+  } catch (error) {
+    console.error("welcome sms failed:", error instanceof Error ? error.message : error);
+  }
+}
+
+function queueWelcomeSms(phone: string) {
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil(sendWelcomeSms(phone));
 }
 
 Deno.serve(async (req: Request) => {
@@ -437,6 +493,9 @@ Deno.serve(async (req: Request) => {
     if (cleanupError) {
       console.error("OTP cleanup failed:", cleanupError.message);
     }
+
+    // کسی که قبلاً صاحب بار بوده، پیامک خوش‌آمد را گرفته است
+    if (createdNewAuthUser) queueWelcomeSms(phone);
 
     return json({
       success: true,
