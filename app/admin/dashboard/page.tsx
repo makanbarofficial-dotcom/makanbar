@@ -96,6 +96,7 @@ type Driver = {
   vehicle_model: string | null;
   vehicle_plate: string | null;
   fleet_smart_number: string | null;
+  active_provinces: string[] | null;
   national_code: string | null;
   birth_date: string | null;
   created_at: string;
@@ -649,6 +650,8 @@ export default function AdminDashboardPage() {
         driver.vehicle_model,
         driver.national_code,
         driver.fleet_smart_number,
+        // جستجو با نام استان محل فعالیت هم کار می‌کند
+        (driver.active_provinces ?? []).map((province) => getProvinceFa(province)).join(" "),
       ])
     );
   }, [drivers, driverFilter, driverSearch]);
@@ -744,7 +747,7 @@ export default function AdminDashboardPage() {
 
     const { data, error } = await supabase
       .from("driver_profiles")
-      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, fleet_smart_number, national_code, birth_date, created_at")
+      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, fleet_smart_number, active_provinces, national_code, birth_date, created_at")
       .order("created_at", { ascending: false });
 
     setDriverLoading(false);
@@ -3819,6 +3822,17 @@ ${formatPrice(price)}`)) {
                           <p className="text-xs text-fg/55">هوشمند ناوگان</p>
                           <p dir="ltr" className="mt-1 text-right font-bold">{driver.fleet_smart_number || "—"}</p>
                         </div>
+                      </div>
+
+                      <div className="mt-3 rounded-2xl bg-surface-3 p-4 text-sm">
+                        <p className="text-xs text-fg/55">📍 استان‌های محل فعالیت</p>
+                        <p className="mt-1 font-bold leading-7">
+                          {!driver.active_provinces?.length
+                            ? "هنوز انتخاب نکرده"
+                            : driver.active_provinces.length >= provinces.length
+                              ? "همه‌ی استان‌ها"
+                              : driver.active_provinces.map((province) => getProvinceFa(province)).join("، ")}
+                        </p>
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2">

@@ -16,6 +16,7 @@ import {
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { AdminSessionNotice } from "@/components/admin-session-notice";
 import { CompleteProfile, needsProfileCompletion } from "./complete-profile";
+import { ActiveProvinces } from "./active-provinces";
 
 const supabase = createSupabase();
 
@@ -61,6 +62,7 @@ type DriverProfile = {
   national_code: string | null;
   birth_date: string | null;
   fleet_smart_number: string | null;
+  active_provinces: string[] | null;
 };
 
 type Tab = "available" | "mine" | "profile";
@@ -68,7 +70,7 @@ type Tab = "available" | "mine" | "profile";
 type Place = { province: string; city: string };
 
 // فیلتر بارهای آزاد؛ روی همین گوشی ذخیره می‌شود تا دفعه بعد هم بماند
-type LoadFilter = { origin: Place; destination: Place; myVehicleOnly: boolean };
+type LoadFilter = { origin: Place; destination: Place; myVehicleOnly: boolean; myProvincesOnly: boolean };
 
 const FILTER_KEY = "makanbar-driver-filter";
 const EMPTY_PLACE: Place = { province: "", city: "" };
@@ -76,6 +78,7 @@ const DEFAULT_FILTER: LoadFilter = {
   origin: EMPTY_PLACE,
   destination: EMPTY_PLACE,
   myVehicleOnly: true,
+  myProvincesOnly: true,
 };
 
 function readFilter(): LoadFilter {
@@ -152,12 +155,20 @@ export default function DriverPage() {
     } catch {}
   }
 
+  // استان‌های محل فعالیت راننده؛ بار آزاد فقط وقتی دیده می‌شود که از یکی از این استان‌ها بارگیری شود
+  const myProvinces = profile?.active_provinces ?? [];
+  const provinceFilterOn = filter.myProvincesOnly && myProvinces.length > 0;
+
   const vehicleLoads = useMemo(
     () =>
-      filter.myVehicleOnly
-        ? availableLoads.filter((load) => vehicleFits(load.vehicle_type, profile?.vehicle_type))
-        : availableLoads,
-    [availableLoads, filter.myVehicleOnly, profile?.vehicle_type]
+      availableLoads
+        .filter((load) => !filter.myVehicleOnly || vehicleFits(load.vehicle_type, profile?.vehicle_type))
+        .filter(
+          (load) =>
+            !provinceFilterOn || myProvinces.some((province) => placeMatches(load.origin, province, ""))
+        ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [availableLoads, filter.myVehicleOnly, profile?.vehicle_type, provinceFilterOn, myProvinces.join(",")]
   );
 
   const filteredLoads = useMemo(
@@ -184,7 +195,7 @@ export default function DriverPage() {
 
     const { data: driver, error: profileError } = await supabase
       .from("driver_profiles")
-      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, fleet_smart_number")
+      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, fleet_smart_number, active_provinces")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
@@ -558,6 +569,18 @@ export default function DriverPage() {
           </div>
         )}
 
+        {myProvinces.length > 0 && (
+          <label className="mt-4 flex items-center gap-3 border-t border-fg/10 pt-4 text-sm">
+            <input
+              type="checkbox"
+              checked={filter.myProvincesOnly}
+              onChange={(event) => updateFilter({ ...filter, myProvincesOnly: event.target.checked })}
+              className="h-5 w-5 accent-orange-500"
+            />
+            <span className="flex-1">فقط بارهایی که از استان‌های من بارگیری می‌شوند</span>
+          </label>
+        )}
+
         {profile?.vehicle_type && (
           <label className="mt-4 flex items-center gap-3 border-t border-fg/10 pt-4 text-sm">
             <input
@@ -658,6 +681,15 @@ export default function DriverPage() {
               <CompleteProfile supabase={supabase} profile={profile} onDone={() => void refresh()} />
             )}
 
+            {!needsProfileCompletion(profile) && !profile.active_provinces?.length && (
+              <ActiveProvinces
+                supabase={supabase}
+                initial={profile.active_provinces}
+                prompt
+                onSaved={(active_provinces) => setProfile({ ...profile, active_provinces })}
+              />
+            )}
+
             <section className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -738,6 +770,14 @@ export default function DriverPage() {
                     </div>
                   ))}
                 </dl>
+              )}
+
+              {activeTab === "profile" && (
+                <ActiveProvinces
+                  supabase={supabase}
+                  initial={profile.active_provinces}
+                  onSaved={(active_provinces) => setProfile({ ...profile, active_provinces })}
+                />
               )}
             </section>
           </>
