@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { CallButton } from "@/components/call-button";
 import { MonthlyReport } from "@/components/monthly-report";
 import { AdminSms } from "@/components/admin-sms";
 import { AdminSettings } from "@/components/admin-settings";
@@ -101,6 +102,9 @@ type Driver = {
   birth_date: string | null;
   created_at: string;
 };
+
+// بخش‌های پرکاربرد که روی گوشی پایین صفحه ثابت‌اند
+const MOBILE_MENU_IDS = ["requests", "drivers", "vehicles", "sms"];
 
 // ترتیب ردیف‌های رانندگان در پنل مدیر
 const DRIVER_VEHICLE_ORDER = Object.keys(VEHICLE_BODY_TYPES);
@@ -242,6 +246,8 @@ export default function AdminDashboardPage() {
 
   // جستجوی راننده با نام، موبایل، پلاک، کد ملی یا شماره هوشمند؛ در همه‌ی وضعیت‌ها
   const [driverSearch, setDriverSearch] = useState("");
+  // منوی «همه‌ی بخش‌ها» روی گوشی
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // ردیف‌بندی رانندگان بر اساس نوع ماشین و متصدی‌ها بر اساس نوع کار
   const [driverVehicleFilter, setDriverVehicleFilter] = useState("all");
   const [staffKindFilter, setStaffKindFilter] = useState<StaffKind | "all">("all");
@@ -2154,7 +2160,7 @@ ${formatPrice(price)}`)) {
           </button>
         </aside>
 
-        <section className="min-w-0 flex-1 p-5 md:p-8">
+        <section className="min-w-0 flex-1 p-5 pb-28 md:p-8 lg:pb-8">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="mb-1 text-sm text-orange-700">
@@ -2180,25 +2186,69 @@ ${formatPrice(price)}`)) {
             </button>
           </div>
 
+          {/* گوشی: پرکاربردها پایین صفحه ثابت‌اند و «همه» بقیه‌ی بخش‌ها را باز می‌کند */}
           <nav
             aria-label="بخش‌های مدیریت"
-            className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-fg/10 bg-surface-2/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl lg:hidden"
           >
-            {menuItems.map((item) => (
+            {[...MOBILE_MENU_IDS.map((id) => menuItems.find((item) => item.id === id)).filter(Boolean)].map((item) => (
               <button
-                key={item.id}
+                key={item!.id}
                 type="button"
-                onClick={() => setActiveSection(item.id)}
-                className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
-                  activeSection === item.id
-                    ? "bg-orange-500 text-white"
-                    : "bg-surface-2 text-fg/70"
+                onClick={() => {
+                  setActiveSection(item!.id);
+                  setMobileMenuOpen(false);
+                  window.scrollTo({ top: 0 });
+                }}
+                className={`flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-bold transition ${
+                  activeSection === item!.id && !mobileMenuOpen ? "text-orange-600" : "text-fg/60"
                 }`}
               >
-                {item.icon} {item.label}
+                <span className="text-lg leading-none">{item!.icon}</span>
+                {item!.label === "درخواست‌های حمل" ? "بارها" : item!.label}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className={`flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-bold transition ${
+                mobileMenuOpen || !MOBILE_MENU_IDS.includes(activeSection) ? "text-orange-600" : "text-fg/60"
+              }`}
+            >
+              <span className="text-lg leading-none">☰</span>
+              همه
+            </button>
           </nav>
+
+          {mobileMenuOpen && (
+            <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setMobileMenuOpen(false)}>
+              <div
+                className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-surface-2 p-5 pb-28 shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <p className="mb-4 text-center text-sm font-black text-fg/60">همه‌ی بخش‌ها</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {menuItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveSection(item.id);
+                        setMobileMenuOpen(false);
+                        window.scrollTo({ top: 0 });
+                      }}
+                      className={`flex flex-col items-center gap-1 rounded-2xl p-3 text-xs font-bold transition ${
+                        activeSection === item.id ? "bg-orange-500 text-white" : "bg-surface-3 text-fg/75"
+                      }`}
+                    >
+                      <span className="text-2xl leading-none">{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-700">
@@ -2459,15 +2509,9 @@ ${formatPrice(price)}`)) {
                             {item.origin} ← {item.destination}
                           </h3>
 
-                          <p className="mt-1 text-sm text-fg/60">
-                            {item.full_name} ·{" "}
-                            <a
-                              href={`tel:${item.phone}`}
-                              dir="ltr"
-                              className="text-orange-700"
-                            >
-                              {item.phone}
-                            </a>
+                          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-fg/60">
+                            {item.full_name}
+                            {item.phone && <CallButton phone={item.phone} />}
                           </p>
                         </div>
 
@@ -3624,54 +3668,66 @@ ${formatPrice(price)}`)) {
                   در حال بارگذاری فهرست مشتریان...
                 </div>
               ) : filteredCustomers.length > 0 ? (
-                <div className="overflow-hidden rounded-3xl border border-fg/10 bg-surface-2">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[980px] text-right text-sm">
-                      <thead className="bg-surface-2 text-fg/60">
-                        <tr>
-                          <th className="px-5 py-4 font-bold">نام مشتری</th>
-                          <th className="px-5 py-4 font-bold">شماره موبایل</th>
-                          <th className="px-5 py-4 font-bold">کد ملی</th>
-                          <th className="px-5 py-4 font-bold">تاریخ تولد</th>
-                          <th className="px-5 py-4 font-bold">شرکت</th>
-                          <th className="px-5 py-4 font-bold">آدرس</th>
-                          <th className="px-5 py-4 font-bold">تاریخ ثبت</th>
-                          <th className="px-5 py-4 font-bold"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-fg/5">
-                        {filteredCustomers.map((customer) => (
-                          <tr key={customer.id} className="transition hover:bg-fg/[0.03]">
-                            <td className="px-5 py-4 font-bold">{customer.full_name || "—"}</td>
-                            <td className="px-5 py-4 text-fg/70" dir="ltr">{formatCustomerPhone(customer.phone)}</td>
-                            <td className="px-5 py-4 text-fg/70" dir="ltr">{customer.national_code || "—"}</td>
-                            <td className="px-5 py-4 text-fg/70" dir="ltr">{customer.birth_date || "—"}</td>
-                            <td className="px-5 py-4 text-fg/70">{customer.company_name || "—"}</td>
-                            <td className="max-w-xs px-5 py-4 text-fg/60">{customer.address || "—"}</td>
-                            <td className="px-5 py-4 text-fg/60">
-                              {customer.created_at
-                                ? new Date(customer.created_at).toLocaleDateString("fa-IR", {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  })
-                                : "—"}
-                            </td>
-                            <td className="px-5 py-4">
-                              <button
-                                type="button"
-                                disabled={deletingCustomerId === customer.id}
-                                onClick={() => void deleteCustomer(customer)}
-                                className="rounded-xl border border-red-400/30 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-500/10 disabled:opacity-50"
-                              >
-                                {deletingCustomerId === customer.id ? "..." : "حذف"}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                // هر مشتری یک کارت؛ روی گوشی یک ستون و روی رایانه دو ستون (به‌جای جدول پهن)
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {filteredCustomers.map((customer) => (
+                    <article key={customer.id} className="rounded-3xl border border-fg/10 bg-surface-2 p-4 sm:p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="truncate text-base font-black">{customer.full_name || "بدون نام"}</h4>
+                          {customer.company_name && (
+                            <p className="mt-0.5 truncate text-xs text-fg/55">🏢 {customer.company_name}</p>
+                          )}
+                        </div>
+                        <span className="shrink-0 text-xs text-fg/50">
+                          {customer.created_at
+                            ? new Date(customer.created_at).toLocaleDateString("fa-IR", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })
+                            : ""}
+                        </span>
+                      </div>
+
+                      {customer.phone && (
+                        <a
+                          href={`tel:${customer.phone}`}
+                          className="mt-3 flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 py-2.5 text-sm font-black text-emerald-700 transition hover:bg-emerald-500/20"
+                        >
+                          📞 <span dir="ltr">{formatCustomerPhone(customer.phone)}</span>
+                        </a>
+                      )}
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        <div className="rounded-xl bg-surface-3 px-3 py-2">
+                          <p className="text-xs text-fg/55">کد ملی</p>
+                          <p dir="ltr" className="mt-0.5 text-right font-bold">{customer.national_code || "—"}</p>
+                        </div>
+                        <div className="rounded-xl bg-surface-3 px-3 py-2">
+                          <p className="text-xs text-fg/55">تاریخ تولد</p>
+                          <p dir="ltr" className="mt-0.5 text-right font-bold">{customer.birth_date || "—"}</p>
+                        </div>
+                      </div>
+
+                      {customer.address && (
+                        <p className="mt-2 rounded-xl bg-surface-3 px-3 py-2 text-sm leading-7 text-fg/70">
+                          📍 {customer.address}
+                        </p>
+                      )}
+
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          disabled={deletingCustomerId === customer.id}
+                          onClick={() => void deleteCustomer(customer)}
+                          className="rounded-xl border border-red-400/30 px-4 py-2 text-xs font-bold text-red-700 transition hover:bg-red-500/10 disabled:opacity-50"
+                        >
+                          {deletingCustomerId === customer.id ? "..." : "🗑 حذف مشتری"}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               ) : !customerError ? (
                 <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center">
@@ -3784,13 +3840,7 @@ ${formatPrice(price)}`)) {
                               </span>
                             )}
                           </h3>
-                          <a
-                            href={`tel:${driver.phone}`}
-                            dir="ltr"
-                            className="mt-1 inline-block text-sm text-orange-700"
-                          >
-                            {formatCustomerPhone(driver.phone)}
-                          </a>
+                          <CallButton phone={driver.phone} label={formatCustomerPhone(driver.phone)} className="mt-2" />
                         </div>
                         <span className="text-xs text-fg/55">
                           ثبت‌نام: {formatDate(driver.created_at)}

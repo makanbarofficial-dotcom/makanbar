@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { CallButton } from "@/components/call-button";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabase } from "@/lib/supabase";
@@ -780,13 +781,7 @@ export default function EmployeePanelPage() {
                     <div className="rounded-2xl bg-surface-3 p-3">
                       <p className="text-xs text-fg/55">صاحب بار</p>
                       <p className="mt-1 font-bold">{item.full_name}</p>
-                      <a
-                        href={`tel:${item.phone}`}
-                        dir="ltr"
-                        className="mt-1 block text-right text-orange-700"
-                      >
-                        {item.phone}
-                      </a>
+                      {item.phone && <CallButton phone={item.phone} className="mt-2" />}
                     </div>
                     <div className="rounded-2xl bg-surface-3 p-3">
                       <p className="text-xs text-fg/55">نوع بار</p>

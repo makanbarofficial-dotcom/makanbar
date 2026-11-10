@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { CallButton } from "@/components/call-button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
@@ -419,9 +420,7 @@ export default function DriverPage() {
                 {load.request_id != null ? "صاحب بار: " : "هماهنگی با: "}
               </span>
               {job.full_name}{" "}
-              <a href={`tel:${job.phone}`} dir="ltr" className="font-bold text-brand-2">
-                {job.phone}
-              </a>
+              <CallButton phone={job.phone} className="mt-1" />
             </p>
             {job.pickup_address && (
               <p>

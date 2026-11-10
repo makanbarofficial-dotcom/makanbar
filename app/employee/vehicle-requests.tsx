@@ -1,6 +1,7 @@
 "use client";
 
 import { type SubmitEvent, useCallback, useEffect, useState } from "react";
+import { CallButton } from "@/components/call-button";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Alert, ui } from "@/components/ui";
 import { PriceInput } from "@/components/price-input";
@@ -428,9 +429,7 @@ export function VehicleRequests({
                   )}
                   <span className="text-fg/60">راننده: </span>
                   <span className="font-bold">{driver.full_name}</span>{" "}
-                  <a href={`tel:${driver.phone}`} dir="ltr" className="font-bold text-brand-2">
-                    {driver.phone}
-                  </a>
+                  <CallButton phone={driver.phone} className="mr-1" />
                   {(driver.vehicle_type || driver.vehicle_plate) && (
                     <span className="block text-xs text-fg/60">
                       {[driver.vehicle_type, driver.vehicle_plate].filter(Boolean).join(" · ")}
