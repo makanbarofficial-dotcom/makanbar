@@ -19,7 +19,9 @@ if (!HOST_IP || !HOST_USER || !HOST_PASSWORD) {
 
 const OUT = "out";
 const REMOTE = `ftp://${HOST_IP}/public_html`;
-const auth = ["--ssl-reqd", "-k", "--user", `${HOST_USER}:${HOST_PASSWORD}`, "-s", "-S", "--retry", "2"];
+const auth = ["--ssl-reqd", "-k", "--user", `${HOST_USER}:${HOST_PASSWORD}`, "-s", "-S", "--retry", "2",
+  // اتصال هاست گاهی وسط کار گیر می‌کند؛ بدون سقف زمان کل بارگذاری متوقف می‌ماند
+  "--connect-timeout", "20", "--max-time", "120"];
 
 // اتصال به هاست گاهی قطع می‌شود؛ هر درخواست تا سه بار با مکث تکرار می‌شود
 function curl(args, cwd) {
