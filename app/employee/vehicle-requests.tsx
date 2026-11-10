@@ -16,6 +16,7 @@ import {
   getProvinces,
   normalizeDigits,
   placeLabel,
+  priceInWords,
 } from "@/lib/shipments";
 
 type Place = { province: string; city: string };
@@ -361,11 +362,15 @@ export function VehicleRequests({
       ) : (
         items.map((item) => {
           const driver = item.driver_id ? drivers[item.driver_id] : undefined;
+          // بارگیر اول توضیحات ذخیره شده: «بارگیر: چادری · بقیه‌ی توضیحات»
+          const bodyMatch = item.description?.match(/^بارگیر:\s*([^·]+?)\s*(?:·\s*([\s\S]*))?$/);
+          const bodyType = bodyMatch?.[1]?.trim() || null;
+          const note = (bodyMatch ? bodyMatch[2] : item.description)?.trim() || null;
 
           return (
             <article key={item.id} className={`${ui.card} p-5`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-xs text-fg/55">
                     {formatDate(item.created_at)}
                     {isAdmin && item.contact_name ? ` · ثبت‌کننده: ${item.contact_name}` : ""}
@@ -373,13 +378,6 @@ export function VehicleRequests({
                   <h3 className="mt-1 text-lg font-black">
                     {item.origin} ← {item.destination}
                   </h3>
-                  <p className="mt-1 text-sm text-fg/60">
-                    {[item.vehicle_type || "هر خودرویی", item.cargo_type, item.weight]
-                      .filter(Boolean)
-                      .join(" · ")}
-                    {" · "}
-                    {formatPrice(item.price)}
-                  </p>
                 </div>
                 <span
                   className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${STATUS_TONES[item.status]}`}
@@ -387,6 +385,37 @@ export function VehicleRequests({
                   {STATUS_LABELS[item.status]}
                 </span>
               </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                {[
+                  ["ماشین", item.vehicle_type || "هر خودرویی"],
+                  ["بارگیر", bodyType || "—"],
+                  ["نوع بار", item.cargo_type || "—"],
+                  ["وزن", item.weight || "—"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl bg-surface-3 px-3 py-2">
+                    <p className="text-xs text-fg/55">{label}</p>
+                    <p className="mt-0.5 font-bold">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-2 rounded-xl bg-surface-3 px-3 py-2 text-sm">
+                <span className="text-xs text-fg/55">کرایه: </span>
+                <span className={`font-black ${item.price != null ? "text-emerald-700" : "text-fg/60"}`}>
+                  {formatPrice(item.price)}
+                </span>
+                {item.price != null && (
+                  <span className="mr-2 text-xs text-fg/55">({priceInWords(item.price)})</span>
+                )}
+              </div>
+
+              {note && (
+                <div className="mt-2 rounded-xl bg-surface-3 px-3 py-2 text-sm">
+                  <p className="text-xs text-fg/55">توضیحات</p>
+                  <p className="mt-0.5 whitespace-pre-line leading-7">{note}</p>
+                </div>
+              )}
 
               {driver && (
                 <div className="mt-3 rounded-xl border border-sky-400/20 bg-sky-500/10 p-3 text-sm">
