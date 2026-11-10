@@ -10,6 +10,8 @@ import {
   type ShipmentType,
   type Terminal,
   VEHICLE_TYPES,
+  bodyTypesFor,
+  withBodyType,
   detectDirection,
   formatPrice,
   getProvinceCities,
@@ -60,6 +62,8 @@ export function PhoneOrderForm({
   const [origin, setOrigin] = useState<Place>(defaultCity);
   const [destination, setDestination] = useState<Place>(defaultDestination);
   const [price, setPrice] = useState("");
+  // نوع خودرو برای نمایش گزینه‌های بارگیر (چادری، مسقف و...)
+  const [vehicleType, setVehicleType] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -175,7 +179,7 @@ export function PhoneOrderForm({
         quantity: isPartial ? value("quantity") : null,
         dimensions: isPartial && dimensions.length ? `${dimensions.join(" × ")} سانتی‌متر` : null,
         vehicle_type: isPartial ? "" : value("vehicle_type"),
-        description: value("description") || null,
+        description: withBodyType(isPartial ? "" : value("body_type"), value("description")) || null,
         price: priceValue,
         status: "جدید",
       })
@@ -393,9 +397,22 @@ export function PhoneOrderForm({
         {isPartial ? (
           <input name="quantity" placeholder="تعداد *، مثلاً ۵ کارتن" className={field} />
         ) : (
-          <select name="vehicle_type" defaultValue="" className={select}>
+          <select
+            name="vehicle_type"
+            value={vehicleType}
+            onChange={(event) => setVehicleType(event.target.value)}
+            className={select}
+          >
             <option value="">خودرو: فرقی نمی‌کند</option>
             {VEHICLE_TYPES.map((type) => (
+              <option key={type}>{type}</option>
+            ))}
+          </select>
+        )}
+        {!isPartial && bodyTypesFor(vehicleType).length > 0 && (
+          <select name="body_type" key={vehicleType} defaultValue="" className={select}>
+            <option value="">بارگیر: فرقی نمی‌کند</option>
+            {bodyTypesFor(vehicleType).map((type) => (
               <option key={type}>{type}</option>
             ))}
           </select>

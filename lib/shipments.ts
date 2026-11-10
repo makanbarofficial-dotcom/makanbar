@@ -102,6 +102,16 @@ export const VEHICLE_BODY_TYPES: Record<string, string[]> = {
   "پیک موتوری": ["موتور با باکس", "موتور بدون باکس"],
 };
 
+// گزینه‌های بارگیر برای نوع خودروی انتخاب‌شده در فرم ثبت بار (کامیون یعنی تک یا جفت)
+export function bodyTypesFor(vehicleType: string) {
+  return VEHICLE_BODY_TYPES[vehicleType === "کامیون" ? "تک" : vehicleType] ?? [];
+}
+
+// بارگیر جدا ستون ندارد؛ اول توضیحات نوشته می‌شود: «بارگیر: چادری · بقیه‌ی توضیحات»
+export function withBodyType(bodyType: string, description: string) {
+  return [bodyType && `بارگیر: ${bodyType}`, description].filter(Boolean).join(" · ");
+}
+
 export type ShipmentRequest = {
   id: number;
   created_at: string;

@@ -814,6 +814,40 @@ export default function AdminDashboardPage() {
     return false;
   }
 
+  // حذف صاحب بار با بارها و حساب ورودش (تابع admin-manage-users)
+  const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
+
+  async function deleteCustomer(customer: Customer) {
+    if (
+      !confirm(
+        `«${customer.full_name || formatCustomerPhone(customer.phone)}» پاک شود؟
+
+حساب ورود و همه‌ی بارهای ثبت‌شده‌اش پاک می‌شوند و قابل برگشت نیست.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingCustomerId(customer.id);
+    const { data, error } = await supabase.functions.invoke("admin-manage-users", {
+      body: { action: "delete_customer", customerId: customer.id },
+    });
+    setDeletingCustomerId(null);
+
+    if (error || !data?.success) {
+      alert(
+        data?.error ||
+          (error ? await functionErrorMessage(error, "حذف انجام نشد.") : "حذف انجام نشد.")
+      );
+      return;
+    }
+
+    setCustomers((current) => current.filter((item) => item.id !== customer.id));
+    alert(
+      `پاک شد.${data.requests ? ` (${Number(data.requests).toLocaleString("fa-IR")} بار هم پاک شد)` : ""}`
+    );
+  }
+
   async function loadCustomers() {
     setCustomerLoading(true);
     setCustomerError("");
@@ -1800,6 +1834,33 @@ ${formatPrice(price)}`)) {
     } finally {
       setStaffLoading(false);
     }
+  }
+
+  // رمز تازه برای حساب پنل متصدی (تابع admin-manage-users)
+  async function changeStaffPassword(item: Staff) {
+    const password = prompt(
+      `رمز تازه برای «${item.name}» را بنویسید (حداقل ۶ حرف).\nبعد از تغییر، رمز قبلی دیگر کار نمی‌کند؛ رمز تازه را به خود متصدی هم بگویید.`
+    );
+    if (password == null) return;
+    const value = password.trim();
+    if (value.length < 6) {
+      alert("رمز باید حداقل ۶ حرف باشد.");
+      return;
+    }
+
+    const { data, error } = await supabase.functions.invoke("admin-manage-users", {
+      body: { action: "staff_password", staffId: item.id, password: value },
+    });
+
+    if (error || !data?.success) {
+      alert(
+        data?.error ||
+          (error ? await functionErrorMessage(error, "تغییر رمز انجام نشد.") : "تغییر رمز انجام نشد.")
+      );
+      return;
+    }
+
+    alert(`رمز «${item.name}» عوض شد.\nرمز تازه: ${value}`);
   }
 
   async function deleteStaff(
@@ -3380,7 +3441,27 @@ ${formatPrice(price)}`)) {
                                 </p>
                               </div>
 
-                              <div className="flex gap-2">
+                              <div className="flex flex-wrap gap-2">
+                                {/* پنل متصدی در تب جدید، همان‌طور که خودش می‌بیند */}
+                                <a
+                                  href={`/employee/?as=${item.id}`}
+                                  target="_blank"
+                                  rel="noopener"
+                                  className="rounded-xl bg-sky-500/10 px-4 py-2 text-sm font-bold text-sky-700 hover:bg-sky-500/20"
+                                >
+                                  👁 دیدن پنل
+                                </a>
+
+                                {item.auth_user_id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => void changeStaffPassword(item)}
+                                    className="rounded-xl bg-fg/10 px-4 py-2 text-sm font-bold hover:bg-fg/15"
+                                  >
+                                    🔑 تغییر رمز
+                                  </button>
+                                )}
+
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -3552,6 +3633,7 @@ ${formatPrice(price)}`)) {
                           <th className="px-5 py-4 font-bold">شرکت</th>
                           <th className="px-5 py-4 font-bold">آدرس</th>
                           <th className="px-5 py-4 font-bold">تاریخ ثبت</th>
+                          <th className="px-5 py-4 font-bold"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-fg/5">
@@ -3571,6 +3653,16 @@ ${formatPrice(price)}`)) {
                                     day: "numeric",
                                   })
                                 : "—"}
+                            </td>
+                            <td className="px-5 py-4">
+                              <button
+                                type="button"
+                                disabled={deletingCustomerId === customer.id}
+                                onClick={() => void deleteCustomer(customer)}
+                                className="rounded-xl border border-red-400/30 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-500/10 disabled:opacity-50"
+                              >
+                                {deletingCustomerId === customer.id ? "..." : "حذف"}
+                              </button>
                             </td>
                           </tr>
                         ))}

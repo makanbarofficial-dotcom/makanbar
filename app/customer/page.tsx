@@ -17,12 +17,14 @@ import {
   type ShipmentType,
   type Terminal,
   VEHICLE_TYPES,
+  bodyTypesFor,
   detectDirection,
   formatDate,
   formatPrice,
   getProvinceCities,
   getProvinces,
   placeLabel,
+  withBodyType,
   statusTone,
   terminalAddress,
 } from "@/lib/shipments";
@@ -90,6 +92,8 @@ export default function CustomerPanelPage() {
   const [activeTab, setActiveTab] = useState<"list" | "create" | "reps">("list");
 
   const [shipmentType, setShipmentType] = useState<ShipmentType>("full");
+  // نوع خودرو برای نمایش گزینه‌های بارگیر (چادری، مسقف و...)
+  const [vehicleType, setVehicleType] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("door_to_door");
   const [origin, setOrigin] = useState<Place>(emptyPlace);
   const [destination, setDestination] = useState<Place>(emptyPlace);
@@ -267,7 +271,7 @@ export default function CustomerPanelPage() {
       quantity: isPartial ? value("quantity") : null,
       dimensions: isPartial ? formatDimensions(value) : null,
       vehicle_type: shipmentType === "partial" ? "" : value("vehicle_type"),
-      description: value("description") || null,
+      description: withBodyType(shipmentType === "partial" ? "" : value("body_type"), value("description")) || null,
       status: "جدید",
     })
       .select("id")
@@ -287,6 +291,7 @@ export default function CustomerPanelPage() {
       .catch((notifyError) => console.error("Notify error:", notifyError));
 
     form.reset();
+    setVehicleType("");
     setOrigin(emptyPlace);
     setDestination(emptyPlace);
     setFormSuccess("بار شما ثبت شد و پس از بررسی با شما تماس می‌گیریم.");
@@ -841,9 +846,26 @@ export default function CustomerPanelPage() {
               {shipmentType !== "partial" && (
                 <label className="block text-sm text-fg/70">
                   نوع خودرو
-                  <select name="vehicle_type" defaultValue="" className={`${selectClass} mt-2`}>
+                  <select
+                    name="vehicle_type"
+                    value={vehicleType}
+                    onChange={(event) => setVehicleType(event.target.value)}
+                    className={`${selectClass} mt-2`}
+                  >
                     <option value="">فرقی نمی‌کند</option>
                     {VEHICLE_TYPES.map((type) => (
+                      <option key={type}>{type}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+              {shipmentType !== "partial" && bodyTypesFor(vehicleType).length > 0 && (
+                <label className="block text-sm text-fg/70">
+                  نوع بارگیر
+                  <select name="body_type" key={vehicleType} defaultValue="" className={`${selectClass} mt-2`}>
+                    <option value="">فرقی نمی‌کند</option>
+                    {bodyTypesFor(vehicleType).map((type) => (
                       <option key={type}>{type}</option>
                     ))}
                   </select>

@@ -69,6 +69,8 @@ export default function EmployeePanelPage() {
   const [publishingId, setPublishingId] = useState<number | null>(null);
   // با حساب مدیر وارد شده؛ صفحه‌ی انتخاب «پنل مدیریت / خروج» نشان داده می‌شود
   const [adminSession, setAdminSession] = useState(false);
+  // مدیر در حال دیدن پنل یک متصدی است (‎?as=شناسه)
+  const [viewingAs, setViewingAs] = useState(false);
   // انتخاب راننده/پیک برای بار درون‌شهری
   const [drivers, setDrivers] = useState<DriverOption[]>([]);
   const [assignedDrivers, setAssignedDrivers] = useState<Record<number, string>>({});
@@ -92,7 +94,7 @@ export default function EmployeePanelPage() {
       return;
     }
 
-    const { data: staff, error: staffError } = await supabase
+    const { data: ownStaff, error: staffError } = await supabase
       .from("staff")
       .select("id, name, phone, panel_enabled, kind")
       .eq("auth_user_id", user.id)
@@ -105,11 +107,31 @@ export default function EmployeePanelPage() {
       return;
     }
 
+    let staff = ownStaff;
+    // مدیر با «👁 دیدن پنل» (‎/employee/?as=شناسه) پنل همان متصدی را می‌بیند
+    let viewing = false;
+
     if (!staff) {
       const { data: isAdmin } = await supabase.rpc("is_admin");
-      setAdminSession(!!isAdmin);
+      const asId = Number(new URLSearchParams(window.location.search).get("as"));
+
+      if (isAdmin && Number.isInteger(asId) && asId > 0) {
+        const { data: target } = await supabase
+          .from("staff")
+          .select("id, name, phone, panel_enabled, kind")
+          .eq("id", asId)
+          .maybeSingle();
+        if (target) {
+          // پنل متصدی غیرفعال هم برای مدیر نمایش داده می‌شود
+          staff = { ...target, panel_enabled: true };
+          viewing = true;
+        }
+      }
+
+      if (!viewing) setAdminSession(!!isAdmin);
     }
 
+    setViewingAs(viewing);
     setProfile(staff as StaffProfile | null);
 
     if (!staff || !staff.panel_enabled) {
@@ -141,7 +163,8 @@ export default function EmployeePanelPage() {
           .from("staff_locations")
           .select("id, province, city")
           .eq("staff_id", staff.id),
-        requestsQuery,
+        // برای مدیر دیتابیس همه‌ی بارها را برمی‌گرداند؛ تابع admin_staff_requests همان بارهای این متصدی را می‌دهد
+        viewing ? supabase.rpc("admin_staff_requests", { p_staff_id: staff.id }) : requestsQuery,
         dispatcher
           ? supabase
               .from("loads")
@@ -152,7 +175,13 @@ export default function EmployeePanelPage() {
       ]);
 
     if (dispatcher) {
-      const { data: driverRows } = await supabase.rpc("list_drivers_for_intracity_staff");
+      const { data: driverRows } = viewing
+        ? await supabase
+            .from("driver_profiles")
+            .select("id, full_name, phone, vehicle_type, vehicle_model, vehicle_plate")
+            .eq("status", "approved")
+            .order("full_name")
+        : await supabase.rpc("list_drivers_for_intracity_staff");
       const driverList = (driverRows ?? []) as DriverOption[];
       setDrivers(driverList);
 
@@ -482,15 +511,29 @@ export default function EmployeePanelPage() {
             {profile?.name && (
               <span className="hidden text-sm text-fg/70 sm:block">{profile.name}</span>
             )}
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
-            >
-              خروج
-            </button>
+            {viewingAs ? (
+              <a
+                href="/admin/dashboard/"
+                className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
+              >
+                بازگشت به پنل مدیر
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
+              >
+                خروج
+              </button>
+            )}
           </div>
         </div>
+        {viewingAs && profile && (
+          <p className="bg-sky-500/15 px-5 py-2 text-center text-sm font-bold text-sky-800">
+            👁 شما (مدیر) در حال دیدن پنل «{profile.name}» هستید؛ هر تغییری بدهید با حساب مدیر ثبت می‌شود.
+          </p>
+        )}
       </header>
 
       <div className="mx-auto max-w-6xl px-5 py-8">
