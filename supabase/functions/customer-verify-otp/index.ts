@@ -107,8 +107,18 @@ async function decryptPassword(encryptedPassword: string) {
 const WELCOME_MESSAGE =
   "سلام، ممنونیم که عضو خانواده ماکان بار شدید. هر وقت کاری داشتید در خدمتیم.\nmakanbar.com";
 
+// تنظیمات بخش «تنظیمات» پنل مدیر (جدول app_settings)؛ نبودِ مقدار یعنی پیش‌فرض
+async function getSetting<T>(key: string, fallback: T): Promise<T> {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
+  return (data?.value ?? fallback) as T;
+}
+
 async function sendWelcomeSms(phone: string) {
   try {
+    // مدیر می‌تواند پیامک خوش‌آمد را خاموش کند یا متنش را عوض کند
+    if (!(await getSetting("sms_welcome", true))) return;
+    const welcomeText = String(await getSetting("welcome_message", WELCOME_MESSAGE)).trim() || WELCOME_MESSAGE;
+
     const digits = phone
       .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
       .replace(/\D/g, "");
@@ -136,7 +146,7 @@ async function sendWelcomeSms(phone: string) {
             Password: Deno.env.get("NIKSMS_PASSWORD"),
           },
           model: {
-            Message: [{ string: WELCOME_MESSAGE }],
+            Message: [{ string: welcomeText }],
             SenderNumber: "blacklist",
             Numbers: [{ string: recipient }],
             SendType: "Normal",

@@ -10,9 +10,6 @@ import soap from "npm:soap";
 // هر بار با ستون notified_drivers_at فقط یک‌بار «ادعا» می‌شود، پس صدا زدن تکراری بی‌خطر است.
 
 const SITE = "makanbar.com/driver";
-// به خواست مدیر (۱۴۰۵/۰۸/۲۰) پیامک «بار جدید» برای همه‌ی رانندگان خاموش است؛
-// فقط راننده‌ای که بار مستقیم به او داده شده پیامک می‌گیرد. برای روشن کردن دوباره true کنید.
-const BROADCAST_NEW_LOADS = false;
 // بارهای قدیمی‌تر از این دیگر پیامک نمی‌شوند
 const MAX_AGE_MINUTES = 120;
 
@@ -44,6 +41,12 @@ function toSmsNumber(phone: string) {
   if (digits.startsWith("98")) return "+" + digits;
   if (digits.startsWith("0")) return "+98" + digits.slice(1);
   return "+98" + digits;
+}
+
+// تنظیمات بخش «تنظیمات» پنل مدیر (جدول app_settings)؛ نبودِ مقدار یعنی پیش‌فرض
+async function getSetting<T>(key: string, fallback: T): Promise<T> {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
+  return (data?.value ?? fallback) as T;
 }
 
 // همان قاعده‌ی پنل رانندگان (lib/shipments.ts → vehicleFits):
@@ -135,6 +138,12 @@ Deno.serve(async (req) => {
 
     if (!loads?.length) return json({ success: true, loads: 0, sent: 0 });
 
+    // پیامک بار جدید برای همه / پیامک واگذاری مستقیم؛ هر دو از تنظیمات پنل مدیر
+    const [broadcastNewLoads, notifyAssigned] = await Promise.all([
+      getSetting("sms_driver_broadcast", false),
+      getSetting("sms_driver_assigned", true),
+    ]);
+
     const { data: drivers } = await supabase
       .from("driver_profiles")
       .select("id, phone, vehicle_type, vehicle_model")
@@ -159,8 +168,8 @@ Deno.serve(async (req) => {
           .filter((driver) =>
             driver.phone &&
             (assigned
-              ? driver.id === load.driver_id
-              : BROADCAST_NEW_LOADS &&
+              ? notifyAssigned && driver.id === load.driver_id
+              : broadcastNewLoads &&
                 vehicleFits(load.vehicle_type, driver.vehicle_type) &&
                 bodyFits(body, driver.vehicle_model))
           )

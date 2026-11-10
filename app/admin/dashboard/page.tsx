@@ -3,6 +3,7 @@
 import { PanelLoading } from "@/components/panel-loading";
 import { MonthlyReport } from "@/components/monthly-report";
 import { AdminSms } from "@/components/admin-sms";
+import { AdminSettings } from "@/components/admin-settings";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { createSupabase, functionErrorMessage } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -1944,6 +1945,11 @@ ${formatPrice(price)}`)) {
       icon: "📨",
     },
     {
+      id: "settings",
+      label: "تنظیمات",
+      icon: "⚙️",
+    },
+    {
       id: "representatives",
       label: "نمایندگان",
       icon: "📍",
@@ -3585,6 +3591,8 @@ ${formatPrice(price)}`)) {
           {activeSection === "reports" && <MonthlyReport supabase={supabase} />}
 
           {activeSection === "sms" && <AdminSms supabase={supabase} />}
+
+          {activeSection === "settings" && <AdminSettings supabase={supabase} />}
 
           {activeSection === "drivers" && (
             <section>

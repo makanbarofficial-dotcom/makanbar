@@ -167,6 +167,15 @@ Deno.serve(async (req) => {
       }
     }
 
+    // مدیر می‌تواند پیامک‌های صاحب بار را در «تنظیمات» خاموش کند؛ مراحل بالا باز هم «ادعا» می‌شوند
+    // تا با روشن شدن دوباره، پیامک‌های قدیمی یک‌جا فرستاده نشوند
+    const { data: setting } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "sms_customer")
+      .maybeSingle();
+    if (setting?.value === false) return json({ success: true, sent: 0, disabled: true });
+
     let sent = 0;
     const phone = toSmsNumber(request.phone);
     for (const message of messages) {

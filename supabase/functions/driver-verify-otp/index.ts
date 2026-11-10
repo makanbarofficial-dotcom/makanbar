@@ -112,8 +112,18 @@ async function decryptPassword(encryptedPassword: string) {
 const WELCOME_MESSAGE =
   "سلام، ممنونیم که عضو خانواده ماکان بار شدید. هر وقت کاری داشتید در خدمتیم.\nmakanbar.com";
 
+// تنظیمات بخش «تنظیمات» پنل مدیر (جدول app_settings)؛ نبودِ مقدار یعنی پیش‌فرض
+async function getSetting<T>(key: string, fallback: T): Promise<T> {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
+  return (data?.value ?? fallback) as T;
+}
+
 async function sendWelcomeSms(phone: string) {
   try {
+    // مدیر می‌تواند پیامک خوش‌آمد را خاموش کند یا متنش را عوض کند
+    if (!(await getSetting("sms_welcome", true))) return;
+    const welcomeText = String(await getSetting("welcome_message", WELCOME_MESSAGE)).trim() || WELCOME_MESSAGE;
+
     const digits = phone
       .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
       .replace(/\D/g, "");
@@ -141,7 +151,7 @@ async function sendWelcomeSms(phone: string) {
             Password: Deno.env.get("NIKSMS_PASSWORD"),
           },
           model: {
-            Message: [{ string: WELCOME_MESSAGE }],
+            Message: [{ string: welcomeText }],
             SenderNumber: "blacklist",
             Numbers: [{ string: recipient }],
             SendType: "Normal",
@@ -444,8 +454,9 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // ایجاد پروفایل راننده؛ راننده بدون نیاز به تأیید مدیر فعال می‌شود.
-    // مدیر در صورت نیاز می‌تواند از پنل مدیریت او را غیرفعال کند.
+    // ایجاد پروفایل راننده؛ اگر «فعال شدن خودکار راننده» در تنظیمات پنل مدیر روشن باشد
+    // راننده بلافاصله فعال می‌شود، وگرنه منتظر تأیید مدیر می‌ماند.
+    const autoApprove = await getSetting("driver_auto_approve", true);
     const { error: profileError } = await supabase
       .from("driver_profiles")
       .insert({
@@ -458,7 +469,7 @@ Deno.serve(async (req: Request) => {
         national_code: otpRow.national_code,
         birth_date: otpRow.birth_date,
         fleet_smart_number: otpRow.fleet_smart_number,
-        status: "approved",
+        status: autoApprove ? "approved" : "pending",
       });
 
     if (profileError) {
@@ -499,7 +510,9 @@ Deno.serve(async (req: Request) => {
 
     return json({
       success: true,
-      message: "ثبت‌نام راننده انجام شد؛ حالا می‌توانید وارد پنل رانندگان شوید.",
+      message: autoApprove
+        ? "ثبت‌نام راننده انجام شد؛ حالا می‌توانید وارد پنل رانندگان شوید."
+        : "ثبت‌نام راننده انجام شد؛ بعد از تأیید مدیریت می‌توانید بار بپذیرید.",
       existingAccount: !createdNewAuthUser,
     });
   } catch (error) {

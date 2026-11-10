@@ -133,8 +133,19 @@ Deno.serve(async (req) => {
     const type = { full: "دربستی", partial: "خرده‌بار", intracity: "درون‌شهری" }[
       request.shipment_type as string
     ] ?? "";
+    // تنظیمات پنل مدیر: خاموش/روشن بودن این پیامک و شماره‌های مدیر
+    const { data: settingRows } = await supabase
+      .from("app_settings")
+      .select("key, value")
+      .in("key", ["sms_new_request", "admin_notify_phones"]);
+    const settings = Object.fromEntries((settingRows ?? []).map((row) => [row.key, row.value]));
+    if (settings.sms_new_request === false) return json({ success: true, sent: 0, disabled: true });
+    const configuredAdmins: string[] = Array.isArray(settings.admin_notify_phones)
+      ? settings.admin_notify_phones.map(String)
+      : ADMIN_PHONES;
+
     const adminPhones = new Set(
-      [...ADMIN_PHONES, ...(Deno.env.get("ADMIN_NOTIFY_PHONE") ?? "").split(",")]
+      [...configuredAdmins, ...(Deno.env.get("ADMIN_NOTIFY_PHONE") ?? "").split(",")]
         .map((phone) => phone.trim())
         .filter(Boolean)
         .map(toSmsNumber),
