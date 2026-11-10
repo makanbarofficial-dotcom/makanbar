@@ -10,6 +10,9 @@ import soap from "npm:soap";
 // هر بار با ستون notified_drivers_at فقط یک‌بار «ادعا» می‌شود، پس صدا زدن تکراری بی‌خطر است.
 
 const SITE = "makanbar.com/driver";
+// به خواست مدیر (۱۴۰۵/۰۸/۲۰) پیامک «بار جدید» برای همه‌ی رانندگان خاموش است؛
+// فقط راننده‌ای که بار مستقیم به او داده شده پیامک می‌گیرد. برای روشن کردن دوباره true کنید.
+const BROADCAST_NEW_LOADS = false;
 // بارهای قدیمی‌تر از این دیگر پیامک نمی‌شوند
 const MAX_AGE_MINUTES = 120;
 
@@ -157,7 +160,9 @@ Deno.serve(async (req) => {
             driver.phone &&
             (assigned
               ? driver.id === load.driver_id
-              : vehicleFits(load.vehicle_type, driver.vehicle_type) && bodyFits(body, driver.vehicle_model))
+              : BROADCAST_NEW_LOADS &&
+                vehicleFits(load.vehicle_type, driver.vehicle_type) &&
+                bodyFits(body, driver.vehicle_model))
           )
           .map((driver) => toSmsNumber(driver.phone)),
       );
