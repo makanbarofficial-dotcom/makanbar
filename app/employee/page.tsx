@@ -1,6 +1,8 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { DriverContactBox } from "@/components/driver-contact";
+import { type DriverContact, loadDriverContacts } from "@/lib/driver-contacts";
 import { CallButton } from "@/components/call-button";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -84,6 +86,8 @@ export default function EmployeePanelPage() {
   const [savingId, setSavingId] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [prices, setPrices] = useState<Record<number, string>>({});
+  // راننده‌ی هر بار (فقط نام و شماره)
+  const [driverContacts, setDriverContacts] = useState<Record<number, DriverContact>>({});
 
   const refresh = useCallback(async () => {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -211,6 +215,7 @@ export default function EmployeePanelPage() {
     } else {
       const list = (rows ?? []) as ShipmentRequest[];
       setRequests(list);
+      setDriverContacts(await loadDriverContacts(supabase, list.map((item) => item.id)));
       setNotes(
         Object.fromEntries(list.map((item) => [item.id, item.staff_note ?? ""]))
       );
@@ -833,6 +838,8 @@ export default function EmployeePanelPage() {
                     </div>
                   )}
 
+                  <DriverContactBox contact={driverContacts[item.id]} />
+
                   <div className="mt-4 grid gap-3 md:grid-cols-[12rem_1fr_auto]">
                     <label className="relative">
                       <span className="sr-only">کرایه به تومان</span>
@@ -904,7 +911,7 @@ export default function EmployeePanelPage() {
                     )
                   )}
 
-                  {isDispatcher && assignedDrivers[item.id] && (
+                  {isDispatcher && assignedDrivers[item.id] && !driverContacts[item.id] && (
                     <p className="mt-3 rounded-xl bg-sky-500/10 px-4 py-2 text-sm font-bold text-sky-700">
                       👤 راننده: {assignedDrivers[item.id]}
                     </p>

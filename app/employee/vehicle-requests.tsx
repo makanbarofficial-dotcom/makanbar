@@ -429,12 +429,8 @@ export function VehicleRequests({
                   )}
                   <span className="text-fg/60">راننده: </span>
                   <span className="font-bold">{driver.full_name}</span>{" "}
+                  {/* فقط نام و شماره‌ی راننده نشان داده می‌شود */}
                   <CallButton phone={driver.phone} className="mr-1" />
-                  {(driver.vehicle_type || driver.vehicle_plate) && (
-                    <span className="block text-xs text-fg/60">
-                      {[driver.vehicle_type, driver.vehicle_plate].filter(Boolean).join(" · ")}
-                    </span>
-                  )}
                 </div>
               )}
 

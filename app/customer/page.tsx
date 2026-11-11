@@ -1,6 +1,8 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { DriverContactBox } from "@/components/driver-contact";
+import { type DriverContact, loadDriverContacts } from "@/lib/driver-contacts";
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabase } from "@/lib/supabase";
 import Link from "next/link";
@@ -101,6 +103,7 @@ export default function CustomerPanelPage() {
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [driverContacts, setDriverContacts] = useState<Record<number, DriverContact>>({});
 
   const isIntracity = shipmentType === "intracity";
 
@@ -170,7 +173,10 @@ export default function CustomerPanelPage() {
       console.error("Customer requests error:", requestsError);
       setError("دریافت بارهای شما انجام نشد. دوباره تلاش کنید.");
     } else {
-      setRequests((rows ?? []) as ShipmentRequest[]);
+      const list = (rows ?? []) as ShipmentRequest[];
+      setRequests(list);
+      // نام و شماره‌ی راننده‌ای که بار را پذیرفته
+      setDriverContacts(await loadDriverContacts(supabase, list.map((item) => item.id)));
     }
 
     setLoading(false);
@@ -511,6 +517,8 @@ export default function CustomerPanelPage() {
                     </span>
                   )}
                 </div>
+
+                <DriverContactBox contact={driverContacts[item.id]} />
 
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:gap-3 lg:grid-cols-4">
                   <div className="rounded-2xl bg-surface-3 p-3">

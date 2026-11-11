@@ -2,6 +2,8 @@
 
 import { PanelLoading } from "@/components/panel-loading";
 import { CallButton } from "@/components/call-button";
+import { DriverContactBox } from "@/components/driver-contact";
+import { type DriverContact, loadDriverContacts } from "@/lib/driver-contacts";
 import { MonthlyReport } from "@/components/monthly-report";
 import { AdminSms } from "@/components/admin-sms";
 import { AdminSettings } from "@/components/admin-settings";
@@ -243,6 +245,8 @@ export default function AdminDashboardPage() {
 
   const [driverFilter, setDriverFilter] =
     useState<DriverStatus>("approved");
+
+  const [driverContacts, setDriverContacts] = useState<Record<number, DriverContact>>({});
 
   // جستجوی راننده با نام، موبایل، پلاک، کد ملی یا شماره هوشمند؛ در همه‌ی وضعیت‌ها
   const [driverSearch, setDriverSearch] = useState("");
@@ -571,6 +575,8 @@ export default function AdminDashboardPage() {
     }
 
     setRequests(data || []);
+    // نام و شماره‌ی راننده‌ای که بار را پذیرفته
+    setDriverContacts(await loadDriverContacts(supabase, (data || []).map((item: RequestItem) => item.id)));
   }
 
   async function loadRepresentatives() {
@@ -2534,6 +2540,8 @@ ${formatPrice(price)}`)) {
                           ))}
                         </select>
                       </div>
+
+                      <DriverContactBox contact={driverContacts[item.id]} />
 
                       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="rounded-2xl bg-surface-3 p-4">
