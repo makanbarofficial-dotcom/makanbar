@@ -70,11 +70,16 @@ export function OtpLogin({
 
     setLoading(true);
     try {
-      await callLoginOtp({ action: "send", phone: normalized });
+      const result = await callLoginOtp({ action: "send", phone: normalized });
       setCodeSent(true);
       setCode("");
       setWait(RESEND_SECONDS);
-      setMessage("کد ورود پیامک شد.");
+      // پنل پیامک دیر جواب داده؛ پیامک معمولاً چند لحظه بعد می‌رسد
+      setMessage(
+        result?.delayed
+          ? "پیامک کمی دیرتر می‌رسد؛ اگر تا یک دقیقه نرسید، دوباره کد بگیرید."
+          : "کد ورود پیامک شد."
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "ارسال کد ناموفق بود.");
     } finally {

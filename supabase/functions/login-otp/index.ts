@@ -80,7 +80,8 @@ async function sendSms(recipient: string, message: string) {
         resolve(created);
       });
     }),
-    12000,
+    // جمع زمان‌ها زیر ۲۵ ثانیه‌ی رله‌ی هاست بماند
+    8000,
     "createClient",
   );
 
@@ -108,7 +109,7 @@ async function sendSms(recipient: string, message: string) {
         resolve(result);
       });
     }),
-    15000,
+    12000,
     "PtpSms",
   );
 
@@ -166,7 +167,14 @@ async function handleSend(role: Role, phone: string) {
   try {
     sent = await sendSms(phone, `کد ورود ماکان بار: ${code}`);
   } catch (smsError) {
-    console.error("Niksms send error:", smsError instanceof Error ? smsError.message : smsError);
+    const message = smsError instanceof Error ? smsError.message : String(smsError);
+    console.error("Niksms send error:", message);
+
+    // پنل پیامک دیر جواب داد: پیامک ممکن است چند لحظه بعد برسد، پس کد نگه داشته می‌شود
+    // (اگر پاک شود، کدی که دیرتر می‌رسد دیگر کار نمی‌کند)
+    if (message.includes("timeout at PtpSms")) {
+      return json({ success: true, delayed: true });
+    }
   }
 
   if (!sent) {
