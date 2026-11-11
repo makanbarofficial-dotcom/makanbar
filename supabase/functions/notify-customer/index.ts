@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     if (!request.notified_driver_at) {
       const { data: load } = await supabase
         .from("loads")
-        .select("driver_id, driver_profiles(full_name, phone, vehicle_plate)")
+        .select("driver_id, driver_profiles(full_name, phone)")
         .eq("request_id", requestId)
         .not("driver_id", "is", null)
         .limit(1)
@@ -146,10 +146,10 @@ Deno.serve(async (req) => {
           const driver: any = Array.isArray(load.driver_profiles)
             ? load.driver_profiles[0]
             : load.driver_profiles;
+          // به صاحب بار فقط نام و شماره‌ی راننده گفته می‌شود
           const details = [
             driver?.full_name && `راننده: ${driver.full_name}`,
             driver?.phone && `تلفن: ${driver.phone}`,
-            driver?.vehicle_plate && `پلاک: ${driver.vehicle_plate}`,
           ].filter(Boolean).join("\n");
           messages.push(
             `ماکان بار: راننده برای بار شما (${route}) تعیین شد.${details ? "\n" + details : ""}`,
