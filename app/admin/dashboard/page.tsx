@@ -8,6 +8,7 @@ import { MonthlyReport } from "@/components/monthly-report";
 import { AdminSms } from "@/components/admin-sms";
 import { AdminSettings } from "@/components/admin-settings";
 import { AdminReports } from "@/components/admin-reports";
+import { AdminDriverMap } from "@/components/admin-driver-map";
 import { RatingBadge, loadRatingSummary } from "@/components/rate-driver";
 import { type DriverLocation, DriverLocationBox, loadDriverLocations } from "@/components/driver-location";
 import { Fragment, useEffect, useMemo, useState } from "react";
@@ -2064,6 +2065,11 @@ ${formatPrice(price)}`)) {
       icon: "🚚",
     },
     {
+      id: "driver_map",
+      label: "نقشه‌ی رانندگان",
+      icon: "🗺",
+    },
+    {
       id: "vehicles",
       label: "درخواست ماشین",
       icon: "🛻",
@@ -2082,16 +2088,6 @@ ${formatPrice(price)}`)) {
       id: "services",
       label: "خدمات",
       icon: "🛠️",
-    },
-    {
-      id: "reports",
-      label: "گزارش‌ها",
-      icon: "📊",
-    },
-    {
-      id: "settings",
-      label: "تنظیمات",
-      icon: "⚙️",
     },
   ].filter((item) => item.id !== "admins" || isOwner);
 
@@ -3773,6 +3769,8 @@ ${formatPrice(price)}`)) {
 
           {activeSection === "reports_inbox" && <AdminReports supabase={supabase} />}
 
+          {activeSection === "driver_map" && <AdminDriverMap supabase={supabase} />}
+
           {activeSection === "drivers" && (
             <section>
               <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -4043,7 +4041,7 @@ ${formatPrice(price)}`)) {
             </section>
           )}
 
-          {["fleet", "services", "reports", "settings"].includes(activeSection) && (
+          {["fleet", "services"].includes(activeSection) && (
             <section className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center">
               <div className="mb-4 text-5xl">
                 {menuItems.find((item) => item.id === activeSection)?.icon}
