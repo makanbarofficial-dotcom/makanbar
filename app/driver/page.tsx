@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { RatingBadge, loadRatingSummary } from "@/components/rate-driver";
 import { CallButton } from "@/components/call-button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabase } from "@/lib/supabase";
@@ -147,6 +148,8 @@ export default function DriverPage() {
   const [adminSession, setAdminSession] = useState(false);
   // مدیر در حال دیدن پنل یک راننده است (فقط نمایش؛ دکمه‌ها کاری انجام نمی‌دهند)
   const [viewingAs, setViewingAs] = useState(false);
+  // میانگین امتیازی که صاحبان بار به این راننده داده‌اند
+  const [myRating, setMyRating] = useState<{ average: number; total: number } | null>(null);
 
   useEffect(() => {
     setFilter(readFilter());
@@ -258,6 +261,8 @@ export default function DriverPage() {
     if (availableError || mineError) {
       setError(errorMessage(availableError ?? mineError, "دریافت بارها انجام نشد"));
     }
+
+    setMyRating((await loadRatingSummary(supabase, [driver.id]))[driver.id] ?? null);
 
     const myList = (mine ?? []) as Load[];
     setAvailableLoads((available ?? []) as Load[]);
@@ -809,6 +814,7 @@ export default function DriverPage() {
                     ["بارگیر", profile.vehicle_model],
                     ["پلاک", profile.vehicle_plate],
                     ["وضعیت حساب", "تأیید شده ✓"],
+                    ["امتیاز از صاحبان بار", myRating ? `★ ${myRating.average.toLocaleString("fa-IR")} از ۵ (${myRating.total.toLocaleString("fa-IR")} نظر)` : "هنوز امتیازی نگرفته‌اید"],
                   ].map(([label, value]) => (
                     <div key={label} className="flex items-center justify-between gap-4 p-4">
                       <dt className="text-fg/60">{label}</dt>

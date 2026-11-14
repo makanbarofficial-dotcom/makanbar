@@ -1,6 +1,8 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { type DriverRating, RateDriver } from "@/components/rate-driver";
+import { CustomerReports } from "@/components/customer-reports";
 import { DriverContactBox } from "@/components/driver-contact";
 import { type DriverContact, loadDriverContacts } from "@/lib/driver-contacts";
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -104,6 +106,8 @@ export default function CustomerPanelPage() {
   const [formSuccess, setFormSuccess] = useState("");
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [driverContacts, setDriverContacts] = useState<Record<number, DriverContact>>({});
+  // امتیازهایی که این صاحب بار به راننده‌ها داده (کلید: کد بار)
+  const [ratings, setRatings] = useState<Record<number, DriverRating>>({});
 
   const isIntracity = shipmentType === "intracity";
 
@@ -177,6 +181,17 @@ export default function CustomerPanelPage() {
       setRequests(list);
       // نام و شماره‌ی راننده‌ای که بار را پذیرفته
       setDriverContacts(await loadDriverContacts(supabase, list.map((item) => item.id)));
+      const { data: ratingRows } = await supabase
+        .from("driver_ratings")
+        .select("request_id, stars, comment");
+      setRatings(
+        Object.fromEntries(
+          ((ratingRows ?? []) as { request_id: number; stars: number; comment: string | null }[]).map((row) => [
+            row.request_id,
+            { stars: row.stars, comment: row.comment },
+          ])
+        )
+      );
     }
 
     setLoading(false);
@@ -457,6 +472,7 @@ export default function CustomerPanelPage() {
 
         {activeTab === "list" && (
           <section className="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
+
             {requests.length === 0 && (
               <div className="rounded-3xl border border-fg/10 bg-surface-2 p-10 text-center">
                 <p className="font-bold">هنوز باری ثبت نکرده‌اید.</p>
@@ -520,6 +536,16 @@ export default function CustomerPanelPage() {
 
                 <DriverContactBox contact={driverContacts[item.id]} />
 
+                {/* بعد از تحویل، صاحب بار به راننده امتیاز می‌دهد */}
+                {item.status === "انجام شد" && driverContacts[item.id] && (
+                  <RateDriver
+                    supabase={supabase}
+                    requestId={item.id}
+                    initial={ratings[item.id]}
+                    onSaved={(rating) => setRatings((current) => ({ ...current, [item.id]: rating }))}
+                  />
+                )}
+
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:gap-3 lg:grid-cols-4">
                   <div className="rounded-2xl bg-surface-3 p-3">
                     <p className="text-xs text-fg/55">نوع بار</p>
@@ -561,6 +587,15 @@ export default function CustomerPanelPage() {
                 )}
               </article>
             ))}
+
+            {/* گزارش و شکایت، زیر فهرست بارها */}
+            <div className="pt-4">
+              <CustomerReports
+                supabase={supabase}
+                profile={profile ? { full_name: profile.full_name, phone: profile.phone } : null}
+                requests={requests.map((item) => ({ id: item.id, origin: item.origin, destination: item.destination }))}
+              />
+            </div>
           </section>
         )}
 

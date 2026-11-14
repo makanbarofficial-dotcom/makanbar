@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLoading } from "@/components/panel-loading";
+import { RatingBadge, loadRatingSummary } from "@/components/rate-driver";
 import { DriverContactBox } from "@/components/driver-contact";
 import { type DriverContact, loadDriverContacts } from "@/lib/driver-contacts";
 import { CallButton } from "@/components/call-button";
@@ -76,6 +77,8 @@ export default function EmployeePanelPage() {
   const [viewingAs, setViewingAs] = useState(false);
   // انتخاب راننده/پیک برای بار درون‌شهری
   const [drivers, setDrivers] = useState<DriverOption[]>([]);
+  // امتیاز رانندگان از نظر صاحبان بار؛ کمک می‌کند بار خوب به راننده‌ی خوب برسد
+  const [driverRatings, setDriverRatings] = useState<Record<string, { average: number; total: number }>>({});
   const [assignedDrivers, setAssignedDrivers] = useState<Record<number, string>>({});
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [driverSearch, setDriverSearch] = useState("");
@@ -189,6 +192,7 @@ export default function EmployeePanelPage() {
         : await supabase.rpc("list_drivers_for_intracity_staff");
       const driverList = (driverRows ?? []) as DriverOption[];
       setDrivers(driverList);
+      setDriverRatings(await loadRatingSummary(supabase, driverList.map((driver) => driver.id)));
 
       const names = Object.fromEntries(driverList.map((driver) => [driver.id, driver.full_name ?? ""]));
       setAssignedDrivers(
@@ -459,7 +463,10 @@ export default function EmployeePanelPage() {
             >
               <span className="text-2xl">{driver.vehicle_type === "پیک موتوری" ? "🛵" : "🚚"}</span>
               <span className="min-w-0 flex-1">
-                <span className="block font-bold">{driver.full_name || "بدون نام"}</span>
+                <span className="flex flex-wrap items-center gap-2 font-bold">
+                  {driver.full_name || "بدون نام"}
+                  {driverRatings[driver.id] && <RatingBadge {...driverRatings[driver.id]} />}
+                </span>
                 <span className="mt-0.5 block text-xs text-fg/55">
                   {[driver.vehicle_type, driver.vehicle_model].filter(Boolean).join(" · ")}
                   {driver.vehicle_plate ? ` · پلاک ${driver.vehicle_plate}` : ""}

@@ -7,6 +7,8 @@ import { type DriverContact, loadDriverContacts } from "@/lib/driver-contacts";
 import { MonthlyReport } from "@/components/monthly-report";
 import { AdminSms } from "@/components/admin-sms";
 import { AdminSettings } from "@/components/admin-settings";
+import { AdminReports } from "@/components/admin-reports";
+import { RatingBadge, loadRatingSummary } from "@/components/rate-driver";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { createSupabase, functionErrorMessage } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -247,6 +249,8 @@ export default function AdminDashboardPage() {
     useState<DriverStatus>("approved");
 
   const [driverContacts, setDriverContacts] = useState<Record<number, DriverContact>>({});
+  // میانگین امتیاز هر راننده از نظر صاحبان بار
+  const [driverRatings, setDriverRatings] = useState<Record<string, { average: number; total: number }>>({});
 
   // جستجوی راننده با نام، موبایل، پلاک، کد ملی یا شماره هوشمند؛ در همه‌ی وضعیت‌ها
   const [driverSearch, setDriverSearch] = useState("");
@@ -771,6 +775,7 @@ export default function AdminDashboardPage() {
     }
 
     setDrivers((data || []) as Driver[]);
+    setDriverRatings(await loadRatingSummary(supabase, ((data || []) as Driver[]).map((driver) => driver.id)));
   }
 
   async function setDriverStatus(driver: Driver, status: DriverStatus) {
@@ -2019,6 +2024,11 @@ ${formatPrice(price)}`)) {
       id: "sms",
       label: "پیامک",
       icon: "📨",
+    },
+    {
+      id: "reports_inbox",
+      label: "گزارش‌ها",
+      icon: "📣",
     },
     {
       id: "settings",
@@ -3753,6 +3763,8 @@ ${formatPrice(price)}`)) {
 
           {activeSection === "settings" && <AdminSettings supabase={supabase} />}
 
+          {activeSection === "reports_inbox" && <AdminReports supabase={supabase} />}
+
           {activeSection === "drivers" && (
             <section>
               <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -3845,6 +3857,11 @@ ${formatPrice(price)}`)) {
                             {driverSearch.trim() && (
                               <span className="mr-2 rounded-full bg-fg/10 px-2 py-0.5 align-middle text-xs font-bold text-fg/70">
                                 {DRIVER_STATUS_LABELS[driver.status]}
+                              </span>
+                            )}
+                            {driverRatings[driver.id] && (
+                              <span className="mr-2 align-middle">
+                                <RatingBadge {...driverRatings[driver.id]} />
                               </span>
                             )}
                           </h3>
