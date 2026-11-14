@@ -12,6 +12,7 @@ import {
   getProvinceCities,
   getProvinces,
   placeMatches,
+  provinceFa,
   vehicleFits,
 } from "@/lib/shipments";
 import { notifyCustomer, notifyDrivers } from "@/lib/notify";
@@ -144,6 +145,8 @@ export default function DriverPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   // با حساب مدیر وارد شده؛ صفحه‌ی انتخاب «پنل مدیریت / خروج» نشان داده می‌شود
   const [adminSession, setAdminSession] = useState(false);
+  // مدیر در حال دیدن پنل یک راننده است (فقط نمایش؛ دکمه‌ها کاری انجام نمی‌دهند)
+  const [viewingAs, setViewingAs] = useState(false);
 
   useEffect(() => {
     setFilter(readFilter());
@@ -194,11 +197,16 @@ export default function DriverPage() {
       return;
     }
 
-    const { data: driver, error: profileError } = await supabase
+    const PROFILE_COLUMNS =
+      "id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, fleet_smart_number, active_provinces";
+    const { data: ownDriver, error: profileError } = await supabase
       .from("driver_profiles")
-      .select("id, full_name, phone, status, vehicle_type, vehicle_model, vehicle_plate, national_code, birth_date, fleet_smart_number, active_provinces")
+      .select(PROFILE_COLUMNS)
       .eq("auth_user_id", user.id)
       .maybeSingle();
+    let driver = ownDriver;
+    // مدیر با «👁 دیدن پنل» (‎/driver/?as=شناسه‌ی راننده) پنل همان راننده را فقط می‌بیند
+    let viewing = false;
 
     if (profileError) {
       setError(errorMessage(profileError, "دریافت پروفایل انجام نشد"));
@@ -208,9 +216,24 @@ export default function DriverPage() {
 
     if (!driver) {
       const { data: isAdmin } = await supabase.rpc("is_admin");
-      setAdminSession(!!isAdmin);
+      const asId = new URLSearchParams(window.location.search).get("as") ?? "";
+
+      if (isAdmin && /^[0-9a-f-]{36}$/i.test(asId)) {
+        const { data: target } = await supabase
+          .from("driver_profiles")
+          .select(PROFILE_COLUMNS)
+          .eq("id", asId)
+          .maybeSingle();
+        if (target) {
+          driver = target;
+          viewing = true;
+        }
+      }
+
+      if (!viewing) setAdminSession(!!isAdmin);
     }
 
+    setViewingAs(viewing);
     setProfile(driver as DriverProfile | null);
 
     if (!driver || driver.status !== "approved") {
@@ -263,6 +286,10 @@ export default function DriverPage() {
   }, [refresh]);
 
   async function acceptLoad(load: Load) {
+    if (viewingAs) {
+      alert("در حالت دیدن پنل راننده نمی‌شود این کار را انجام داد.");
+      return;
+    }
     if (!confirm(`بار ${load.origin} ← ${load.destination} را می‌پذیرید؟`)) return;
 
     setBusyId(load.id);
@@ -289,6 +316,10 @@ export default function DriverPage() {
 
   // بعد از پذیرش، راننده تماس می‌گیرد و نتیجه را اعلام می‌کند؛ اگر توافق نشد بار آزاد می‌شود
   async function answerAgreement(load: Load, agreed: boolean) {
+    if (viewingAs) {
+      alert("در حالت دیدن پنل راننده نمی‌شود این کار را انجام داد.");
+      return;
+    }
     if (
       !agreed &&
       !confirm("توافق نشد؟ این بار از کارهای شما حذف می‌شود و به بارهای آزاد برمی‌گردد.")
@@ -323,6 +354,10 @@ export default function DriverPage() {
   }
 
   async function advanceLoad(load: Load) {
+    if (viewingAs) {
+      alert("در حالت دیدن پنل راننده نمی‌شود این کار را انجام داد.");
+      return;
+    }
     const next = NEXT_STEP[load.status];
     if (!next || !confirm(`${next.label}؟`)) return;
 
@@ -630,15 +665,29 @@ export default function DriverPage() {
             {profile && (
               <span className="hidden text-sm text-fg/70 sm:block">{profile.full_name}</span>
             )}
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
-            >
-              خروج
-            </button>
+            {viewingAs ? (
+              <a
+                href="/admin/dashboard/"
+                className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
+              >
+                بازگشت به پنل مدیر
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-xl border border-fg/10 bg-surface-2 px-4 py-2 text-sm font-bold transition hover:bg-fg/10"
+              >
+                خروج
+              </button>
+            )}
           </div>
         </div>
+        {viewingAs && profile && (
+          <p className="bg-sky-500/15 px-4 py-2 text-center text-sm font-bold text-sky-800">
+            👁 شما (مدیر) در حال دیدن پنل «{profile.full_name}» هستید؛ فقط برای دیدن است و دکمه‌ها کاری انجام نمی‌دهند.
+          </p>
+        )}
       </header>
 
       <div className="mx-auto max-w-4xl px-4 py-5 sm:px-5 sm:py-8">
@@ -676,11 +725,11 @@ export default function DriverPage() {
           </section>
         ) : (
           <>
-            {needsProfileCompletion(profile) && (
+            {!viewingAs && needsProfileCompletion(profile) && (
               <CompleteProfile supabase={supabase} profile={profile} onDone={() => void refresh()} />
             )}
 
-            {!needsProfileCompletion(profile) && !profile.active_provinces?.length && (
+            {!viewingAs && !needsProfileCompletion(profile) && !profile.active_provinces?.length && (
               <ActiveProvinces
                 supabase={supabase}
                 initial={profile.active_provinces}
@@ -771,13 +820,24 @@ export default function DriverPage() {
                 </dl>
               )}
 
-              {activeTab === "profile" && (
-                <ActiveProvinces
-                  supabase={supabase}
-                  initial={profile.active_provinces}
-                  onSaved={(active_provinces) => setProfile({ ...profile, active_provinces })}
-                />
-              )}
+              {activeTab === "profile" &&
+                (viewingAs ? (
+                  // مدیر فقط می‌بیند؛ ویرایش استان‌ها مال خود راننده است
+                  <p className={`${ui.card} p-4 text-sm leading-7`}>
+                    <span className="text-fg/60">📍 استان‌های محل فعالیت: </span>
+                    <b>
+                      {profile.active_provinces?.length
+                        ? profile.active_provinces.map((province) => provinceFa(province)).join("، ")
+                        : "هنوز انتخاب نکرده"}
+                    </b>
+                  </p>
+                ) : (
+                  <ActiveProvinces
+                    supabase={supabase}
+                    initial={profile.active_provinces}
+                    onSaved={(active_provinces) => setProfile({ ...profile, active_provinces })}
+                  />
+                ))}
             </section>
           </>
         )}

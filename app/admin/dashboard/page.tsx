@@ -3848,7 +3848,18 @@ ${formatPrice(price)}`)) {
                               </span>
                             )}
                           </h3>
-                          <CallButton phone={driver.phone} label={formatCustomerPhone(driver.phone)} className="mt-2" />
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <CallButton phone={driver.phone} label={formatCustomerPhone(driver.phone)} />
+                            {/* پنل همین راننده در تب جدید، همان‌طور که خودش می‌بیند (فقط دیدن) */}
+                            <a
+                              href={`/driver/?as=${driver.id}`}
+                              target="_blank"
+                              rel="noopener"
+                              className="inline-flex items-center rounded-xl bg-sky-500/10 px-3 py-1.5 text-sm font-bold text-sky-700 transition hover:bg-sky-500/20"
+                            >
+                              👁 دیدن پنل
+                            </a>
+                          </div>
                         </div>
                         <span className="text-xs text-fg/55">
                           ثبت‌نام: {formatDate(driver.created_at)}
