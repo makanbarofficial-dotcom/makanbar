@@ -9,6 +9,7 @@ import { AdminSms } from "@/components/admin-sms";
 import { AdminSettings } from "@/components/admin-settings";
 import { AdminReports } from "@/components/admin-reports";
 import { RatingBadge, loadRatingSummary } from "@/components/rate-driver";
+import { type DriverLocation, DriverLocationBox, loadDriverLocations } from "@/components/driver-location";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { createSupabase, functionErrorMessage } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -251,6 +252,8 @@ export default function AdminDashboardPage() {
   const [driverContacts, setDriverContacts] = useState<Record<number, DriverContact>>({});
   // میانگین امتیاز هر راننده از نظر صاحبان بار
   const [driverRatings, setDriverRatings] = useState<Record<string, { average: number; total: number }>>({});
+  // آخرین موقعیت رانندگانی که خودشان اشتراک موقعیت را روشن کرده‌اند
+  const [driverLocations, setDriverLocations] = useState<Record<string, DriverLocation>>({});
 
   // جستجوی راننده با نام، موبایل، پلاک، کد ملی یا شماره هوشمند؛ در همه‌ی وضعیت‌ها
   const [driverSearch, setDriverSearch] = useState("");
@@ -775,7 +778,12 @@ export default function AdminDashboardPage() {
     }
 
     setDrivers((data || []) as Driver[]);
-    setDriverRatings(await loadRatingSummary(supabase, ((data || []) as Driver[]).map((driver) => driver.id)));
+    const [ratings, locations] = await Promise.all([
+      loadRatingSummary(supabase, ((data || []) as Driver[]).map((driver) => driver.id)),
+      loadDriverLocations(supabase),
+    ]);
+    setDriverRatings(ratings);
+    setDriverLocations(locations);
   }
 
   async function setDriverStatus(driver: Driver, status: DriverStatus) {
@@ -3920,6 +3928,8 @@ ${formatPrice(price)}`)) {
                               : driver.active_provinces.map((province) => getProvinceFa(province)).join("، ")}
                         </p>
                       </div>
+
+                      <DriverLocationBox key={driverLocations[driver.id]?.located_at ?? "none"} location={driverLocations[driver.id]} />
 
                       <div className="mt-4 flex flex-wrap gap-2">
                         {driver.status !== "approved" && (

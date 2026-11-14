@@ -20,6 +20,7 @@ import { notifyCustomer, notifyDrivers } from "@/lib/notify";
 import { AdminSessionNotice } from "@/components/admin-session-notice";
 import { CompleteProfile, needsProfileCompletion } from "./complete-profile";
 import { ActiveProvinces } from "./active-provinces";
+import { LocationSharing } from "./location-sharing";
 
 const supabase = createSupabase();
 
@@ -742,6 +743,8 @@ export default function DriverPage() {
                 onSaved={(active_provinces) => setProfile({ ...profile, active_provinces })}
               />
             )}
+
+            {!viewingAs && !needsProfileCompletion(profile) && <LocationSharing supabase={supabase} />}
 
             <section className="grid grid-cols-2 gap-3">
               <button
