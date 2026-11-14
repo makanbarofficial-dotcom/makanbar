@@ -122,7 +122,10 @@ async function sendWelcomeSms(phone: string) {
   try {
     // مدیر می‌تواند پیامک خوش‌آمد را خاموش کند یا متنش را عوض کند
     if (!(await getSetting("sms_welcome", true))) return;
-    const welcomeText = String(await getSetting("welcome_message", WELCOME_MESSAGE)).trim() || WELCOME_MESSAGE;
+    // متن جدا برای راننده (welcome_message_driver)؛ اگر نباشد متن مشترک قدیمی
+    const welcomeText = String(
+      await getSetting("welcome_message_driver", await getSetting("welcome_message", WELCOME_MESSAGE)),
+    ).trim() || WELCOME_MESSAGE;
 
     const digits = phone
       .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))

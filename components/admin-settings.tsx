@@ -12,10 +12,15 @@ type Settings = {
   sms_welcome: boolean;
   sms_customer: boolean;
   sms_new_request: boolean;
+  sms_new_request_staff: boolean;
   admin_notify_phones: string[];
-  welcome_message: string;
+  welcome_message_customer: string;
+  welcome_message_driver: string;
   driver_auto_approve: boolean;
 };
+
+const DEFAULT_WELCOME =
+  "سلام، ممنونیم که عضو خانواده ماکان بار شدید. هر وقت کاری داشتید در خدمتیم.\nmakanbar.com";
 
 const DEFAULTS: Settings = {
   sms_driver_broadcast: false,
@@ -23,12 +28,24 @@ const DEFAULTS: Settings = {
   sms_welcome: true,
   sms_customer: true,
   sms_new_request: true,
+  sms_new_request_staff: true,
   admin_notify_phones: ["09125573776"],
-  welcome_message: "سلام، ممنونیم که عضو خانواده ماکان بار شدید. هر وقت کاری داشتید در خدمتیم.\nmakanbar.com",
+  welcome_message_customer: DEFAULT_WELCOME,
+  welcome_message_driver: DEFAULT_WELCOME,
   driver_auto_approve: true,
 };
 
 const SMS_SWITCHES: { key: keyof Settings; title: string; hint: string }[] = [
+  {
+    key: "sms_new_request",
+    title: "پیامک بار جدید برای مدیر",
+    hint: "با ثبت هر بار، به شماره‌های مدیر (پایین همین صفحه) پیامک می‌رود.",
+  },
+  {
+    key: "sms_new_request_staff",
+    title: "پیامک بار جدید برای متصدی‌ها",
+    hint: "با ثبت هر بار، متصدی یا نماینده‌ی همان شهر و متصدی دربستی پیامک می‌گیرند.",
+  },
   {
     key: "sms_driver_broadcast",
     title: "پیامک بار جدید برای رانندگان",
@@ -42,19 +59,24 @@ const SMS_SWITCHES: { key: keyof Settings; title: string; hint: string }[] = [
   {
     key: "sms_customer",
     title: "پیامک‌های صاحب بار",
-    hint: "اعلام کرایه، مشخصات راننده و تحویل بار برای صاحب بار پیامک می‌شود.",
-  },
-  {
-    key: "sms_new_request",
-    title: "پیامک بار جدید برای مدیر و متصدی‌ها",
-    hint: "با ثبت هر بار، مدیر و متصدی همان شهر پیامک می‌گیرند.",
+    hint: "اعلام کرایه، نام و شماره‌ی راننده و تحویل بار برای صاحب بار پیامک می‌شود.",
   },
   {
     key: "sms_welcome",
     title: "پیامک خوش‌آمد بعد از ثبت‌نام",
-    hint: "صاحب بار یا راننده‌ی تازه پیامک خوش‌آمد می‌گیرد (متن پایین صفحه).",
+    hint: "صاحب بار یا راننده‌ی تازه پیامک خوش‌آمد می‌گیرد (متن‌ها پایین همین صفحه).",
   },
 ];
+
+const WELCOME_FIELDS = [
+  ["welcome_message_customer", "✉️ پیامک خوش‌آمد صاحب بار", "بعد از ثبت‌نام صاحب بار تازه فرستاده می‌شود."],
+  ["welcome_message_driver", "✉️ پیامک خوش‌آمد راننده", "بعد از ثبت‌نام راننده‌ی تازه فرستاده می‌شود."],
+] as const;
+
+function smsParts(text: string) {
+  const length = [...text].length;
+  return length <= 70 ? 1 : Math.ceil(length / 67);
+}
 
 function Switch({ checked, onChange }: { checked: boolean; onChange: (value: boolean) => void }) {
   return (
@@ -89,7 +111,11 @@ export function AdminSettings({ supabase }: { supabase: SupabaseClient }) {
           setMessage({ tone: "error", text: "دریافت تنظیمات انجام نشد. صفحه را دوباره باز کنید." });
           return;
         }
-        const loaded = { ...DEFAULTS, ...Object.fromEntries((data ?? []).map((row) => [row.key, row.value])) } as Settings;
+        const saved = Object.fromEntries((data ?? []).map((row) => [row.key, row.value]));
+        const loaded = { ...DEFAULTS, ...saved } as Settings;
+        // اگر متن جدا هنوز ذخیره نشده بود، متن مشترک قدیمی جایش می‌نشیند
+        if (!saved.welcome_message_customer && saved.welcome_message) loaded.welcome_message_customer = String(saved.welcome_message);
+        if (!saved.welcome_message_driver && saved.welcome_message) loaded.welcome_message_driver = String(saved.welcome_message);
         setSettings(loaded);
         setPhonesText(loaded.admin_notify_phones.join("\n"));
       });
@@ -117,23 +143,28 @@ export function AdminSettings({ supabase }: { supabase: SupabaseClient }) {
       .split(/[\s,،]+/)
       .map((item) => item.trim())
       .filter(Boolean);
-    const invalid = phones.filter((phone) => !/^(\+98|0098|0)?9\d{9}$/.test(phone.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))));
+    const invalid = phones.filter(
+      (phone) => !/^(\+98|0098|0)?9\d{9}$/.test(phone.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))))
+    );
 
     if (invalid.length) {
       setMessage({ tone: "error", text: `این شماره‌ها درست نیستند: ${invalid.join("، ")}` });
       return;
     }
-    if (!settings.welcome_message.trim()) {
+    if (!settings.welcome_message_customer.trim() || !settings.welcome_message_driver.trim()) {
       setMessage({ tone: "error", text: "متن پیامک خوش‌آمد خالی است." });
       return;
     }
 
     setSaving(true);
-    const rows = (Object.keys(DEFAULTS) as (keyof Settings)[]).map((key) => ({
-      key,
-      value: key === "admin_notify_phones" ? phones : key === "welcome_message" ? settings.welcome_message.trim() : settings[key],
-      updated_at: new Date().toISOString(),
-    }));
+    const rows = (Object.keys(DEFAULTS) as (keyof Settings)[]).map((key) => {
+      const value = settings[key];
+      return {
+        key,
+        value: key === "admin_notify_phones" ? phones : typeof value === "string" ? value.trim() : value,
+        updated_at: new Date().toISOString(),
+      };
+    });
     const { error } = await supabase.from("app_settings").upsert(rows, { onConflict: "key" });
     setSaving(false);
 
@@ -170,38 +201,38 @@ export function AdminSettings({ supabase }: { supabase: SupabaseClient }) {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
-          <p className="font-black">📱 شماره‌های مدیر برای پیامک بار جدید</p>
-          <p className="mt-1 text-xs leading-6 text-fg/55">هر شماره در یک خط. برای هر بار تازه به این شماره‌ها پیامک می‌رود.</p>
-          <textarea
-            value={phonesText}
-            onChange={(e) => {
-              setPhonesText(e.target.value);
-              setMessage(null);
-            }}
-            rows={4}
-            dir="ltr"
-            className="mt-3 w-full rounded-2xl border border-fg/10 bg-surface-3 px-4 py-3 text-sm outline-none focus:border-orange-500"
-          />
-        </div>
+      <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
+        <p className="font-black">📱 شماره‌های مدیر برای پیامک بار جدید</p>
+        <p className="mt-1 text-xs leading-6 text-fg/55">هر شماره در یک خط. برای هر بار تازه به این شماره‌ها پیامک می‌رود.</p>
+        <textarea
+          value={phonesText}
+          onChange={(e) => {
+            setPhonesText(e.target.value);
+            setMessage(null);
+          }}
+          rows={3}
+          dir="ltr"
+          className="mt-3 w-full rounded-2xl border border-fg/10 bg-surface-3 px-4 py-3 text-sm outline-none focus:border-orange-500"
+        />
+      </div>
 
-        <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
-          <p className="font-black">✉️ متن پیامک خوش‌آمد</p>
-          <p className="mt-1 text-xs leading-6 text-fg/55">بعد از ثبت‌نام صاحب بار یا راننده‌ی تازه فرستاده می‌شود.</p>
-          <textarea
-            value={settings.welcome_message}
-            onChange={(e) => update("welcome_message", e.target.value)}
-            rows={4}
-            maxLength={300}
-            className="mt-3 w-full rounded-2xl border border-fg/10 bg-surface-3 px-4 py-3 text-sm leading-7 outline-none focus:border-orange-500"
-          />
-          <p className="mt-1 text-xs text-fg/50">
-            {[...settings.welcome_message].length.toLocaleString("fa-IR")} حرف ·{" "}
-            {([...settings.welcome_message].length <= 70 ? 1 : Math.ceil([...settings.welcome_message].length / 67)).toLocaleString("fa-IR")}{" "}
-            پیامک
-          </p>
-        </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        {WELCOME_FIELDS.map(([key, title, hint]) => (
+          <div key={key} className="rounded-3xl border border-fg/10 bg-surface-2 p-5">
+            <p className="font-black">{title}</p>
+            <p className="mt-1 text-xs leading-6 text-fg/55">{hint}</p>
+            <textarea
+              value={settings[key]}
+              onChange={(e) => update(key, e.target.value)}
+              rows={4}
+              maxLength={300}
+              className="mt-3 w-full rounded-2xl border border-fg/10 bg-surface-3 px-4 py-3 text-sm leading-7 outline-none focus:border-orange-500"
+            />
+            <p className="mt-1 text-xs text-fg/50">
+              {[...settings[key]].length.toLocaleString("fa-IR")} حرف · {smsParts(settings[key]).toLocaleString("fa-IR")} پیامک
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="rounded-3xl border border-fg/10 bg-surface-2 p-5">

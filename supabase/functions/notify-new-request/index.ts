@@ -137,9 +137,12 @@ Deno.serve(async (req) => {
     const { data: settingRows } = await supabase
       .from("app_settings")
       .select("key, value")
-      .in("key", ["sms_new_request", "admin_notify_phones"]);
+      .in("key", ["sms_new_request", "sms_new_request_staff", "admin_notify_phones"]);
     const settings = Object.fromEntries((settingRows ?? []).map((row) => [row.key, row.value]));
-    if (settings.sms_new_request === false) return json({ success: true, sent: 0, disabled: true });
+    // دو کلید جدا در تنظیمات: پیامک مدیر و پیامک متصدی‌ها
+    const notifyAdmins = settings.sms_new_request !== false;
+    const notifyStaff = settings.sms_new_request_staff !== false;
+    if (!notifyAdmins && !notifyStaff) return json({ success: true, sent: 0, disabled: true });
     const configuredAdmins: string[] = Array.isArray(settings.admin_notify_phones)
       ? settings.admin_notify_phones.map(String)
       : ADMIN_PHONES;
@@ -153,7 +156,7 @@ Deno.serve(async (req) => {
     const outbox = new Map<string, string>();
 
     // بار تلفنی را خود مدیر ثبت کرده؛ پیامک مدیر لازم نیست
-    if (!byAdmin) {
+    if (!byAdmin && notifyAdmins) {
       for (const adminPhone of adminPhones) {
         outbox.set(
           adminPhone,
@@ -175,7 +178,7 @@ Deno.serve(async (req) => {
     const areaCity = staffKind === "origin" ? request.origin_city : request.city;
     const callerPhone = callerStaff?.phone ? toSmsNumber(callerStaff.phone) : null;
 
-    if (staffKind && areaProvince) {
+    if (notifyStaff && staffKind && areaProvince) {
       const { data: staff } = await supabase
         .from("staff")
         .select("phone, staff_locations!inner(province, city)")
@@ -198,7 +201,7 @@ Deno.serve(async (req) => {
         const phone = toSmsNumber(member.phone);
         // اگر مدیر خودش متصدی هم باشد، همان یک پیامک مدیر کافی است
         // کسی که خودش بار تلفنی را ثبت کرده پیامک نمی‌گیرد
-        if (covers && !outbox.has(phone) && !adminPhones.has(phone) && phone !== callerPhone) {
+        if (covers && !outbox.has(phone) && !(notifyAdmins && adminPhones.has(phone)) && phone !== callerPhone) {
           outbox.set(
             phone,
             staffKind === "intracity"
