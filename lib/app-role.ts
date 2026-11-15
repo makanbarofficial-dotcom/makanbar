@@ -27,7 +27,10 @@ export function setAppRole(role: AppRole | null) {
 
 // آیا صفحه داخل اپلیکیشن نصب‌شده باز شده است (نه در مرورگر)
 export function isStandalone() {
+  // اپ اندروید جدید (Capacitor) حالت standalone مرورگر را ندارد؛ جدا تشخیص داده می‌شود
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return (
+    !!cap?.isNativePlatform?.() ||
     window.matchMedia("(display-mode: standalone)").matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true
   );

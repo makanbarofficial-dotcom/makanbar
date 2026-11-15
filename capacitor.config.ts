@@ -15,7 +15,14 @@ const config: CapacitorConfig = {
     errorPath: "offline.html",
   },
   android: {
-    backgroundColor: "#07111f",
+    // هم‌رنگ سربرگ سفید سایت، تا نوار بالای گوشی (ساعت و باتری) یکدست باشد
+    backgroundColor: "#ffffff",
+  },
+  plugins: {
+    SystemBars: {
+      // آیکون‌های تیره روی زمینه‌ی روشن
+      style: "LIGHT",
+    },
   },
 };
 
