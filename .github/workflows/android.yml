@@ -1,0 +1,68 @@
+# ساخت اپ اندروید ماکان بار روی سرورهای گیت‌هاب (ابزارهای اندروید مستقیم از گوگل).
+# خروجی، APK «امضانشده» است؛ امضا فقط روی لپ‌تاپ و با کلید خود ماکان بار انجام می‌شود
+# (کلید امضا هیچ‌وقت روی گیت‌هاب نمی‌آید).
+name: Android app
+
+on:
+  workflow_dispatch:
+    inputs:
+      signing_tools:
+        description: "ابزار امضای ویندوز (build-tools) را هم بفرست"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci --ignore-scripts
+
+      - run: npx cap sync android
+
+      - name: Build unsigned release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: makanbar-unsigned-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 7
+
+  signing-tools:
+    if: ${{ inputs.signing_tools }}
+    runs-on: windows-latest
+    steps:
+      - name: Package Windows build-tools (zipalign, apksigner)
+        shell: pwsh
+        run: |
+          $sdk = $env:ANDROID_HOME
+          $sdkmanager = Join-Path $sdk "cmdline-tools\latest\bin\sdkmanager.bat"
+          & $sdkmanager "build-tools;36.0.0" | Out-Null
+          $bt = Join-Path $sdk "build-tools\36.0.0"
+          if (-not (Test-Path (Join-Path $bt "apksigner.bat"))) { throw "build-tools 36.0.0 not found" }
+          Compress-Archive -Path $bt -DestinationPath build-tools-36.0.0-windows.zip
+          Get-FileHash build-tools-36.0.0-windows.zip -Algorithm SHA256 | Format-List
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-tools-windows
+          path: build-tools-36.0.0-windows.zip
+          retention-days: 7

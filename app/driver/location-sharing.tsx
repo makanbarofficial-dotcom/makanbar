@@ -11,6 +11,19 @@ const MAX_SEND_MS = 60_000; // حتی اگر حرکت نکرده، هر یک د�
 const MOVE_METERS = 300; // با این مقدار جابه‌جایی زودتر می‌فرستیم
 
 type Fix = { lat: number; lng: number; at: number };
+type Reading = { lat: number; lng: number; accuracy: number | null };
+
+// داخل اپ اندروید ماکان بار هستیم؟ (آنجا موقعیت در پس‌زمینه هم فرستاده می‌شود)
+function inNativeApp() {
+  if (typeof window === "undefined") return false;
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  return !!cap?.isNativePlatform?.();
+}
+
+function fromPosition(position: GeolocationPosition): Reading {
+  const { latitude, longitude, accuracy } = position.coords;
+  return { lat: latitude, lng: longitude, accuracy: Number.isFinite(accuracy) ? accuracy : null };
+}
 
 function distanceMeters(a: Fix, b: { lat: number; lng: number }) {
   const rad = Math.PI / 180;
@@ -38,11 +51,14 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
   const [lastSent, setLastSent] = useState<number | null>(null);
   const lastFix = useRef<Fix | null>(null);
   const watchId = useRef<number | null>(null);
-  const supported = typeof navigator !== "undefined" && "geolocation" in navigator;
+  const nativeWatchId = useRef<string | null>(null);
+  const [native] = useState(inNativeApp);
+  const [needsSettings, setNeedsSettings] = useState(false);
+  const supported = native || (typeof navigator !== "undefined" && "geolocation" in navigator);
 
   const send = useCallback(
-    async (position: GeolocationPosition, force = false) => {
-      const { latitude: lat, longitude: lng, accuracy } = position.coords;
+    async (reading: Reading, force = false) => {
+      const { lat, lng, accuracy } = reading;
       const now = Date.now();
       const prev = lastFix.current;
       if (!force && prev) {
@@ -54,7 +70,7 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
       const { error: rpcError } = await supabase.rpc("report_my_location", {
         p_lat: lat,
         p_lng: lng,
-        p_accuracy: Number.isFinite(accuracy) ? Math.round(accuracy) : null,
+        p_accuracy: accuracy === null ? null : Math.round(accuracy),
       });
       if (rpcError) {
         lastFix.current = prev;
@@ -69,16 +85,40 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
   const stopWatch = useCallback(() => {
     if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current);
     watchId.current = null;
+    const nativeId = nativeWatchId.current;
+    nativeWatchId.current = null;
+    if (nativeId) void import("@/lib/native-location").then((mod) => mod.stopNativeWatch(nativeId));
   }, []);
 
   const startWatch = useCallback(() => {
+    if (native) {
+      // داخل اپ: موقعیت در پس‌زمینه هم می‌آید (با اعلان ثابت روی گوشی)
+      if (nativeWatchId.current) return;
+      nativeWatchId.current = "pending";
+      void import("@/lib/native-location").then(async (mod) => {
+        const id = await mod.startNativeWatch(
+          (reading) => {
+            setNeedsSettings(false);
+            void send(reading);
+          },
+          (message, notAuthorized) => {
+            setError(message);
+            setNeedsSettings(notAuthorized);
+          }
+        );
+        // اگر در این فاصله خاموش شده بود، همین الان متوقفش می‌کنیم
+        if (nativeWatchId.current === "pending") nativeWatchId.current = id;
+        else void mod.stopNativeWatch(id);
+      });
+      return;
+    }
     if (!supported || watchId.current !== null) return;
     watchId.current = navigator.geolocation.watchPosition(
-      (position) => void send(position),
+      (position) => void send(fromPosition(position)),
       (geoError) => setError(geoErrorText(geoError)),
       { enableHighAccuracy: true, maximumAge: 30_000, timeout: 30_000 }
     );
-  }, [send, supported]);
+  }, [send, supported, native]);
 
   // وضعیت فعلی اشتراک را از سرور می‌خوانیم
   useEffect(() => {
@@ -99,8 +139,8 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
     if (!sharing) return;
     startWatch();
     const onVisible = () => {
-      if (document.visibilityState !== "visible") return;
-      navigator.geolocation.getCurrentPosition((position) => void send(position, true), () => undefined, {
+      if (native || document.visibilityState !== "visible") return;
+      navigator.geolocation.getCurrentPosition((position) => void send(fromPosition(position), true), () => undefined, {
         enableHighAccuracy: true,
         maximumAge: 30_000,
         timeout: 30_000,
@@ -111,7 +151,7 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
       document.removeEventListener("visibilitychange", onVisible);
       stopWatch();
     };
-  }, [sharing, send, startWatch, stopWatch]);
+  }, [sharing, send, startWatch, stopWatch, native]);
 
   async function turnOn() {
     if (!supported) {
@@ -120,6 +160,17 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
     }
     setBusy(true);
     setError("");
+    if (native) {
+      // داخل اپ، خود اپ اجازه را می‌پرسد و موقعیت را دنبال می‌کند
+      const { error: rpcError } = await supabase.rpc("set_my_location_sharing", { p_on: true });
+      setBusy(false);
+      if (rpcError) {
+        setError("روشن کردن انجام نشد؛ دوباره تلاش کنید.");
+        return;
+      }
+      setSharing(true);
+      return;
+    }
     // اول اجازه‌ی گوشی را می‌گیریم؛ اگر راننده اجازه نداد، چیزی روشن نمی‌شود
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -129,7 +180,7 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
           setError("روشن کردن انجام نشد؛ دوباره تلاش کنید.");
           return;
         }
-        await send(position, true);
+        await send(fromPosition(position), true);
         setBusy(false);
         setSharing(true);
       },
@@ -167,7 +218,7 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
           <h3 className="font-black">📍 اشتراک موقعیت {sharing ? "روشن است" : ""}</h3>
           <p className="mt-1 text-xs leading-6 text-fg/60">
             {sharing
-              ? `تا وقتی این پنل باز است، موقعیت و مسیر شما فقط برای مدیریت ماکان بار فرستاده می‌شود (مسیرها تا ۳۰ روز نگه داشته می‌شوند).${
+              ? `${native ? "حتی وقتی اپ در پس‌زمینه است یا صفحه خاموش است" : "تا وقتی این پنل باز است"}، موقعیت و مسیر شما فقط برای مدیریت ماکان بار فرستاده می‌شود (مسیرها تا ۳۰ روز نگه داشته می‌شوند).${
                   lastSent
                     ? ` آخرین ارسال: ${new Date(lastSent).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}`
                     : ""
@@ -189,6 +240,20 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
         </button>
       </div>
       {error && <p className="mt-3 rounded-xl bg-red-500/10 p-3 text-xs leading-6 text-red-700">{error}</p>}
+      {native && needsSettings && (
+        <button
+          type="button"
+          onClick={() => void import("@/lib/native-location").then((mod) => mod.openAppSettings())}
+          className="mt-2 rounded-xl bg-fg/10 px-4 py-2 text-xs font-bold text-fg/80"
+        >
+          باز کردن تنظیمات اپ
+        </button>
+      )}
+      {native && sharing && (
+        <p className="mt-3 rounded-xl bg-sky-500/10 p-3 text-xs leading-6 text-sky-900">
+          اگر گوشی اپ را بعد از مدتی می‌بندد: در تنظیمات گوشی ← برنامه‌ها ← ماکان بار ← باتری، گزینه‌ی «بدون محدودیت» را انتخاب کنید.
+        </p>
+      )}
     </section>
   );
 }
