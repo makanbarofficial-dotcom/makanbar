@@ -87,8 +87,31 @@ function uploadOne(file) {
   }
 }
 
+// فایل‌های _next/static اسمشان از روی محتوا ساخته می‌شود؛ اگر با همان اندازه روی هاست هست، یعنی عوض نشده.
+// دوباره نوشتن آن‌ها وسط کار، به بازدیدکننده نسخه‌ی نصفه می‌دهد و مرورگر چون «تغییرناپذیر» است
+// همان نسخه‌ی خراب را تا یک سال نگه می‌دارد (مثل فونت به‌هم‌ریخته). پس اصلاً به آن‌ها دست نمی‌زنیم.
+const isHashed = (dir) => dir === "_next/static" || dir.startsWith("_next/static/");
+
+// اول فایل‌های تازه‌ی _next/static، بعد صفحه‌ها؛ تا هیچ صفحه‌ای به فایلی که هنوز نرسیده اشاره نکند
+const ordered = [...byDir].sort(([a], [b]) => Number(isHashed(b)) - Number(isHashed(a)));
+
 let count = 0;
-for (const [dir, names] of byDir) {
+let skipped = 0;
+for (const [dir, allNames] of ordered) {
+  let names = allNames;
+  if (isHashed(dir)) {
+    let sizes = new Map();
+    try {
+      sizes = remoteSizes(dir);
+    } catch {
+      // پوشه هنوز روی هاست نیست
+    }
+    names = allNames.filter(
+      (name) => sizes.get(name) !== statSync(join(OUT, ...dir.split("/").filter(Boolean), name)).size
+    );
+    skipped += allNames.length - names.length;
+    if (names.length === 0) continue;
+  }
   const target = dir ? `${REMOTE}/${dir}/` : `${REMOTE}/`;
   try {
     curl(["--ftp-create-dirs", "-T", `{${names.join(",")}}`, target], join(OUT, ...dir.split("/").filter(Boolean)));
@@ -100,6 +123,7 @@ for (const [dir, names] of byDir) {
   count += names.length;
   process.stdout.write(`\r${count} فایل بارگذاری شد`);
 }
+if (skipped) console.log(`\n${skipped} فایل بدون تغییر دست نخورد`);
 
 // گاهی اتصال وسط کار قطع می‌شود و فایل ناقص می‌ماند بدون اینکه curl خطا بدهد؛
 // اندازه هر فایل روی هاست با نسخه محلی مقایسه و فایل‌های ناقص تک‌تک دوباره فرستاده می‌شوند
