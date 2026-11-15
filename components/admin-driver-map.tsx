@@ -36,6 +36,8 @@ const IRAN_CENTER: [number, number] = [32.4, 53.7];
 const HOUR = 3600_000;
 // فاصله‌ی بیش از این بین دو نقطه یعنی پنل راننده بسته بوده؛ با خط‌چین کشیده می‌شود
 const GAP_MS = 10 * 60_000;
+// روی نقشه‌ی اصلی، پشت هر راننده مسیر این چند ساعت اخیر کشیده می‌شود
+const TRAIL_HOURS = 12;
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
@@ -125,6 +127,8 @@ export function AdminDriverMap({ supabase }: { supabase: SupabaseClient }) {
   const [routeDay, setRouteDay] = useState(0);
   const [route, setRoute] = useState<HistoryPoint[] | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
+  // مسیر چند ساعت اخیر هر راننده برای نمای «الان کجا هستند»
+  const [trails, setTrails] = useState<Record<string, HistoryPoint[]>>({});
 
   // دریافت رانندگان و آخرین موقعیت‌ها
   const load = useCallback(async () => {
@@ -143,6 +147,24 @@ export function AdminDriverMap({ supabase }: { supabase: SupabaseClient }) {
     setDrivers((driverData ?? []) as DriverRow[]);
     setLocations((locationData ?? []) as LocationRow[]);
     setNow(Date.now());
+
+    const since = new Date(Date.now() - TRAIL_HOURS * HOUR).toISOString();
+    const grouped: Record<string, HistoryPoint[]> = {};
+    for (let from = 0; from < 30_000; from += 1000) {
+      const { data, error: trailError } = await supabase
+        .from("driver_location_history")
+        .select("driver_id, lat, lng, accuracy, recorded_at")
+        .gte("recorded_at", since)
+        .order("recorded_at", { ascending: true })
+        .range(from, from + 999);
+      if (trailError || !data) break;
+      for (const row of data as (HistoryPoint & { driver_id: string })[]) {
+        if (row.accuracy !== null && row.accuracy > 500) continue;
+        (grouped[row.driver_id] ??= []).push(row);
+      }
+      if (data.length < 1000) break;
+    }
+    setTrails(grouped);
   }, [supabase]);
 
   useEffect(() => {
@@ -225,6 +247,17 @@ export function AdminDriverMap({ supabase }: { supabase: SupabaseClient }) {
     if (!mapReady || !L || !map || !layer || mode !== "live") return;
     layer.clearLayers();
     for (const pin of visiblePins) {
+      const trail = trails[pin.id] ?? [];
+      let trailKm = 0;
+      for (let i = 1; i < trail.length; i += 1) trailKm += distanceKm(trail[i - 1], trail[i]);
+      if (trail.length > 1) {
+        const line: [number, number][] = trail.map((point) => [point.lat, point.lng]);
+        line.push([pin.lat, pin.lng]);
+        L.polyline(line, { color: "#ea580c", weight: 4, opacity: 0.6 }).addTo(layer);
+        L.circleMarker([trail[0].lat, trail[0].lng], { radius: 5, color: "#ea580c", fillColor: "#fff", fillOpacity: 1, weight: 2 })
+          .bindTooltip(`شروع: ${clock(trail[0].recorded_at)}`)
+          .addTo(layer);
+      }
       const marker = L.marker([pin.lat, pin.lng], { icon: pinIcon(L, pinColor(pin.located_at, now), "🚚") });
       const vehicle = [pin.vehicle_type, pin.vehicle_model].filter(Boolean).join(" · ");
       marker.bindPopup(
@@ -232,10 +265,21 @@ export function AdminDriverMap({ supabase }: { supabase: SupabaseClient }) {
           <b>${escapeHtml(pin.full_name || "راننده")}</b><br/>
           ${vehicle ? `${escapeHtml(vehicle)}<br/>` : ""}
           <span style="color:#64748b">${timeAgo(pin.located_at, now)}</span><br/>
+          ${trail.length > 1 ? `<span>〰 ${Math.round(trailKm).toLocaleString("fa-IR")} کیلومتر در ${TRAIL_HOURS.toLocaleString("fa-IR")} ساعت اخیر</span><br/>` : `<span style="color:#64748b">در ${TRAIL_HOURS.toLocaleString("fa-IR")} ساعت اخیر جابه‌جایی ثبت نشده</span><br/>`}
+          <a href="#" data-route="${pin.id}" style="color:#ea580c;font-weight:700">مسیر کامل امروز</a> ·
           ${pin.phone ? `<a href="tel:${escapeHtml(pin.phone)}" style="color:#059669;font-weight:700">📞 تماس</a> · ` : ""}
           <a href="https://www.google.com/maps?q=${pin.lat},${pin.lng}" target="_blank" rel="noopener">مسیریابی</a>
         </div>`
       );
+      marker.on("popupopen", (event) => {
+        const link = event.popup.getElement()?.querySelector("[data-route]");
+        link?.addEventListener("click", (click) => {
+          click.preventDefault();
+          setRouteDriver(pin.id);
+          setRouteDay(0);
+          setMode("route");
+        });
+      });
       marker.addTo(layer);
     }
     const fitKey = `${vehicleFilter}|${recentOnly}|${visiblePins.length > 0}`;
@@ -249,7 +293,7 @@ export function AdminDriverMap({ supabase }: { supabase: SupabaseClient }) {
     } else {
       map.setView(IRAN_CENTER, 5);
     }
-  }, [mapReady, mode, visiblePins, now, vehicleFilter, recentOnly]);
+  }, [mapReady, mode, visiblePins, now, vehicleFilter, recentOnly, trails]);
 
   // دریافت مسیر یک راننده در یک روز (صفحه‌به‌صفحه، چون هر بار حداکثر ۱۰۰۰ ردیف می‌آید)
   const loadRoute = useCallback(async () => {
@@ -522,6 +566,10 @@ export function AdminDriverMap({ supabase }: { supabase: SupabaseClient }) {
           <span>
             <span className="ml-1 inline-block h-3 w-3 rounded-full bg-[#94a3b8] align-middle" />
             قدیمی‌تر
+          </span>
+          <span>
+            <span className="ml-1 inline-block h-1 w-5 rounded bg-[#ea580c] align-middle opacity-70" />
+            مسیر ۱۲ ساعت اخیر (روی کامیون بزنید و «مسیر کامل امروز» را ببینید)
           </span>
         </div>
       )}
