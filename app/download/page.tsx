@@ -44,7 +44,7 @@ export default function DownloadPage() {
           <span className="text-2xl">🤖</span>
           دانلود اپلیکیشن اندروید
         </a>
-        <p className="mt-3 text-xs text-fg/55">حجم حدود ۱٫۵ مگابایت · اندروید ۵ به بالا</p>
+        <p className="mt-3 text-xs text-fg/55">نسخه‌ی ۲٫۰٫۱ · حجم حدود ۴٫۵ مگابایت · اندروید ۷ به بالا</p>
       </section>
 
       <section className="mx-auto grid max-w-4xl gap-5 px-5 pb-20 md:grid-cols-2">
