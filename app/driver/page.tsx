@@ -151,6 +151,11 @@ export default function DriverPage() {
   const [viewingAs, setViewingAs] = useState(false);
   // میانگین امتیازی که صاحبان بار به این راننده داده‌اند
   const [myRating, setMyRating] = useState<{ average: number; total: number } | null>(null);
+  // «نزدیک‌ترین بارها»: بارهای آزاد به ترتیب فاصله‌ی راننده تا مبدأ
+  const [nearby, setNearby] = useState(false);
+  const [nearbyBusy, setNearbyBusy] = useState(false);
+  const [nearbyError, setNearbyError] = useState("");
+  const [distances, setDistances] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setFilter(readFilter());
@@ -190,6 +195,62 @@ export default function DriverPage() {
   );
 
   const placeFilterActive = !!(filter.origin.province || filter.destination.province);
+
+  const shownLoads = useMemo(() => {
+    if (!nearby) return filteredLoads;
+    const far = Number.POSITIVE_INFINITY;
+    return [...filteredLoads].sort((a, b) => (distances[a.id] ?? far) - (distances[b.id] ?? far));
+  }, [filteredLoads, nearby, distances]);
+
+  // موقعیت فعلی راننده: اگر اشتراک موقعیت روشن است و تازه است همان، وگرنه یک بار از گوشی می‌پرسیم
+  async function myPosition(): Promise<{ lat: number; lng: number }> {
+    const { data } = await supabase.from("driver_locations").select("sharing, lat, lng, located_at").maybeSingle();
+    if (
+      data?.sharing &&
+      data.lat !== null &&
+      data.lng !== null &&
+      data.located_at &&
+      Date.now() - new Date(data.located_at).getTime() < 30 * 60_000
+    ) {
+      return { lat: data.lat, lng: data.lng };
+    }
+    return new Promise((resolve, reject) => {
+      if (!("geolocation" in navigator)) {
+        reject(new Error("unsupported"));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+        (geoError) => reject(geoError),
+        { enableHighAccuracy: false, maximumAge: 5 * 60_000, timeout: 30_000 }
+      );
+    });
+  }
+
+  async function toggleNearby() {
+    if (nearby) {
+      setNearby(false);
+      setNearbyError("");
+      return;
+    }
+    setNearbyBusy(true);
+    setNearbyError("");
+    try {
+      const me = await myPosition();
+      const { distancesToOrigins } = await import("@/lib/nearby");
+      setDistances(await distancesToOrigins(me, availableLoads));
+      setNearby(true);
+    } catch (positionError) {
+      const denied = (positionError as GeolocationPositionError)?.code === 1;
+      setNearbyError(
+        denied
+          ? "برای دیدن بارهای نزدیک، اجازه‌ی موقعیت مکانی را بدهید (یا «اشتراک موقعیت» را روشن کنید)."
+          : "موقعیت شما پیدا نشد. GPS گوشی را روشن کنید و دوباره امتحان کنید."
+      );
+    } finally {
+      setNearbyBusy(false);
+    }
+  }
 
   const refresh = useCallback(async () => {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -427,6 +488,12 @@ export default function DriverPage() {
           </span>
         </div>
 
+        {!mine && nearby && distances[load.id] !== undefined && (
+          <p className="mt-2 text-sm font-bold text-emerald-700">
+            📍 حدود {Math.max(1, Math.round(distances[load.id])).toLocaleString("fa-IR")} کیلومتر تا مبدأ (فاصله‌ی هوایی)
+          </p>
+        )}
+
         <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
           <span className="text-sm text-fg/60">کرایه</span>
           <span className="text-lg font-black text-emerald-700">{formatPrice(load.price)}</span>
@@ -573,6 +640,17 @@ export default function DriverPage() {
 
     return (
       <div className={`${ui.card} p-4`}>
+        <button
+          type="button"
+          disabled={nearbyBusy || viewingAs}
+          onClick={() => void toggleNearby()}
+          className={`mb-4 w-full rounded-xl px-4 py-3 text-sm font-black transition disabled:opacity-60 ${
+            nearby ? "bg-emerald-600 text-white" : "border border-emerald-500/40 bg-emerald-500/10 text-emerald-800"
+          }`}
+        >
+          {nearbyBusy ? "در حال پیدا کردن موقعیت شما..." : nearby ? "📍 به ترتیب نزدیکی به شما ✓ (برای لغو بزنید)" : "📍 نزدیک‌ترین بارها به من"}
+        </button>
+        {nearbyError && <p className="mb-4 rounded-xl bg-red-500/10 p-3 text-xs leading-6 text-red-700">{nearbyError}</p>}
         <button
           type="button"
           onClick={() => setFilterOpen((open) => !open)}
@@ -797,8 +875,8 @@ export default function DriverPage() {
               {activeTab === "available" && filterPanel()}
 
               {activeTab === "available" &&
-                (filteredLoads.length > 0
-                  ? filteredLoads.map((load) => loadCard(load, false))
+                (shownLoads.length > 0
+                  ? shownLoads.map((load) => loadCard(load, false))
                   : availableLoads.length === 0
                     ? emptyState("فعلاً بار آزادی نیست. کمی بعد دوباره سر بزنید.")
                     : emptyState("با این فیلتر باری پیدا نشد. مبدا، مقصد یا فیلتر ماشین را تغییر دهید."))}
