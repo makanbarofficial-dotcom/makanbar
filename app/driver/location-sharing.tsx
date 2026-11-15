@@ -54,6 +54,23 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
   const nativeWatchId = useRef<string | null>(null);
   const [native] = useState(inNativeApp);
   const [needsSettings, setNeedsSettings] = useState(false);
+  // پنجره‌ی «موقعیت را روشن کنید» هر بار که راننده اپ را باز می‌کند (اگر خاموش باشد)؛ «بعداً» تا بستن اپ
+  const [promptDismissed, setPromptDismissed] = useState(() => {
+    try {
+      return typeof window !== "undefined" && window.sessionStorage.getItem("makanbar-location-prompt") === "later";
+    } catch {
+      return false;
+    }
+  });
+
+  function dismissPrompt() {
+    setPromptDismissed(true);
+    try {
+      window.sessionStorage.setItem("makanbar-location-prompt", "later");
+    } catch {
+      // بدون حافظه‌ی مرورگر هم کار می‌کند
+    }
+  }
   const supported = native || (typeof navigator !== "undefined" && "geolocation" in navigator);
 
   const send = useCallback(
@@ -209,7 +226,44 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
 
   if (sharing === null) return null;
 
+  const showPrompt = native && !sharing && !promptDismissed;
+
   return (
+    <>
+    {showPrompt && (
+      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-4 sm:items-center" role="dialog" aria-modal="true">
+        <div className="w-full max-w-md rounded-3xl bg-surface-2 p-6 text-fg shadow-2xl">
+          <div className="text-4xl">📍</div>
+          <h2 className="mt-3 text-xl font-black">موقعیت خود را روشن کنید</h2>
+          <p className="mt-3 text-sm leading-7 text-fg/75">
+            ماکان بار با اجازه‌ی شما <b>موقعیت مکانی</b> گوشی‌تان را می‌گیرد؛ <b>حتی وقتی اپ بسته یا در پس‌زمینه است</b>،
+            تا مدیریت بتواند بار نزدیک‌تری برایتان پیدا کند و از وضعیت بار در راه باخبر باشد.
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pr-5 text-xs leading-6 text-fg/60">
+            <li>فقط مدیریت ماکان بار موقعیت شما را می‌بیند.</li>
+            <li>تا وقتی روشن است، یک اعلان روی گوشی دیده می‌شود.</li>
+            <li>هر وقت بخواهید از همین پنل خاموشش می‌کنید و مسیرهایتان پاک می‌شود.</li>
+          </ul>
+          <a href="/privacy/" className="mt-2 inline-block text-xs font-bold text-orange-700 underline">
+            سیاست حریم خصوصی
+          </a>
+          {error && <p className="mt-3 rounded-xl bg-red-500/10 p-3 text-xs leading-6 text-red-700">{error}</p>}
+          <div className="mt-5 flex gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void turnOn()}
+              className="flex-1 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {busy ? "صبر کنید..." : "روشن کردن موقعیت"}
+            </button>
+            <button type="button" onClick={dismissPrompt} className="rounded-2xl px-4 py-3 text-sm font-bold text-fg/60">
+              بعداً
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <section
       className={`${ui.card} p-4 sm:p-5 ${sharing ? "border-emerald-400/40 bg-emerald-500/[0.06]" : ""}`}
     >
@@ -255,5 +309,6 @@ export function LocationSharing({ supabase }: { supabase: SupabaseClient }) {
         </p>
       )}
     </section>
+    </>
   );
 }

@@ -247,7 +247,12 @@ export function SiteFooter() {
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-5 text-xs text-white/50 sm:flex-row sm:justify-between sm:px-6">
-          <span>© {new Date().getFullYear()} ماکان بار — تمامی حقوق محفوظ است.</span>
+          <span>
+            © {new Date().getFullYear()} ماکان بار — تمامی حقوق محفوظ است. ·{" "}
+            <Link href="/privacy/" className="transition hover:text-orange-300">
+              حریم خصوصی
+            </Link>
+          </span>
           <span>طراحی شده توسط مهندس فراهانی</span>
         </div>
       </div>

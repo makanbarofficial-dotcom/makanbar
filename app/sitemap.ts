@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/representatives/`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE}/vehicles/`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE}/about/`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE}/privacy/`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE}/download/`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE}/haml-bar/`, changeFrequency: "monthly", priority: 0.8 },
     ...SERVICE_PAGES.map((page) => ({
